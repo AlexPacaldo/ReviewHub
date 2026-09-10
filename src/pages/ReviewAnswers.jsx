@@ -1,0 +1,121 @@
+import { useMemo, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import EmptyState from "../components/EmptyState.jsx";
+import { getReviewerById } from "../data/reviewerRegistry.js";
+import { createQuizSession, getQuestionResult } from "../utils/quizUtils.js";
+import { getAttemptById, getLatestAttempt, saveQuizProgress } from "../utils/storageUtils.js";
+
+export default function ReviewAnswers() {
+  const { reviewerId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState("all");
+  const params = new URLSearchParams(location.search);
+  const attemptId = params.get("attempt");
+  const attempt = attemptId ? getAttemptById(attemptId) : getLatestAttempt(reviewerId);
+  const reviewer = getReviewerById(reviewerId);
+
+  const reviewedQuestions = useMemo(() => {
+    if (!attempt) return [];
+    return attempt.questions
+      .map((question, index) => {
+        const result = getQuestionResult(question, attempt.answers[question.id]);
+        return { ...question, index, ...result };
+      })
+      .filter((question) => filter === "all" || (filter === "correct" ? question.isCorrect : !question.isCorrect));
+  }, [attempt, filter]);
+
+  const filterCounts = useMemo(() => {
+    if (!attempt) return { all: 0, correct: 0, incorrect: 0 };
+    return {
+      all: attempt.totalQuestions,
+      correct: attempt.correctAnswers,
+      incorrect: attempt.wrongAnswers
+    };
+  }, [attempt]);
+
+  if (!attempt) {
+    return <EmptyState title="No attempt found" message="There is no completed attempt to review." action={<Link className="button primary" to="/">Back to Reviewers</Link>} />;
+  }
+
+  function retryIncorrect() {
+    if (!reviewer || !attempt.incorrectQuestionIds.length) return;
+    const session = createQuizSession(
+      reviewer,
+      {
+        questionCount: attempt.incorrectQuestionIds.length,
+        questionOrder: "original",
+        choiceOrder: attempt.settings.choiceOrder || "original",
+        mode: attempt.settings.mode || "practice"
+      },
+      attempt.incorrectQuestionIds
+    );
+    saveQuizProgress(session);
+    navigate(`/quiz/${reviewerId}`);
+  }
+
+  return (
+    <div className="page review-page">
+      <section className="section-heading">
+        <div>
+          <p className="eyebrow">Review Answers</p>
+          <h1>{attempt.reviewerTitle}</h1>
+          <p className="muted">Compare your answers with the correct answers and explanations.</p>
+        </div>
+        <div className="button-row">
+          {attempt.incorrectQuestionIds.length ? <button className="button primary" type="button" onClick={retryIncorrect}>Retry Incorrect Questions</button> : null}
+          <Link className="button subtle" to={`/results/${reviewerId}?attempt=${attempt.attemptId}`}>Back to Results</Link>
+        </div>
+      </section>
+
+      <section className="review-toolbar">
+        <div className="review-stats" aria-label="Attempt summary">
+          <span><strong>{attempt.score} / {attempt.totalQuestions}</strong> Score</span>
+          <span><strong>{attempt.percentage}%</strong> Percentage</span>
+          <span><strong>{attempt.correctAnswers}</strong> Correct</span>
+          <span><strong>{attempt.wrongAnswers}</strong> Incorrect</span>
+        </div>
+
+        <div className="segmented filters" aria-label="Answer filter">
+          <button type="button" className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All <span>{filterCounts.all}</span></button>
+          <button type="button" className={filter === "correct" ? "active" : ""} onClick={() => setFilter("correct")}>Correct <span>{filterCounts.correct}</span></button>
+          <button type="button" className={filter === "incorrect" ? "active" : ""} onClick={() => setFilter("incorrect")}>Incorrect <span>{filterCounts.incorrect}</span></button>
+        </div>
+      </section>
+
+      <div className="review-list">
+        {reviewedQuestions.map((question) => (
+          <article className={`review-item ${question.isCorrect ? "correct" : "incorrect"}`} key={question.id}>
+            <div className="review-item-head">
+              <div>
+                <span className="review-number">Question {question.index + 1}</span>
+                <p className="topic-label">{question.topic}</p>
+              </div>
+              <strong className={`result-badge ${question.isCorrect ? "correct" : "incorrect"}`}>
+                {question.isCorrect ? "Correct" : "Incorrect"}
+              </strong>
+            </div>
+
+            <h2>{question.question}</h2>
+
+            <div className="answer-comparison">
+              <div className={question.isCorrect ? "answer-box correct" : "answer-box incorrect"}>
+                <span>Your Answer</span>
+                <strong>{question.selectedText}</strong>
+              </div>
+              <div className="answer-box correct">
+                <span>Correct Answer</span>
+                <strong>{question.correctText}</strong>
+              </div>
+            </div>
+
+            <div className="explanation-box">
+              <span>Explanation</span>
+              <p>{question.explanation}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}

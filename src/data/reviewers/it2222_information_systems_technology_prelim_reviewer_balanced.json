@@ -1,0 +1,867 @@
+{
+  "reviewerId": "it2222-information-systems-technology-prelim",
+  "title": "PIIT Reviewer",
+  "subject": "Professional Issues in Information Systems and Technology",
+  "coverage": [
+    "Introduction to Information Systems and Technology",
+    "Essential Components of Information Systems",
+    "Hardware, Software, Data, People, and Processes",
+    "Brief History of Information Systems",
+    "Modern Applications of Information Systems and Technology",
+    "Categories of Information Systems",
+    "Input and Output Technologies",
+    "Contemporary Application Software"
+  ],
+  "questionCount": 60,
+  "questionType": "multiple_choice",
+  "choicesPerQuestion": 4,
+  "instructions": "Read each question carefully. Choose the best answer.",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "Information Systems - Key Concepts",
+      "question": "What is an information system?",
+      "choices": {
+        "A": "A software application used only for communication",
+        "B": "A set of integrated elements that gather, process, save, and disseminate information",
+        "C": "A network that connects computers without processing information",
+        "D": "A physical computer device used only for data storage"
+      },
+      "correctAnswer": "B",
+      "answerText": "A set of integrated elements that gather, process, save, and disseminate information",
+      "explanation": "The handout defines information systems as integrated elements that gather, process, save, and disseminate information to support decision-making and management."
+    },
+    {
+      "id": 2,
+      "topic": "Information Systems - Key Concepts",
+      "question": "What is one main purpose of information systems in organizations?",
+      "choices": {
+        "A": "To support decision-making and management",
+        "B": "To replace all employees",
+        "C": "To remove the need for data",
+        "D": "To prevent communication between departments"
+      },
+      "correctAnswer": "A",
+      "answerText": "To support decision-making and management",
+      "explanation": "Information systems support an organization's decision-making and management."
+    },
+    {
+      "id": 3,
+      "topic": "Traditional Applications of Information Systems",
+      "question": "How do supermarket retailers such as Walmart use information systems?",
+      "choices": {
+        "A": "To optimize supply chains, record purchases, and analyze customer preferences",
+        "B": "Only to print customer receipts",
+        "C": "To avoid collecting customer purchase data",
+        "D": "Only to monitor employee attendance"
+      },
+      "correctAnswer": "A",
+      "answerText": "To optimize supply chains, record purchases, and analyze customer preferences",
+      "explanation": "The handout lists supply chain optimization, purchase recording, and analysis of customer tastes and preferences as supermarket applications."
+    },
+    {
+      "id": 4,
+      "topic": "Traditional Applications of Information Systems",
+      "question": "How do shipping companies such as FedEx and UPS use information systems?",
+      "choices": {
+        "A": "To replace delivery vehicles with software",
+        "B": "To design computer hardware",
+        "C": "To manufacture smartphones",
+        "D": "To dispatch trucks and track packages"
+      },
+      "correctAnswer": "D",
+      "answerText": "To dispatch trucks and track packages",
+      "explanation": "FedEx and UPS are used as examples of companies using information systems for truck dispatching and package tracking."
+    },
+    {
+      "id": 5,
+      "topic": "Traditional Applications of Information Systems",
+      "question": "Which is an example of how cities use information systems?",
+      "choices": {
+        "A": "Personal music streaming",
+        "B": "Gaming applications",
+        "C": "Word processing",
+        "D": "Adaptive traffic control systems"
+      },
+      "correctAnswer": "D",
+      "answerText": "Adaptive traffic control systems",
+      "explanation": "The handout lists adaptive traffic control systems and irregular speed limits as examples of city applications."
+    },
+    {
+      "id": 6,
+      "topic": "Advanced Applications of Information Systems",
+      "question": "Which is an advanced application of information systems in schools?",
+      "choices": {
+        "A": "Handwritten inventory tracking",
+        "B": "Online registration during enrollment",
+        "C": "Manual filing of all enrollment records",
+        "D": "Paper-only assignment submission"
+      },
+      "correctAnswer": "B",
+      "answerText": "Online registration during enrollment",
+      "explanation": "Online school registration during enrollment is listed as an advanced application of information systems."
+    },
+    {
+      "id": 7,
+      "topic": "Technology - Key Concepts",
+      "question": "How does the handout describe technology?",
+      "choices": {
+        "A": "A system that exists only inside businesses",
+        "B": "A process limited to engineering activities",
+        "C": "Only the use of computers and smartphones",
+        "D": "The outcome of acquired scientific knowledge, skills, procedures, and processes for applied purposes"
+      },
+      "correctAnswer": "D",
+      "answerText": "The outcome of acquired scientific knowledge, skills, procedures, and processes for applied purposes",
+      "explanation": "Technology is described as the outcome of acquired scientific knowledge, skills, procedures, and processes used for applied purposes."
+    },
+    {
+      "id": 8,
+      "topic": "Components of Information Systems",
+      "question": "How many major components of information systems are identified in the handout?",
+      "choices": {
+        "A": "Three",
+        "B": "Four",
+        "C": "Six",
+        "D": "Five"
+      },
+      "correctAnswer": "D",
+      "answerText": "Five",
+      "explanation": "The handout identifies five major components: hardware, software, data, people, and processes."
+    },
+    {
+      "id": 9,
+      "topic": "Components of Information Systems",
+      "question": "Which set correctly lists the five major components of an information system?",
+      "choices": {
+        "A": "Software, servers, routers, policies, and managers",
+        "B": "Data, cloud, internet, mobile devices, and reports",
+        "C": "Hardware, networks, websites, electricity, and users",
+        "D": "Hardware, software, data, people, and processes"
+      },
+      "correctAnswer": "D",
+      "answerText": "Hardware, software, data, people, and processes",
+      "explanation": "The five major components are hardware, software, data, people, and processes."
+    },
+    {
+      "id": 10,
+      "topic": "Technology Components",
+      "question": "Which three information system components fall under the technology category?",
+      "choices": {
+        "A": "Hardware, software, and data",
+        "B": "Hardware, people, and processes",
+        "C": "People, processes, and data",
+        "D": "Software, people, and networking"
+      },
+      "correctAnswer": "A",
+      "answerText": "Hardware, software, and data",
+      "explanation": "The first three components—hardware, software, and data—are grouped under the technology category."
+    },
+    {
+      "id": 11,
+      "topic": "Hardware",
+      "question": "What best describes hardware?",
+      "choices": {
+        "A": "The commands that instruct a computer what to do",
+        "B": "A series of steps for accomplishing a goal",
+        "C": "A collection of raw facts",
+        "D": "The physical and tangible components of an information system"
+      },
+      "correctAnswer": "D",
+      "answerText": "The physical and tangible components of an information system",
+      "explanation": "Hardware refers to physical, tangible components such as computers, keyboards, system units, and mice."
+    },
+    {
+      "id": 12,
+      "topic": "Hardware",
+      "question": "Which is an example of information systems hardware?",
+      "choices": {
+        "A": "A delivery process",
+        "B": "Microsoft Excel",
+        "C": "Customer address data",
+        "D": "Keyboard"
+      },
+      "correctAnswer": "D",
+      "answerText": "Keyboard",
+      "explanation": "A keyboard is one of the hardware examples listed in the handout."
+    },
+    {
+      "id": 13,
+      "topic": "Software",
+      "question": "What is software?",
+      "choices": {
+        "A": "A set of commands that instructs hardware what to do",
+        "B": "The physical parts of a computer",
+        "C": "The people who operate the system",
+        "D": "A collection of raw facts"
+      },
+      "correctAnswer": "A",
+      "answerText": "A set of commands that instructs hardware what to do",
+      "explanation": "Software consists of commands that tell the hardware what actions to perform."
+    },
+    {
+      "id": 14,
+      "topic": "Software",
+      "question": "Which two main categories of software are identified in the handout?",
+      "choices": {
+        "A": "Network software and cloud software",
+        "B": "Operating systems and application software",
+        "C": "Input software and output software",
+        "D": "Desktop software and mobile software"
+      },
+      "correctAnswer": "B",
+      "answerText": "Operating systems and application software",
+      "explanation": "The handout divides software into operating systems and application software."
+    },
+    {
+      "id": 15,
+      "topic": "Operating Systems",
+      "question": "What is the role of operating system software?",
+      "choices": {
+        "A": "It performs only spreadsheet calculations",
+        "B": "It provides an interface between hardware and application software",
+        "C": "It replaces all application software",
+        "D": "It stores only customer data"
+      },
+      "correctAnswer": "B",
+      "answerText": "It provides an interface between hardware and application software",
+      "explanation": "Operating systems provide the interface between hardware and application software."
+    },
+    {
+      "id": 16,
+      "topic": "Operating Systems",
+      "question": "Which is an example of an operating system mentioned in the handout?",
+      "choices": {
+        "A": "Microsoft Excel",
+        "B": "Facebook",
+        "C": "Ubuntu Linux",
+        "D": "Zoom"
+      },
+      "correctAnswer": "C",
+      "answerText": "Ubuntu Linux",
+      "explanation": "Ubuntu Linux is listed as an operating system for computers."
+    },
+    {
+      "id": 17,
+      "topic": "Application Software",
+      "question": "What does application software allow users to do?",
+      "choices": {
+        "A": "Physically assemble a computer",
+        "B": "Turn raw data into hardware",
+        "C": "Accomplish tasks such as creating documents, using spreadsheets, or messaging",
+        "D": "Replace the operating system"
+      },
+      "correctAnswer": "C",
+      "answerText": "Accomplish tasks such as creating documents, using spreadsheets, or messaging",
+      "explanation": "Application software helps users perform specific tasks such as document creation, spreadsheet work, and messaging."
+    },
+    {
+      "id": 18,
+      "topic": "Data",
+      "question": "How is data defined in the handout?",
+      "choices": {
+        "A": "A series of steps toward a goal",
+        "B": "A software interface",
+        "C": "A physical computer component",
+        "D": "A collection of indisputable raw facts"
+      },
+      "correctAnswer": "D",
+      "answerText": "A collection of indisputable raw facts",
+      "explanation": "The handout defines data as a collection of indisputable raw facts."
+    },
+    {
+      "id": 19,
+      "topic": "Data",
+      "question": "Why do companies collect and analyze data?",
+      "choices": {
+        "A": "To prevent managers from receiving information",
+        "B": "To eliminate all business processes",
+        "C": "To support decisions and improve company performance",
+        "D": "To make hardware heavier"
+      },
+      "correctAnswer": "C",
+      "answerText": "To support decisions and improve company performance",
+      "explanation": "Companies use collected data to make decisions and analyze results to improve performance."
+    },
+    {
+      "id": 20,
+      "topic": "People and Processes",
+      "question": "Why are people an essential component of information systems?",
+      "choices": {
+        "A": "People are not involved once software is installed",
+        "B": "People are considered part of hardware",
+        "C": "People are needed only when hardware fails",
+        "D": "People such as support staff, analysts, and developers are indispensable to information systems"
+      },
+      "correctAnswer": "D",
+      "answerText": "People such as support staff, analysts, and developers are indispensable to information systems",
+      "explanation": "The handout emphasizes that people involved in information systems—from support staff to analysts and developers—are indispensable."
+    },
+    {
+      "id": 21,
+      "topic": "People and Processes",
+      "question": "What is a process in an information system?",
+      "choices": {
+        "A": "A single piece of raw data",
+        "B": "A collection of physical computer parts",
+        "C": "A series of steps taken to accomplish a desired goal",
+        "D": "A type of operating system"
+      },
+      "correctAnswer": "C",
+      "answerText": "A series of steps taken to accomplish a desired goal",
+      "explanation": "A process is defined as a series of steps taken to accomplish a desired goal."
+    },
+    {
+      "id": 22,
+      "topic": "Components Working Together",
+      "question": "What must happen for hardware, software, data, people, and processes to function as an information system?",
+      "choices": {
+        "A": "Each component must operate independently",
+        "B": "They must work together",
+        "C": "People and processes must be removed",
+        "D": "Only hardware and software must be used"
+      },
+      "correctAnswer": "B",
+      "answerText": "They must work together",
+      "explanation": "The handout states that all components need to work together to function as an information system."
+    },
+    {
+      "id": 23,
+      "topic": "History of Information Systems",
+      "question": "Who coined the term “knowledge worker” in 1959?",
+      "choices": {
+        "A": "Bill Gates",
+        "B": "Peter Drucker",
+        "C": "Alan Turing",
+        "D": "Steve Jobs"
+      },
+      "correctAnswer": "B",
+      "answerText": "Peter Drucker",
+      "explanation": "Peter Drucker coined the term “knowledge worker” in 1959."
+    },
+    {
+      "id": 24,
+      "topic": "History of Information Systems",
+      "question": "What is a knowledge worker?",
+      "choices": {
+        "A": "A customer who uses online services",
+        "B": "A person who repairs computer hardware only",
+        "C": "A professional who makes and modifies knowledge as a fundamental part of the job",
+        "D": "A worker who performs only physical labor"
+      },
+      "correctAnswer": "C",
+      "answerText": "A professional who makes and modifies knowledge as a fundamental part of the job",
+      "explanation": "Knowledge workers are professionals who create and modify knowledge as a fundamental part of their work."
+    },
+    {
+      "id": 25,
+      "topic": "History of Information Systems",
+      "question": "What was the First Era of information systems called?",
+      "choices": {
+        "A": "Client/Server Era",
+        "B": "Mainframe and Minicomputer Era",
+        "C": "Cloud Computing Era",
+        "D": "Personal Computer Era"
+      },
+      "correctAnswer": "B",
+      "answerText": "Mainframe and Minicomputer Era",
+      "explanation": "The First Era, from the mid-1960s to mid-1970s, is identified as the Mainframe and Minicomputer Era."
+    },
+    {
+      "id": 26,
+      "topic": "History of Information Systems",
+      "question": "During which era did the first personal computers and mid-range computers become important?",
+      "choices": {
+        "A": "Fifth Era",
+        "B": "Second Era",
+        "C": "Fourth Era",
+        "D": "First Era"
+      },
+      "correctAnswer": "B",
+      "answerText": "Second Era",
+      "explanation": "The Second Era, from the mid-1970s to mid-1980s, included the first personal computers and mid-range computers."
+    },
+    {
+      "id": 27,
+      "topic": "History of Information Systems",
+      "question": "Which position arose in many companies during the Client/Server Era?",
+      "choices": {
+        "A": "Chief Information Officer (CIO)",
+        "B": "Chief Financial Officer (CFO)",
+        "C": "Chief Legal Officer (CLO)",
+        "D": "Chief Marketing Officer (CMO)"
+      },
+      "correctAnswer": "A",
+      "answerText": "Chief Information Officer (CIO)",
+      "explanation": "The CIO position arose to oversee the procurement and management of multiple information systems."
+    },
+    {
+      "id": 28,
+      "topic": "History of Information Systems",
+      "question": "What technological development is associated with the Third Era of information systems?",
+      "choices": {
+        "A": "Internetworking and the emergence of the Internet",
+        "B": "Only mainframe computers",
+        "C": "Cloud computing without networks",
+        "D": "Only paper-based systems"
+      },
+      "correctAnswer": "A",
+      "answerText": "Internetworking and the emergence of the Internet",
+      "explanation": "The Third Era included internetworking and the emergence of the Internet."
+    },
+    {
+      "id": 29,
+      "topic": "History of Information Systems",
+      "question": "What is the Fourth Era of information systems called?",
+      "choices": {
+        "A": "Agrarian Era",
+        "B": "Mainframe Era",
+        "C": "Enterprise Era",
+        "D": "Mechanical Era"
+      },
+      "correctAnswer": "C",
+      "answerText": "Enterprise Era",
+      "explanation": "The Fourth Era, from the late 1990s to today, is identified as the Enterprise Era."
+    },
+    {
+      "id": 30,
+      "topic": "History of Information Systems",
+      "question": "What characterizes the Fifth Era of information systems?",
+      "choices": {
+        "A": "Paper-based information processing",
+        "B": "No access to mobile devices",
+        "C": "Exclusive use of mainframe computers",
+        "D": "Cloud computing with applications and storage independent of hardware location or configuration"
+      },
+      "correctAnswer": "D",
+      "answerText": "Cloud computing with applications and storage independent of hardware location or configuration",
+      "explanation": "The Fifth Era centers on cloud computing and flexible access to applications and data."
+    },
+    {
+      "id": 31,
+      "topic": "Modern Information Systems",
+      "question": "What problem was common in older paper-based order workflows?",
+      "choices": {
+        "A": "Data was automatically synchronized",
+        "B": "Customers had instant digital access to order status",
+        "C": "Orders were processed without human involvement",
+        "D": "Orders were re-typed, increasing the chance of human error"
+      },
+      "correctAnswer": "D",
+      "answerText": "Orders were re-typed, increasing the chance of human error",
+      "explanation": "Paper-based workflows often required orders to be re-typed across departments, increasing the potential for human error."
+    },
+    {
+      "id": 32,
+      "topic": "Transaction Processing Systems",
+      "question": "What does a Transaction Processing System (TPS) primarily handle?",
+      "choices": {
+        "A": "Day-to-day business data at the operational level",
+        "B": "Only long-term strategic planning",
+        "C": "Only office presentation files",
+        "D": "Only employee training materials"
+      },
+      "correctAnswer": "A",
+      "answerText": "Day-to-day business data at the operational level",
+      "explanation": "TPS handles day-to-day business data and customer transactions at the operational level."
+    },
+    {
+      "id": 33,
+      "topic": "Transaction Processing Systems",
+      "question": "Which is a common example of a Transaction Processing System?",
+      "choices": {
+        "A": "A sales forecasting model",
+        "B": "A grocery store checkout cash register connected to a network",
+        "C": "A company policy archive",
+        "D": "A video conferencing platform"
+      },
+      "correctAnswer": "B",
+      "answerText": "A grocery store checkout cash register connected to a network",
+      "explanation": "The handout gives grocery store checkout cash registers connected to networks as a common TPS example."
+    },
+    {
+      "id": 34,
+      "topic": "Management Information Systems",
+      "question": "What is a Management Information System (MIS) mainly used for?",
+      "choices": {
+        "A": "Scanning printed documents",
+        "B": "Sending voice messages only",
+        "C": "Capturing fingerprints",
+        "D": "Producing detailed information to help manage a company"
+      },
+      "correctAnswer": "D",
+      "answerText": "Producing detailed information to help manage a company",
+      "explanation": "MIS produces detailed and specified information to support company management."
+    },
+    {
+      "id": 35,
+      "topic": "Management Information Systems",
+      "question": "What does MIS commonly do with TPS data?",
+      "choices": {
+        "A": "Deletes it before managers can use it",
+        "B": "Converts it into hardware",
+        "C": "Sorts and organizes it to support managerial decisions",
+        "D": "Uses it only for social media posts"
+      },
+      "correctAnswer": "C",
+      "answerText": "Sorts and organizes it to support managerial decisions",
+      "explanation": "MIS organizes TPS data and generates reports that help managers make decisions."
+    },
+    {
+      "id": 36,
+      "topic": "Management Information Systems",
+      "question": "Which is a common use of MIS mentioned in the handout?",
+      "choices": {
+        "A": "Handwriting recognition",
+        "B": "Inventory management and planning systems",
+        "C": "Biometric face scanning",
+        "D": "Website livestreaming"
+      },
+      "correctAnswer": "B",
+      "answerText": "Inventory management and planning systems",
+      "explanation": "MIS is used primarily for inventory management and planning systems."
+    },
+    {
+      "id": 37,
+      "topic": "Office Automation Systems",
+      "question": "What is the main purpose of Office Automation Systems (OAS)?",
+      "choices": {
+        "A": "To support predefined day-to-day work activities",
+        "B": "To store only customer transactions",
+        "C": "To replace all management decisions",
+        "D": "To control only manufacturing robots"
+      },
+      "correctAnswer": "A",
+      "answerText": "To support predefined day-to-day work activities",
+      "explanation": "OAS supports routine work activities using tools such as word processors, spreadsheets, email, and calendaring."
+    },
+    {
+      "id": 38,
+      "topic": "Office Automation Systems",
+      "question": "Which application is an example of Office Automation System software?",
+      "choices": {
+        "A": "An RFID scanner",
+        "B": "A laser printer",
+        "C": "A fingerprint reader",
+        "D": "Microsoft PowerPoint"
+      },
+      "correctAnswer": "D",
+      "answerText": "Microsoft PowerPoint",
+      "explanation": "Microsoft PowerPoint is listed among the software used in Office Automation Systems."
+    },
+    {
+      "id": 39,
+      "topic": "Knowledge Management Systems",
+      "question": "What is the purpose of a Knowledge Management System (KMS)?",
+      "choices": {
+        "A": "To control hardware temperatures",
+        "B": "To capture, store, and retrieve organizational knowledge",
+        "C": "To process only customer payments",
+        "D": "To replace all employee communication"
+      },
+      "correctAnswer": "B",
+      "answerText": "To capture, store, and retrieve organizational knowledge",
+      "explanation": "KMS helps organizations capture, store, and retrieve knowledge to support learning and collaboration."
+    },
+    {
+      "id": 40,
+      "topic": "Knowledge Management Systems",
+      "question": "Which document is an example of content that may be retrieved from a KMS?",
+      "choices": {
+        "A": "A mouse movement",
+        "B": "A live GPS signal",
+        "C": "A computer's electrical voltage",
+        "D": "Employee training materials"
+      },
+      "correctAnswer": "D",
+      "answerText": "Employee training materials",
+      "explanation": "Employee training materials, company policies, and procedures are listed as examples of KMS content."
+    },
+    {
+      "id": 41,
+      "topic": "Decision Support Systems",
+      "question": "What does a Decision Support System (DSS) do?",
+      "choices": {
+        "A": "Only scans paper documents",
+        "B": "Only stores raw data without analysis",
+        "C": "Analyzes data and supports decision-making",
+        "D": "Only manages email messages"
+      },
+      "correctAnswer": "C",
+      "answerText": "Analyzes data and supports decision-making",
+      "explanation": "DSS analyzes data and supports managerial decision-making."
+    },
+    {
+      "id": 42,
+      "topic": "Decision Support Systems",
+      "question": "Which problem is specifically mentioned as a use of DSS?",
+      "choices": {
+        "A": "Sales forecasting",
+        "B": "Sending a chat message",
+        "C": "Printing a document",
+        "D": "Typing a business letter"
+      },
+      "correctAnswer": "A",
+      "answerText": "Sales forecasting",
+      "explanation": "The handout lists sales forecasting and resource optimization as DSS applications."
+    },
+    {
+      "id": 43,
+      "topic": "Mobile Applications",
+      "question": "Why are mobile applications useful to businesses whose customers are mainly online?",
+      "choices": {
+        "A": "They eliminate all internet use",
+        "B": "They work only on desktop computers",
+        "C": "They support faster and more convenient transactions",
+        "D": "They prevent information broadcasting"
+      },
+      "correctAnswer": "C",
+      "answerText": "They support faster and more convenient transactions",
+      "explanation": "Mobile applications are useful for businesses targeting online customers because they support faster and more convenient transactions."
+    },
+    {
+      "id": 44,
+      "topic": "Mobile Applications",
+      "question": "Which application is listed as an example of a mobile application?",
+      "choices": {
+        "A": "Ethernet",
+        "B": "COBOL",
+        "C": "IBM 360",
+        "D": "WhatsApp"
+      },
+      "correctAnswer": "D",
+      "answerText": "WhatsApp",
+      "explanation": "Instagram, WhatsApp, and Office Mobile are listed as examples of mobile applications."
+    },
+    {
+      "id": 45,
+      "topic": "Intelligent Systems",
+      "question": "What leading technology is associated with Intelligent Systems?",
+      "choices": {
+        "A": "Artificial Intelligence (AI)",
+        "B": "Paper filing systems",
+        "C": "Mechanical typewriters",
+        "D": "Analog calculators"
+      },
+      "correctAnswer": "A",
+      "answerText": "Artificial Intelligence (AI)",
+      "explanation": "Artificial Intelligence is identified as one of the leading technologies in Intelligent Systems."
+    },
+    {
+      "id": 46,
+      "topic": "Intelligent Systems",
+      "question": "What does Artificial Intelligence allow information technologies to simulate?",
+      "choices": {
+        "A": "Only physical computer storage",
+        "B": "Only printed communication",
+        "C": "Human intelligence such as reasoning and learning",
+        "D": "Only manual calculations"
+      },
+      "correctAnswer": "C",
+      "answerText": "Human intelligence such as reasoning and learning",
+      "explanation": "AI enables information technologies to simulate human intelligence, including reasoning and learning."
+    },
+    {
+      "id": 47,
+      "topic": "Intelligent Systems",
+      "question": "Which is an example of an intelligent system mentioned in the handout?",
+      "choices": {
+        "A": "Manual cash books",
+        "B": "Paper calendars",
+        "C": "Self-driving cars",
+        "D": "Inkjet printers"
+      },
+      "correctAnswer": "C",
+      "answerText": "Self-driving cars",
+      "explanation": "Self-driving cars are listed as an example of intelligent systems."
+    },
+    {
+      "id": 48,
+      "topic": "Input Technologies",
+      "question": "What are input technologies used for?",
+      "choices": {
+        "A": "Displaying processed information only",
+        "B": "Storing organizational policies only",
+        "C": "Entering data into devices such as computers, laptops, or smartphones",
+        "D": "Producing printed documents only"
+      },
+      "correctAnswer": "C",
+      "answerText": "Entering data into devices such as computers, laptops, or smartphones",
+      "explanation": "Input technologies are used to enter data into computing devices."
+    },
+    {
+      "id": 49,
+      "topic": "Input Technologies",
+      "question": "Which specialized input device is used for valuable inventory tracking?",
+      "choices": {
+        "A": "RFID scanner",
+        "B": "Laser printer",
+        "C": "LCD monitor",
+        "D": "Projector"
+      },
+      "correctAnswer": "A",
+      "answerText": "RFID scanner",
+      "explanation": "RFID scanners are identified as specialized input devices used for valuable inventory tracking."
+    },
+    {
+      "id": 50,
+      "topic": "Scanners",
+      "question": "What is the main function of a scanner?",
+      "choices": {
+        "A": "To print digital files onto paper",
+        "B": "To forecast future sales",
+        "C": "To convert printed or handwritten text and images into digital data",
+        "D": "To display information on a screen"
+      },
+      "correctAnswer": "C",
+      "answerText": "To convert printed or handwritten text and images into digital data",
+      "explanation": "Scanners translate printed or handwritten text and images into digital data that can be stored and manipulated."
+    },
+    {
+      "id": 51,
+      "topic": "Smart Cards",
+      "question": "Which is a common use of smart cards mentioned in the handout?",
+      "choices": {
+        "A": "Printing reports",
+        "B": "Verification, building access, or payments",
+        "C": "Running presentation software",
+        "D": "Displaying computer graphics"
+      },
+      "correctAnswer": "B",
+      "answerText": "Verification, building access, or payments",
+      "explanation": "Smart cards are used for applications such as verification, building access, and payments."
+    },
+    {
+      "id": 52,
+      "topic": "Smart Cards",
+      "question": "Which technology is used in mobile phones to enable contactless data transmission?",
+      "choices": {
+        "A": "COBOL",
+        "B": "Fortran",
+        "C": "Near-Field Communication (NFC)",
+        "D": "CRT"
+      },
+      "correctAnswer": "C",
+      "answerText": "Near-Field Communication (NFC)",
+      "explanation": "The handout identifies NFC as a technology used in mobile phones for contactless data transmission."
+    },
+    {
+      "id": 53,
+      "topic": "Biometric Devices",
+      "question": "What are biometric devices primarily used for?",
+      "choices": {
+        "A": "Document printing",
+        "B": "Identification and verification",
+        "C": "Spreadsheet calculations",
+        "D": "Sales forecasting"
+      },
+      "correctAnswer": "B",
+      "answerText": "Identification and verification",
+      "explanation": "Biometric devices are primarily used for identification and verification."
+    },
+    {
+      "id": 54,
+      "topic": "Voice Input",
+      "question": "How is voice data entered into a computer system?",
+      "choices": {
+        "A": "Using microphones",
+        "B": "Using monitors",
+        "C": "Using RFID tags",
+        "D": "Using printers"
+      },
+      "correctAnswer": "A",
+      "answerText": "Using microphones",
+      "explanation": "Voice data is entered into computer systems using microphones."
+    },
+    {
+      "id": 55,
+      "topic": "Output Technologies",
+      "question": "What do output technologies do?",
+      "choices": {
+        "A": "Store only company policies",
+        "B": "Create operating systems",
+        "C": "Deliver information in a usable format based on processed input data",
+        "D": "Enter raw data into a device"
+      },
+      "correctAnswer": "C",
+      "answerText": "Deliver information in a usable format based on processed input data",
+      "explanation": "Output technologies such as monitors and printers deliver processed information in usable formats."
+    },
+    {
+      "id": 56,
+      "topic": "Monitors",
+      "question": "Which display technology is used by most modern monitors according to the handout?",
+      "choices": {
+        "A": "Liquid Crystal Display (LCD)",
+        "B": "Mechanical display",
+        "C": "Magnetic stripe display",
+        "D": "Cathode Ray Tube (CRT)"
+      },
+      "correctAnswer": "A",
+      "answerText": "Liquid Crystal Display (LCD)",
+      "explanation": "The handout states that most modern monitors use LCD technology because they are lighter and thinner than CRT displays."
+    },
+    {
+      "id": 57,
+      "topic": "Electronic Communication Tools",
+      "question": "What do electronic communication tools allow users to do?",
+      "choices": {
+        "A": "Convey verbal and written information and send files or other content",
+        "B": "Only scan fingerprints",
+        "C": "Only print documents",
+        "D": "Only forecast sales"
+      },
+      "correctAnswer": "A",
+      "answerText": "Convey verbal and written information and send files or other content",
+      "explanation": "Electronic communication tools support verbal and written communication and the sending of files, documents, and other content."
+    },
+    {
+      "id": 58,
+      "topic": "Electronic Conferencing Tools",
+      "question": "Which is an example of an electronic conferencing tool?",
+      "choices": {
+        "A": "Zoom",
+        "B": "Laser printer",
+        "C": "Microsoft Excel",
+        "D": "RFID scanner"
+      },
+      "correctAnswer": "A",
+      "answerText": "Zoom",
+      "explanation": "Zoom is listed as an electronic conferencing tool used for audio and video conferencing, webinars, recordings, and livestreams."
+    },
+    {
+      "id": 59,
+      "topic": "Collaboration Management Tools",
+      "question": "What is the purpose of collaboration management tools?",
+      "choices": {
+        "A": "To scan physical documents",
+        "B": "To facilitate meetings and manage group activities",
+        "C": "To process retail checkout transactions",
+        "D": "To replace all operating systems"
+      },
+      "correctAnswer": "B",
+      "answerText": "To facilitate meetings and manage group activities",
+      "explanation": "Collaboration management tools support virtual or co-located meetings and help manage group activities."
+    },
+    {
+      "id": 60,
+      "topic": "Collaboration Management Tools",
+      "question": "Which collaboration tool allows users to create joint proposals and reports and track meeting notes using a web browser?",
+      "choices": {
+        "A": "Amazon checkout",
+        "B": "Google Docs",
+        "C": "RFID scanner",
+        "D": "Siri"
+      },
+      "correctAnswer": "B",
+      "answerText": "Google Docs",
+      "explanation": "Google Docs is listed as a collaboration tool for creating joint proposals and reports and tracking meeting notes in a web browser."
+    }
+  ],
+  "answerDistribution": {
+    "A": 15,
+    "B": 15,
+    "C": 15,
+    "D": 15
+  }
+}

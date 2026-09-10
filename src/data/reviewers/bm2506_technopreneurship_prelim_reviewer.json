@@ -1,0 +1,1066 @@
+{
+  "reviewerId": "bm2506-technopreneurship-prelim",
+  "title": "Handout Technopreneurship - Prelim Reviewer",
+  "subject": "Technopreneurship",
+  "coverage": [
+    "Introduction to Technopreneurship",
+    "Problem Identification",
+    "Understanding Customers and Generating Effective Solutions"
+  ],
+  "questionCount": 75,
+  "questionType": "multiple_choice",
+  "choicesPerQuestion": 4,
+  "instructions": "Select the best answer for each question.",
+  "questions": [
+    {
+      "id": 1,
+      "topic": "Foundations of Technopreneurship",
+      "question": "What best describes technopreneurship?",
+      "choices": {
+        "A": "A business approach built around technology and innovative technological products or services",
+        "B": "A business approach that avoids technology and focuses only on manual work",
+        "C": "A government program for regulating technology companies",
+        "D": "A business model limited to selling physical products locally"
+      },
+      "correctAnswer": "A",
+      "answerText": "A business approach built around technology and innovative technological products or services",
+      "explanation": "Technopreneurship combines technology and entrepreneurship to create, develop, and commercialize innovative technological products or services."
+    },
+    {
+      "id": 2,
+      "topic": "Foundations of Technopreneurship",
+      "question": "According to the handout, when was the word technopreneurship first introduced?",
+      "choices": {
+        "A": "1975",
+        "B": "1987",
+        "C": "1999",
+        "D": "2005"
+      },
+      "correctAnswer": "B",
+      "answerText": "1987",
+      "explanation": "The handout states that the word technopreneurship was first introduced as early as 1987."
+    },
+    {
+      "id": 3,
+      "topic": "Foundations of Technopreneurship",
+      "question": "When did technopreneurship gain significant momentum?",
+      "choices": {
+        "A": "During the early 1800s",
+        "B": "During the 1950s",
+        "C": "During the early 2000s",
+        "D": "After 2025"
+      },
+      "correctAnswer": "C",
+      "answerText": "During the early 2000s",
+      "explanation": "The early 2000s saw widespread Internet adoption and the rise of technology-driven ventures."
+    },
+    {
+      "id": 4,
+      "topic": "Technopreneurship vs. Traditional Entrepreneurship",
+      "question": "Which is a core resource of technopreneurship?",
+      "choices": {
+        "A": "Only physical manpower",
+        "B": "Digital tools, technical expertise, and innovation",
+        "C": "Only inventory and facilities",
+        "D": "Traditional practices without digital tools"
+      },
+      "correctAnswer": "B",
+      "answerText": "Digital tools, technical expertise, and innovation",
+      "explanation": "Technopreneurship depends heavily on digital tools, technical expertise, and innovation."
+    },
+    {
+      "id": 5,
+      "topic": "Technopreneurship vs. Traditional Entrepreneurship",
+      "question": "What type of innovation is commonly associated with technopreneurship?",
+      "choices": {
+        "A": "Disruptive and technology-driven innovation",
+        "B": "Only minor changes to existing local products",
+        "C": "Innovation that avoids creating new markets",
+        "D": "Innovation based only on physical expansion"
+      },
+      "correctAnswer": "A",
+      "answerText": "Disruptive and technology-driven innovation",
+      "explanation": "The handout describes technopreneurial innovation as disruptive and technology-driven, often creating new markets or transforming industries."
+    },
+    {
+      "id": 6,
+      "topic": "Technopreneurship vs. Traditional Entrepreneurship",
+      "question": "Why can technopreneurship scale rapidly?",
+      "choices": {
+        "A": "Because it depends only on local customers",
+        "B": "Because it requires many physical branches",
+        "C": "Because digital platforms provide global accessibility",
+        "D": "Because it avoids online distribution"
+      },
+      "correctAnswer": "C",
+      "answerText": "Because digital platforms provide global accessibility",
+      "explanation": "Digital platforms and global accessibility allow technopreneurial ventures to scale more rapidly than many traditional businesses."
+    },
+    {
+      "id": 7,
+      "topic": "Technopreneurship vs. Traditional Entrepreneurship",
+      "question": "Why is the risk level of technopreneurship described as high?",
+      "choices": {
+        "A": "Because technology changes rapidly and markets can be uncertain",
+        "B": "Because it always operates in stable markets",
+        "C": "Because it does not use research or software",
+        "D": "Because it never competes globally"
+      },
+      "correctAnswer": "A",
+      "answerText": "Because technology changes rapidly and markets can be uncertain",
+      "explanation": "Rapid technological change and market uncertainty contribute to the higher risk level of technopreneurship."
+    },
+    {
+      "id": 8,
+      "topic": "Technopreneurship vs. Traditional Entrepreneurship",
+      "question": "Which investment is more closely associated with technopreneurship?",
+      "choices": {
+        "A": "Research, development, software, and technology",
+        "B": "Only inventory and physical facilities",
+        "C": "Only construction materials",
+        "D": "Only manpower and store expansion"
+      },
+      "correctAnswer": "A",
+      "answerText": "Research, development, software, and technology",
+      "explanation": "Technopreneurial ventures commonly invest in research, development, software, and technology."
+    },
+    {
+      "id": 9,
+      "topic": "Technology Industries",
+      "question": "What is FinTech?",
+      "choices": {
+        "A": "Technology used only for farming",
+        "B": "Digital tools and platforms that improve or automate financial services",
+        "C": "Biological systems used to create health products",
+        "D": "A type of physical retail store"
+      },
+      "correctAnswer": "B",
+      "answerText": "Digital tools and platforms that improve or automate financial services",
+      "explanation": "FinTech means Financial Technology and includes tools such as e-wallets, online banking, and digital payments."
+    },
+    {
+      "id": 10,
+      "topic": "Technology Industries",
+      "question": "What is biotechnology according to the handout?",
+      "choices": {
+        "A": "The use of biological systems or organisms to develop products",
+        "B": "The use of social media to sell products",
+        "C": "The use of digital wallets for payments",
+        "D": "The use of cloud storage for accounting"
+      },
+      "correctAnswer": "A",
+      "answerText": "The use of biological systems or organisms to develop products",
+      "explanation": "Biotechnology uses biological systems or organisms to develop products for health, agriculture, and industry."
+    },
+    {
+      "id": 11,
+      "topic": "History of Entrepreneurship",
+      "question": "What characterized entrepreneurship in the Pre-Industrial Era?",
+      "choices": {
+        "A": "Global digital platforms and cloud computing",
+        "B": "Local traders, merchants, artisans, and small producers",
+        "C": "AI startups and mobile applications",
+        "D": "Large multinational software corporations"
+      },
+      "correctAnswer": "B",
+      "answerText": "Local traders, merchants, artisans, and small producers",
+      "explanation": "Pre-Industrial entrepreneurship was mostly local and involved traders, merchants, artisans, and small producers."
+    },
+    {
+      "id": 12,
+      "topic": "History of Entrepreneurship",
+      "question": "Which development is associated with the Industrial Revolution?",
+      "choices": {
+        "A": "Steam engines, factories, and mass production",
+        "B": "Social media and cloud computing",
+        "C": "Blockchain and smart contracts",
+        "D": "Mobile apps and big data"
+      },
+      "correctAnswer": "A",
+      "answerText": "Steam engines, factories, and mass production",
+      "explanation": "The Industrial Revolution transformed entrepreneurship through technologies such as steam engines, factories, and mass production."
+    },
+    {
+      "id": 13,
+      "topic": "History of Entrepreneurship",
+      "question": "What is an intrapreneur?",
+      "choices": {
+        "A": "An innovator working within a company",
+        "B": "A customer who buys from several stores",
+        "C": "A government official who manages startups",
+        "D": "A person who avoids innovation"
+      },
+      "correctAnswer": "A",
+      "answerText": "An innovator working within a company",
+      "explanation": "Intrapreneurs are innovators who work within established companies."
+    },
+    {
+      "id": 14,
+      "topic": "History of Entrepreneurship",
+      "question": "Which period saw computers, the Internet, and telecommunications reshape business models?",
+      "choices": {
+        "A": "Pre-Industrial Era",
+        "B": "Industrial Revolution",
+        "C": "Late 20th Century Information Age and Globalization",
+        "D": "18th-century agrarian period"
+      },
+      "correctAnswer": "C",
+      "answerText": "Late 20th Century Information Age and Globalization",
+      "explanation": "The late 20th century Information Age and Globalization expanded access to global markets, digital tools, and faster communication."
+    },
+    {
+      "id": 15,
+      "topic": "Successful Technopreneurs",
+      "question": "Which technopreneur is associated with PayMaya (Maya) and Voyager Innovations?",
+      "choices": {
+        "A": "Ron Hose",
+        "B": "Orlando B. Vea",
+        "C": "Paul Rivera",
+        "D": "Brian Cu"
+      },
+      "correctAnswer": "B",
+      "answerText": "Orlando B. Vea",
+      "explanation": "Orlando B. Vea is listed with PayMaya (Maya) and Voyager Innovations in fintech and digital payments."
+    },
+    {
+      "id": 16,
+      "topic": "Successful Technopreneurs",
+      "question": "Which venture is associated with Cholo Tagaysay?",
+      "choices": {
+        "A": "KonsultaMD",
+        "B": "Coins.ph",
+        "C": "Kalibrr",
+        "D": "Rappler"
+      },
+      "correctAnswer": "A",
+      "answerText": "KonsultaMD",
+      "explanation": "Cholo Tagaysay is associated with KonsultaMD in health-tech and telemedicine."
+    },
+    {
+      "id": 17,
+      "topic": "Successful Technopreneurs",
+      "question": "Which technopreneur is associated with the AI-driven recruitment platform Kalibrr?",
+      "choices": {
+        "A": "Steve Sy",
+        "B": "Paul Rivera",
+        "C": "Nix Nolledo",
+        "D": "Aldo Carrascoso"
+      },
+      "correctAnswer": "B",
+      "answerText": "Paul Rivera",
+      "explanation": "Paul Rivera developed Kalibrr, an AI-driven recruitment platform used across Southeast Asia."
+    },
+    {
+      "id": 18,
+      "topic": "Technology as a Driver of Innovation",
+      "question": "How does technology improve efficiency and quality?",
+      "choices": {
+        "A": "By making processes slower and more manual",
+        "B": "By making processes faster, more accurate, and more consistent",
+        "C": "By removing access to digital systems",
+        "D": "By preventing automation"
+      },
+      "correctAnswer": "B",
+      "answerText": "By making processes faster, more accurate, and more consistent",
+      "explanation": "Technology-driven innovations improve speed, accuracy, and consistency in business processes."
+    },
+    {
+      "id": 19,
+      "topic": "Emerging Technologies in Business",
+      "question": "Which emerging technology is described as enabling secure digital transactions and smart contracts?",
+      "choices": {
+        "A": "Blockchain",
+        "B": "Virtual Reality",
+        "C": "Internet of Things",
+        "D": "Cloud computing"
+      },
+      "correctAnswer": "A",
+      "answerText": "Blockchain",
+      "explanation": "The handout states that blockchain can enable secure digital transactions and smart contracts."
+    },
+    {
+      "id": 20,
+      "topic": "Entrepreneurial Leadership",
+      "question": "Which trait means being willing to experiment and invest in new ideas while using data to reduce risk?",
+      "choices": {
+        "A": "Continuous Learning",
+        "B": "Opportunity-Oriented",
+        "C": "Risk-Taking with Analysis",
+        "D": "Visionary Leadership"
+      },
+      "correctAnswer": "C",
+      "answerText": "Risk-Taking with Analysis",
+      "explanation": "Risk-Taking with Analysis combines willingness to experiment with data-based efforts to minimize risk."
+    },
+    {
+      "id": 21,
+      "topic": "Macro Industry Perspective",
+      "question": "What does a macro view focus on?",
+      "choices": {
+        "A": "Only one customer's personal preferences",
+        "B": "Large-scale forces affecting industries, economies, and societies",
+        "C": "Only the internal layout of one company",
+        "D": "Only one product feature"
+      },
+      "correctAnswer": "B",
+      "answerText": "Large-scale forces affecting industries, economies, and societies",
+      "explanation": "A macro view examines broad trends and large-scale forces instead of focusing only on a single company or product."
+    },
+    {
+      "id": 22,
+      "topic": "Macro Industry Categories",
+      "question": "A shortage of electric vehicle charging stations is an example of which macro category?",
+      "choices": {
+        "A": "Industry Trends & Challenges",
+        "B": "Social Developments",
+        "C": "Technological Advancements",
+        "D": "Economic Forces"
+      },
+      "correctAnswer": "A",
+      "answerText": "Industry Trends & Challenges",
+      "explanation": "The handout uses the shortage of EV charging stations as an example of an industry trend or challenge."
+    },
+    {
+      "id": 23,
+      "topic": "Macro Industry Categories",
+      "question": "Public health failures during COVID-19 are used as an example of which macro category?",
+      "choices": {
+        "A": "Economic Forces",
+        "B": "Social Developments",
+        "C": "Industry Pricing",
+        "D": "Product Features"
+      },
+      "correctAnswer": "B",
+      "answerText": "Social Developments",
+      "explanation": "Public health failures during COVID-19 are listed under Social Developments."
+    },
+    {
+      "id": 24,
+      "topic": "Macro Industry Categories",
+      "question": "Ethical challenges in Artificial Intelligence are an example of which macro category?",
+      "choices": {
+        "A": "Technological Advancements",
+        "B": "Social Developments",
+        "C": "Economic Forces",
+        "D": "Geographic Segmentation"
+      },
+      "correctAnswer": "A",
+      "answerText": "Technological Advancements",
+      "explanation": "The handout places ethical challenges in AI under Technological Advancements."
+    },
+    {
+      "id": 25,
+      "topic": "Macro Industry Categories",
+      "question": "Rising demand for freelance platforms due to increased reliance on independent professionals is an example of what?",
+      "choices": {
+        "A": "Economic Forces",
+        "B": "Social Jobs",
+        "C": "Geographic Segmentation",
+        "D": "Customer Interviews"
+      },
+      "correctAnswer": "A",
+      "answerText": "Economic Forces",
+      "explanation": "The handout identifies increased reliance on independent professionals and demand for freelance platforms as an economic force."
+    },
+    {
+      "id": 26,
+      "topic": "Importance of a Macro View",
+      "question": "Which is a possible risk of ignoring the macro environment?",
+      "choices": {
+        "A": "Building outdated products for shrinking markets",
+        "B": "Automatically finding more investors",
+        "C": "Always gaining a competitive advantage",
+        "D": "Always identifying future market gaps"
+      },
+      "correctAnswer": "A",
+      "answerText": "Building outdated products for shrinking markets",
+      "explanation": "Ignoring economic, social, and technological trends can lead to outdated products and wasted resources."
+    },
+    {
+      "id": 27,
+      "topic": "Importance of a Macro View",
+      "question": "Which is a benefit of adopting a macro perspective?",
+      "choices": {
+        "A": "Reacting only after competitors act",
+        "B": "Anticipating change and developing proactive strategies",
+        "C": "Ignoring social and market trends",
+        "D": "Focusing only on internal operations"
+      },
+      "correctAnswer": "B",
+      "answerText": "Anticipating change and developing proactive strategies",
+      "explanation": "Macro analysis helps technopreneurs anticipate change instead of only reacting to it."
+    },
+    {
+      "id": 28,
+      "topic": "Macro Perspective for Career Success",
+      "question": "How can a macro perspective help an aspiring technopreneur attract investors?",
+      "choices": {
+        "A": "By avoiding discussion of market trends",
+        "B": "By showing awareness of large-scale trends and future market potential",
+        "C": "By focusing only on a single internal process",
+        "D": "By refusing to adapt to technological shifts"
+      },
+      "correctAnswer": "B",
+      "answerText": "By showing awareness of large-scale trends and future market potential",
+      "explanation": "Investors are more likely to fund ventures that demonstrate awareness of large-scale trends and future potential."
+    },
+    {
+      "id": 29,
+      "topic": "Macro and Micro Analysis",
+      "question": "What does macro analysis mean in the 'Genius of the AND'?",
+      "choices": {
+        "A": "Zooming out to broad trends, global forces, and future landscapes",
+        "B": "Zooming in only on exact customer pain points",
+        "C": "Ignoring long-term risks",
+        "D": "Focusing only on one product feature"
+      },
+      "correctAnswer": "A",
+      "answerText": "Zooming out to broad trends, global forces, and future landscapes",
+      "explanation": "Macro analysis zooms out to identify broad market opportunities, societal shifts, technological disruptions, and long-term risks."
+    },
+    {
+      "id": 30,
+      "topic": "Macro and Micro Analysis",
+      "question": "What does micro analysis focus on?",
+      "choices": {
+        "A": "Specific customers, operational details, and exact pain points",
+        "B": "Only international policies",
+        "C": "Global emissions agreements only",
+        "D": "Only national economic trends"
+      },
+      "correctAnswer": "A",
+      "answerText": "Specific customers, operational details, and exact pain points",
+      "explanation": "Micro analysis zooms in on specific customers, operations, and precise pain points."
+    },
+    {
+      "id": 31,
+      "topic": "Macro, Micro, and Super-Macro Views",
+      "question": "Which is an example of a micro-level initiative?",
+      "choices": {
+        "A": "Paris Agreement",
+        "B": "Tree planting activities",
+        "C": "National emissions policy",
+        "D": "Global research partnerships"
+      },
+      "correctAnswer": "B",
+      "answerText": "Tree planting activities",
+      "explanation": "Tree planting is listed as a local or personal micro-level initiative."
+    },
+    {
+      "id": 32,
+      "topic": "Macro, Micro, and Super-Macro Views",
+      "question": "Which is an example of a super-macro initiative?",
+      "choices": {
+        "A": "Using an energy-efficient appliance at home",
+        "B": "Reducing single-use plastics personally",
+        "C": "The Paris Agreement and emissions goals",
+        "D": "One customer's daily routine"
+      },
+      "correctAnswer": "C",
+      "answerText": "The Paris Agreement and emissions goals",
+      "explanation": "Global agreements such as the Paris Agreement are examples of super-macro policies and initiatives."
+    },
+    {
+      "id": 33,
+      "topic": "Problem Space",
+      "question": "What is a problem space?",
+      "choices": {
+        "A": "Only the technical solution a team wants to build",
+        "B": "The complete context of a problem, including people, environment, and influencing factors",
+        "C": "A list of product features only",
+        "D": "A company's advertising plan"
+      },
+      "correctAnswer": "B",
+      "answerText": "The complete context of a problem, including people, environment, and influencing factors",
+      "explanation": "A problem space includes the problem itself, the people affected, the environment, and relevant constraints or factors."
+    },
+    {
+      "id": 34,
+      "topic": "Problem Space",
+      "question": "Which is NOT one of the four main components of a problem space in the handout?",
+      "choices": {
+        "A": "The Problem",
+        "B": "The People",
+        "C": "The Environment",
+        "D": "The Advertising Budget"
+      },
+      "correctAnswer": "D",
+      "answerText": "The Advertising Budget",
+      "explanation": "The four components are the Problem, the People, the Environment, and Constraints & Factors."
+    },
+    {
+      "id": 35,
+      "topic": "Market and Problem-First Thinking",
+      "question": "Which statement best describes a market in the handout?",
+      "choices": {
+        "A": "Any random group of people",
+        "B": "People or companies that share a need, may pay for a solution, and experience the problem",
+        "C": "Only people who already own a startup",
+        "D": "Only companies located in one city"
+      },
+      "correctAnswer": "B",
+      "answerText": "People or companies that share a need, may pay for a solution, and experience the problem",
+      "explanation": "A market consists of people or companies with a similar need or problem, willingness to pay, and meaningful experience of that problem."
+    },
+    {
+      "id": 36,
+      "topic": "Problem-First Thinking",
+      "question": "What does problem-first thinking focus on?",
+      "choices": {
+        "A": "Building something interesting even without demand",
+        "B": "Solving a real and persistent problem",
+        "C": "Choosing a technology before identifying users",
+        "D": "Adding as many features as possible"
+      },
+      "correctAnswer": "B",
+      "answerText": "Solving a real and persistent problem",
+      "explanation": "Problem-first thinking starts with a real, persistent problem instead of starting with a preferred idea or feature."
+    },
+    {
+      "id": 37,
+      "topic": "Finding Powerful Ideas",
+      "question": "What makes a problem validated?",
+      "choices": {
+        "A": "It affects a clear group of people frequently and significantly",
+        "B": "The founder personally likes the idea",
+        "C": "It uses the newest technology",
+        "D": "It has the most features"
+      },
+      "correctAnswer": "A",
+      "answerText": "It affects a clear group of people frequently and significantly",
+      "explanation": "A validated problem affects a clear group of people and happens often enough or severely enough to matter."
+    },
+    {
+      "id": 38,
+      "topic": "Finding Powerful Ideas",
+      "question": "How can a team validate a proposed solution?",
+      "choices": {
+        "A": "Avoid users until the product is finished",
+        "B": "Ask users, create prototypes, and evaluate demand",
+        "C": "Rely only on the founder's opinion",
+        "D": "Skip feasibility testing"
+      },
+      "correctAnswer": "B",
+      "answerText": "Ask users, create prototypes, and evaluate demand",
+      "explanation": "Solution validation involves testing feasibility and desirability through users, prototypes, and demand evaluation."
+    },
+    {
+      "id": 39,
+      "topic": "Problem Analysis",
+      "question": "What is confirmation bias in problem analysis?",
+      "choices": {
+        "A": "Forcing a preferred solution to fit a problem even when it may not solve it",
+        "B": "Exploring many possible explanations",
+        "C": "Listening carefully to users",
+        "D": "Changing a solution after valid evidence"
+      },
+      "correctAnswer": "A",
+      "answerText": "Forcing a preferred solution to fit a problem even when it may not solve it",
+      "explanation": "Confirmation bias occurs when innovators force a solution they already like to fit the problem."
+    },
+    {
+      "id": 40,
+      "topic": "Problem Analysis",
+      "question": "What is tunnel vision?",
+      "choices": {
+        "A": "Considering several possible solutions",
+        "B": "Becoming overly focused on one idea and ignoring better possibilities",
+        "C": "Validating with different customer groups",
+        "D": "Studying the macro environment"
+      },
+      "correctAnswer": "B",
+      "answerText": "Becoming overly focused on one idea and ignoring better possibilities",
+      "explanation": "Tunnel vision means focusing too narrowly on one idea and failing to consider better alternatives."
+    },
+    {
+      "id": 41,
+      "topic": "Problem Analysis",
+      "question": "Which quality helps innovators understand a problem through the eyes of users?",
+      "choices": {
+        "A": "Empathy",
+        "B": "Tunnel Vision",
+        "C": "Confirmation Bias",
+        "D": "Ego-Driven Innovation"
+      },
+      "correctAnswer": "A",
+      "answerText": "Empathy",
+      "explanation": "Empathy helps innovators understand users' pain points, frustrations, and emotions."
+    },
+    {
+      "id": 42,
+      "topic": "Root Cause Analysis",
+      "question": "What is the difference between symptoms and root causes?",
+      "choices": {
+        "A": "Symptoms are underlying reasons, while root causes are surface-level issues",
+        "B": "Symptoms are surface-level issues, while root causes are underlying reasons",
+        "C": "They always mean the same thing",
+        "D": "Root causes are always customer features"
+      },
+      "correctAnswer": "B",
+      "answerText": "Symptoms are surface-level issues, while root causes are underlying reasons",
+      "explanation": "The handout explains that treating symptoms gives temporary fixes, while addressing root causes supports long-term solutions."
+    },
+    {
+      "id": 43,
+      "topic": "5 Whys Technique",
+      "question": "Who developed the 5 Whys technique?",
+      "choices": {
+        "A": "Sakichi Toyoda",
+        "B": "Steve Jobs",
+        "C": "Peter Drucker",
+        "D": "Elon Musk"
+      },
+      "correctAnswer": "A",
+      "answerText": "Sakichi Toyoda",
+      "explanation": "The handout credits Sakichi Toyoda, founder of Toyota, with developing the 5 Whys technique."
+    },
+    {
+      "id": 44,
+      "topic": "5 Whys Technique",
+      "question": "In the handout's 'late for morning classes' example, what root cause was identified after applying the 5 Whys?",
+      "choices": {
+        "A": "A lack of school transportation",
+        "B": "A lack of discipline and a structured daily routine",
+        "C": "A difficult subject schedule",
+        "D": "A shortage of classroom space"
+      },
+      "correctAnswer": "B",
+      "answerText": "A lack of discipline and a structured daily routine",
+      "explanation": "The example identifies lack of discipline and the absence of a structured daily routine as the root cause."
+    },
+    {
+      "id": 45,
+      "topic": "Problem Analysis Examples",
+      "question": "Which problem is specifically mentioned as being addressed by EdTech startups such as BYJU's, Unacademy, and Khan Academy?",
+      "choices": {
+        "A": "Limited access to high-quality teachers and personalized instruction",
+        "B": "Lack of electric vehicle charging stations",
+        "C": "Lack of restaurant delivery tracking",
+        "D": "Difficulty processing digital payments"
+      },
+      "correctAnswer": "A",
+      "answerText": "Limited access to high-quality teachers and personalized instruction",
+      "explanation": "The EdTech example highlights limited access to quality teachers, low engagement, stressful exam preparation, and lack of personalized instruction."
+    },
+    {
+      "id": 46,
+      "topic": "Customer Segmentation",
+      "question": "What is a customer segment?",
+      "choices": {
+        "A": "A random set of people with unrelated needs",
+        "B": "A clearly defined group sharing similar needs, preferences, behaviors, or characteristics",
+        "C": "Only the employees of a company",
+        "D": "Only customers who buy the most expensive product"
+      },
+      "correctAnswer": "B",
+      "answerText": "A clearly defined group sharing similar needs, preferences, behaviors, or characteristics",
+      "explanation": "Customer segments group individuals or organizations with similar needs, preferences, behaviors, or characteristics."
+    },
+    {
+      "id": 47,
+      "topic": "Customer Segmentation",
+      "question": "Why is customer segmentation especially important in technopreneurship?",
+      "choices": {
+        "A": "Technology solutions often target specific pain points and user behaviors",
+        "B": "Technology products should always target everyone",
+        "C": "Segmentation removes the need for customer research",
+        "D": "Segmentation guarantees zero competition"
+      },
+      "correctAnswer": "A",
+      "answerText": "Technology solutions often target specific pain points and user behaviors",
+      "explanation": "Well-defined segments help technopreneurs build apps, platforms, and services around real pain points and digital behaviors."
+    },
+    {
+      "id": 48,
+      "topic": "Customer Segmentation",
+      "question": "What is one reason startups segment customers?",
+      "choices": {
+        "A": "To make every user receive the exact same experience",
+        "B": "To understand customer needs more deeply",
+        "C": "To avoid focused targeting",
+        "D": "To remove product-market fit considerations"
+      },
+      "correctAnswer": "B",
+      "answerText": "To understand customer needs more deeply",
+      "explanation": "Segmentation reveals patterns in motivations, frustrations, buying behaviors, and routines."
+    },
+    {
+      "id": 49,
+      "topic": "Customer Segmentation",
+      "question": "Why is segmentation useful when developing a Minimum Viable Product (MVP)?",
+      "choices": {
+        "A": "An MVP should focus on a specific group rather than everyone",
+        "B": "An MVP should include every possible feature for every customer",
+        "C": "Segmentation prevents startups from testing products",
+        "D": "Segmentation removes the need for pricing decisions"
+      },
+      "correctAnswer": "A",
+      "answerText": "An MVP should focus on a specific group rather than everyone",
+      "explanation": "The handout states that startups should focus the MVP on a specific segment rather than trying to serve everyone."
+    },
+    {
+      "id": 50,
+      "topic": "Startup Failure and Customers",
+      "question": "According to the handout, what percentage of failed startups attributed failure to 'no market need'?",
+      "choices": {
+        "A": "18%",
+        "B": "23%",
+        "C": "29%",
+        "D": "42%"
+      },
+      "correctAnswer": "D",
+      "answerText": "42%",
+      "explanation": "The handout states that 42% of failed startups attributed their failure to no market need."
+    },
+    {
+      "id": 51,
+      "topic": "Startup Failure and Customers",
+      "question": "Which failure factor is listed at 29% in the handout?",
+      "choices": {
+        "A": "Running out of cash",
+        "B": "Pricing and cost issues",
+        "C": "Getting outcompeted",
+        "D": "Incorrect team composition"
+      },
+      "correctAnswer": "A",
+      "answerText": "Running out of cash",
+      "explanation": "The handout lists running out of cash at 29% of failures."
+    },
+    {
+      "id": 52,
+      "topic": "Types of Customer Segments",
+      "question": "What does B2C mean?",
+      "choices": {
+        "A": "Business selling directly to individual customers",
+        "B": "Business selling only to government agencies",
+        "C": "Business selling only to other businesses",
+        "D": "Customer selling only to another customer"
+      },
+      "correctAnswer": "A",
+      "answerText": "Business selling directly to individual customers",
+      "explanation": "Business-to-Consumer (B2C) refers to businesses selling products or services directly to individual customers."
+    },
+    {
+      "id": 53,
+      "topic": "Types of Customer Segments",
+      "question": "Which is an example of a B2B offering in the handout?",
+      "choices": {
+        "A": "SaaS platforms",
+        "B": "A personal streaming subscription",
+        "C": "A grocery delivery order for one household",
+        "D": "A mobile wallet used by one consumer"
+      },
+      "correctAnswer": "A",
+      "answerText": "SaaS platforms",
+      "explanation": "SaaS platforms are listed as examples of Business-to-Business offerings."
+    },
+    {
+      "id": 54,
+      "topic": "Types of Customer Segments",
+      "question": "Which is an example of Business-to-Government (B2G)?",
+      "choices": {
+        "A": "IT infrastructure for LGUs",
+        "B": "A movie streaming subscription",
+        "C": "A grocery delivery app order",
+        "D": "A shoe purchase from an online store"
+      },
+      "correctAnswer": "A",
+      "answerText": "IT infrastructure for LGUs",
+      "explanation": "B2G includes products and services sold to government agencies or public institutions, such as IT infrastructure for LGUs."
+    },
+    {
+      "id": 55,
+      "topic": "Buyer vs. User",
+      "question": "What is the main difference between a buyer and a user?",
+      "choices": {
+        "A": "The buyer pays, while the user actually uses the product",
+        "B": "The buyer always uses the product, while the user always pays",
+        "C": "The buyer and user can never be the same person",
+        "D": "Only businesses can be buyers"
+      },
+      "correctAnswer": "A",
+      "answerText": "The buyer pays, while the user actually uses the product",
+      "explanation": "A buyer is the one who pays, while a user is the one who actually uses the product; sometimes they are the same person and sometimes they are not."
+    },
+    {
+      "id": 56,
+      "topic": "Market Segmentation Methods",
+      "question": "Which segmentation method is based on age, gender, income, education, and occupation?",
+      "choices": {
+        "A": "Demographic segmentation",
+        "B": "Psychographic segmentation",
+        "C": "Behavioral segmentation",
+        "D": "Geographic segmentation"
+      },
+      "correctAnswer": "A",
+      "answerText": "Demographic segmentation",
+      "explanation": "Demographic segmentation groups customers using characteristics such as age, gender, income, education, and occupation."
+    },
+    {
+      "id": 57,
+      "topic": "Market Segmentation Methods",
+      "question": "Which segmentation method is based on lifestyles, attitudes, values, and interests?",
+      "choices": {
+        "A": "Geographic segmentation",
+        "B": "Behavioral segmentation",
+        "C": "Psychographic segmentation",
+        "D": "Demographic segmentation"
+      },
+      "correctAnswer": "C",
+      "answerText": "Psychographic segmentation",
+      "explanation": "Psychographic segmentation focuses on lifestyles, attitudes, values, and interests."
+    },
+    {
+      "id": 58,
+      "topic": "Market Segmentation Methods",
+      "question": "Which segmentation method is based on usage frequency, habits, spending patterns, and loyalty?",
+      "choices": {
+        "A": "Behavioral segmentation",
+        "B": "Demographic segmentation",
+        "C": "Geographic segmentation",
+        "D": "Psychographic segmentation"
+      },
+      "correctAnswer": "A",
+      "answerText": "Behavioral segmentation",
+      "explanation": "Behavioral segmentation is based on usage, habits, spending patterns, and loyalty."
+    },
+    {
+      "id": 59,
+      "topic": "Jobs-To-Be-Done",
+      "question": "What is the main idea of Jobs-To-Be-Done (JTBD)?",
+      "choices": {
+        "A": "Customers hire products to accomplish a job",
+        "B": "Customers buy products only because of technical specifications",
+        "C": "Customers do not care about outcomes",
+        "D": "Customers should always choose the cheapest option"
+      },
+      "correctAnswer": "A",
+      "answerText": "Customers hire products to accomplish a job",
+      "explanation": "JTBD focuses on the idea that customers choose or 'hire' products to accomplish specific goals."
+    },
+    {
+      "id": 60,
+      "topic": "Jobs-To-Be-Done",
+      "question": "Which JTBD component describes the task or goal a user wants to accomplish?",
+      "choices": {
+        "A": "Functional Job",
+        "B": "Emotional Job",
+        "C": "Social Job",
+        "D": "Economic Job"
+      },
+      "correctAnswer": "A",
+      "answerText": "Functional Job",
+      "explanation": "Functional Jobs are the tasks or goals users want to accomplish."
+    },
+    {
+      "id": 61,
+      "topic": "Jobs-To-Be-Done",
+      "question": "Which JTBD component describes how a user wants to feel during or after using a product?",
+      "choices": {
+        "A": "Functional Job",
+        "B": "Emotional Job",
+        "C": "Social Job",
+        "D": "Geographic Job"
+      },
+      "correctAnswer": "B",
+      "answerText": "Emotional Job",
+      "explanation": "Emotional Jobs describe how the user wants to feel during or after using a solution."
+    },
+    {
+      "id": 62,
+      "topic": "Jobs-To-Be-Done",
+      "question": "Which JTBD component describes how a user wants to be perceived by other people?",
+      "choices": {
+        "A": "Functional Job",
+        "B": "Emotional Job",
+        "C": "Social Job",
+        "D": "Operational Job"
+      },
+      "correctAnswer": "C",
+      "answerText": "Social Job",
+      "explanation": "Social Jobs focus on how users want others to perceive them."
+    },
+    {
+      "id": 63,
+      "topic": "Product Features and Benefits",
+      "question": "Why should technopreneurs communicate benefits instead of only features?",
+      "choices": {
+        "A": "Customers care about the outcomes a product helps them achieve",
+        "B": "Features are always useless",
+        "C": "Benefits remove the need for a working product",
+        "D": "Customers only care about technical terms"
+      },
+      "correctAnswer": "A",
+      "answerText": "Customers care about the outcomes a product helps them achieve",
+      "explanation": "From the JTBD perspective, customers care about what a product enables them to accomplish, not just its features."
+    },
+    {
+      "id": 64,
+      "topic": "Customer Personas",
+      "question": "What is a customer persona?",
+      "choices": {
+        "A": "A semi-fictional representation of a target customer based on research-related characteristics",
+        "B": "A completely imaginary customer with no connection to research",
+        "C": "A company's financial statement",
+        "D": "A list of competitors"
+      },
+      "correctAnswer": "A",
+      "answerText": "A semi-fictional representation of a target customer based on research-related characteristics",
+      "explanation": "A persona represents a target customer using factors such as demographics, psychographics, goals, pain points, JTBD, and behavior patterns."
+    },
+    {
+      "id": 65,
+      "topic": "Customer Personas",
+      "question": "How can personas support product development?",
+      "choices": {
+        "A": "They provide a reference point for deciding whether features would help target users",
+        "B": "They eliminate the need to understand customers",
+        "C": "They guarantee every feature will succeed",
+        "D": "They are used only for accounting"
+      },
+      "correctAnswer": "A",
+      "answerText": "They provide a reference point for deciding whether features would help target users",
+      "explanation": "Teams can compare proposed features against persona goals, habits, motivations, and challenges."
+    },
+    {
+      "id": 66,
+      "topic": "Customer Validation",
+      "question": "What is customer validation?",
+      "choices": {
+        "A": "Testing assumptions about customer problems, needs, and behaviors through real-world interactions",
+        "B": "Writing code before speaking to any customers",
+        "C": "Choosing a target market only from personal opinion",
+        "D": "Launching a final product without testing"
+      },
+      "correctAnswer": "A",
+      "answerText": "Testing assumptions about customer problems, needs, and behaviors through real-world interactions",
+      "explanation": "Customer validation tests assumptions using direct interactions such as interviews, surveys, and prototype testing."
+    },
+    {
+      "id": 67,
+      "topic": "Validation as a Scientific Process",
+      "question": "What is the first step in the handout's scientific approach to customer validation?",
+      "choices": {
+        "A": "Create a hypothesis",
+        "B": "Scale the business",
+        "C": "Hire a large team",
+        "D": "Launch a national campaign"
+      },
+      "correctAnswer": "A",
+      "answerText": "Create a hypothesis",
+      "explanation": "The process begins by defining assumptions about the problem, target customers, or solution."
+    },
+    {
+      "id": 68,
+      "topic": "Validation Areas",
+      "question": "Which is one of the four essential areas startups must validate?",
+      "choices": {
+        "A": "Team Capability",
+        "B": "Office Decoration",
+        "C": "Founder Popularity",
+        "D": "Number of Social Media Followers"
+      },
+      "correctAnswer": "A",
+      "answerText": "Team Capability",
+      "explanation": "The four areas are customer problems/needs, product or service feasibility, team capability, and economic sustainability."
+    },
+    {
+      "id": 69,
+      "topic": "Customer Interviews",
+      "question": "Why are customer interviews considered a core validation method?",
+      "choices": {
+        "A": "They provide qualitative insights into customer context and lived experiences",
+        "B": "They replace the need to listen to users",
+        "C": "They guarantee customers will buy",
+        "D": "They only produce numerical data"
+      },
+      "correctAnswer": "A",
+      "answerText": "They provide qualitative insights into customer context and lived experiences",
+      "explanation": "Interviews help founders learn directly from users and capture deeper qualitative insights that surveys may miss."
+    },
+    {
+      "id": 70,
+      "topic": "Customer Interviews",
+      "question": "Which question style is recommended during customer interviews?",
+      "choices": {
+        "A": "Open-ended questions",
+        "B": "Leading questions designed to influence answers",
+        "C": "Questions that pitch the solution",
+        "D": "Questions that judge the participant"
+      },
+      "correctAnswer": "A",
+      "answerText": "Open-ended questions",
+      "explanation": "The handout recommends open-ended questions, active listening, empathy, and deeper follow-up questions."
+    },
+    {
+      "id": 71,
+      "topic": "Customer Problem Fit",
+      "question": "What does Customer Problem Fit measure?",
+      "choices": {
+        "A": "How well a startup's idea aligns with real customer needs",
+        "B": "How many employees a startup has",
+        "C": "How modern the office looks",
+        "D": "How many competitors exist"
+      },
+      "correctAnswer": "A",
+      "answerText": "How well a startup's idea aligns with real customer needs",
+      "explanation": "Customer Problem Fit checks whether the identified problem matches real customer challenges and whether the proposed direction fits their routines and needs."
+    },
+    {
+      "id": 72,
+      "topic": "Validation Frameworks",
+      "question": "Which framework is described as human-centered and empathy-first?",
+      "choices": {
+        "A": "Design Thinking",
+        "B": "Lean Startup",
+        "C": "Startup Maturity Model",
+        "D": "5 Whys"
+      },
+      "correctAnswer": "A",
+      "answerText": "Design Thinking",
+      "explanation": "Design Thinking emphasizes deeply understanding user needs and iterative prototyping."
+    },
+    {
+      "id": 73,
+      "topic": "Validation Frameworks",
+      "question": "Which framework is based on the build, measure, and learn cycle?",
+      "choices": {
+        "A": "Design Thinking",
+        "B": "Lean Startup",
+        "C": "JTBD",
+        "D": "Demographic Segmentation"
+      },
+      "correctAnswer": "B",
+      "answerText": "Lean Startup",
+      "explanation": "Lean Startup uses the build-measure-learn cycle for early and continuous validation."
+    },
+    {
+      "id": 74,
+      "topic": "Customer Insights",
+      "question": "What should a startup do when interviews strongly validate the problem, persona, and JTBD?",
+      "choices": {
+        "A": "Persist",
+        "B": "Pivot",
+        "C": "Abandon all research",
+        "D": "Change to an unrelated market"
+      },
+      "correctAnswer": "A",
+      "answerText": "Persist",
+      "explanation": "Persisting is appropriate when interviews strongly validate the current problem, persona, and job-to-be-done."
+    },
+    {
+      "id": 75,
+      "topic": "Customer Insights",
+      "question": "When is a pivot most appropriate?",
+      "choices": {
+        "A": "When the problem is weak, unclear, or misaligned with customer needs",
+        "B": "When the problem, persona, and JTBD are strongly validated",
+        "C": "When only minor adjustments are needed",
+        "D": "Whenever one interviewee gives positive feedback"
+      },
+      "correctAnswer": "A",
+      "answerText": "When the problem is weak, unclear, or misaligned with customer needs",
+      "explanation": "A pivot is appropriate when validation shows low urgency, segment mismatch, strong existing alternatives, or more pressing customer needs elsewhere."
+    }
+  ]
+}
