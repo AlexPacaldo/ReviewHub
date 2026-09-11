@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Review Hub icon">
+  <rect width="512" height="512" rx="112" fill="#2563eb"/>
+  <path d="M145 139h164c32 0 58 26 58 58v176H203c-32 0-58-26-58-58V139Z" fill="#ffffff" opacity="0.94"/>
+  <path d="M197 185h118M197 237h118M197 289h74" stroke="#2563eb" stroke-width="28" stroke-linecap="round"/>
+  <path d="M367 197h20c18 0 32 14 32 32v194H235c-18 0-32-14-32-32v-18h164V197Z" fill="#dbeafe"/>
+</svg>
