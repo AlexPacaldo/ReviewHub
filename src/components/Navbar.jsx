@@ -1,12 +1,13 @@
 import { Link, NavLink } from "react-router-dom";
-import { BookOpen, History, Library, Moon, Sun } from "lucide-react";
+import { History, Library, Moon, Sun } from "lucide-react";
+import appLogo from "../assets/Icon.png";
 
 export default function Navbar({ theme, onToggleTheme }) {
   return (
     <header className="navbar">
       <Link to="/" className="brand" aria-label="Review Hub home">
         <span className="brand-icon-wrap">
-          <img src="/src/assets/Icon.png" alt="Review Hub logo" width={28} height={28} />
+          <img src={appLogo} alt="Review Hub logo" width={28} height={28} />
         </span>
         <span>Hachi</span>
       </Link>
