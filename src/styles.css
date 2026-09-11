@@ -801,6 +801,13 @@ legend {
   border-radius: 8px;
 }
 
+.manual-builder-panel {
+  display: grid;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
 .json-import-panel {
   display: grid;
   gap: 14px;

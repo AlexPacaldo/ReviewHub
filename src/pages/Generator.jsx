@@ -314,8 +314,8 @@ export default function Generator() {
       <section className="section-heading">
         <div>
           <p className="eyebrow">AI Generator</p>
-          <h1>Create a reviewer draft</h1>
-          <p className="muted">Build a local reviewer now. Later, online or device AI can fill this same draft format automatically.</p>
+          <h1>Generate or import a reviewer</h1>
+          <p className="muted">Use AI-generated JSON now, then connect file upload and online/device AI later.</p>
           {draftMessage ? <p className="draft-save-note">{draftMessage}</p> : null}
         </div>
         <div className="generator-heading-actions">
@@ -333,27 +333,18 @@ export default function Generator() {
       <section className="generator-layout">
         <div className="generator-panel">
           <div className="generator-panel-head">
-            <FileText size={22} aria-hidden="true" />
+            <Sparkles size={22} aria-hidden="true" />
             <div>
-              <h2>Draft Builder</h2>
-              <p className="muted">Create questions manually first, then save them as an offline reviewer.</p>
+              <h2>AI File Generator</h2>
+              <p className="muted">This will become the main upload-to-reviewer workflow.</p>
             </div>
           </div>
 
-          <div className="generator-form-grid">
-            <label>
-              <span>Reviewer Title</span>
-              <input value={details.title} onChange={(event) => updateDetails("title", event.target.value)} placeholder="Example: Biology Prelim Reviewer" />
-            </label>
-            <label>
-              <span>Subject</span>
-              <input value={details.subject} onChange={(event) => updateDetails("subject", event.target.value)} placeholder="Example: Biology" />
-            </label>
-          </div>
-
-          <label className="prompt-box">
-            <span>Instructions</span>
-            <textarea value={details.instructions} onChange={(event) => updateDetails("instructions", event.target.value)} />
+          <label className="upload-zone ai-upload-zone">
+            <input type="file" disabled aria-label="Upload study file for AI generation" />
+            <Upload size={30} aria-hidden="true" />
+            <strong>File upload will go here</strong>
+            <span>Online mode can use cloud AI. Offline mode can use local/device AI later if the app platform supports it.</span>
           </label>
 
           <div className="json-import-panel">
@@ -381,6 +372,14 @@ export default function Generator() {
             </div>
           </div>
 
+          {errors.length ? (
+            <div className="generator-errors" role="alert">
+              {errors.map((error) => (
+                <p key={error}>{error}</p>
+              ))}
+            </div>
+          ) : null}
+
           <div className="template-panel">
             <div className="generator-panel-head compact">
               <Clipboard size={20} aria-hidden="true" />
@@ -403,68 +402,86 @@ export default function Generator() {
             </div>
           </div>
 
-          <div className="question-builder">
+          <div className="manual-builder-panel">
             <div className="generator-panel-head compact">
-              <Sparkles size={20} aria-hidden="true" />
+              <FileText size={20} aria-hidden="true" />
               <div>
-                <h2>Question {questions.length + 1}</h2>
-                <p className="muted">Add one complete multiple-choice question at a time.</p>
+                <h2>Manual Builder</h2>
+                <p className="muted">Fallback for creating or testing a reviewer without AI.</p>
               </div>
             </div>
 
             <div className="generator-form-grid">
               <label>
-                <span>Topic</span>
-                <input value={questionDraft.topic} onChange={(event) => updateQuestion("topic", event.target.value)} placeholder="Example: Photosynthesis" />
+                <span>Reviewer Title</span>
+                <input value={details.title} onChange={(event) => updateDetails("title", event.target.value)} placeholder="Example: Biology Prelim Reviewer" />
               </label>
               <label>
-                <span>Correct Answer</span>
-                <select value={questionDraft.correctAnswer} onChange={(event) => updateQuestion("correctAnswer", event.target.value)}>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="D">D</option>
-                </select>
+                <span>Subject</span>
+                <input value={details.subject} onChange={(event) => updateDetails("subject", event.target.value)} placeholder="Example: Biology" />
               </label>
             </div>
 
             <label className="prompt-box">
-              <span>Question</span>
-              <textarea value={questionDraft.question} onChange={(event) => updateQuestion("question", event.target.value)} placeholder="Write the question here." />
+              <span>Instructions</span>
+              <textarea value={details.instructions} onChange={(event) => updateDetails("instructions", event.target.value)} />
             </label>
 
-            <div className="choice-entry-grid">
-              {["A", "B", "C", "D"].map((letter) => (
-                <label key={letter}>
-                  <span>{letter}</span>
-                  <input value={questionDraft[letter]} onChange={(event) => updateQuestion(letter, event.target.value)} placeholder={`Choice ${letter}`} />
+            <div className="question-builder">
+              <div className="generator-panel-head compact">
+                <Sparkles size={20} aria-hidden="true" />
+                <div>
+                  <h2>Question {questions.length + 1}</h2>
+                  <p className="muted">Add one complete multiple-choice question at a time.</p>
+                </div>
+              </div>
+
+              <div className="generator-form-grid">
+                <label>
+                  <span>Topic</span>
+                  <input value={questionDraft.topic} onChange={(event) => updateQuestion("topic", event.target.value)} placeholder="Example: Photosynthesis" />
                 </label>
-              ))}
+                <label>
+                  <span>Correct Answer</span>
+                  <select value={questionDraft.correctAnswer} onChange={(event) => updateQuestion("correctAnswer", event.target.value)}>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className="prompt-box">
+                <span>Question</span>
+                <textarea value={questionDraft.question} onChange={(event) => updateQuestion("question", event.target.value)} placeholder="Write the question here." />
+              </label>
+
+              <div className="choice-entry-grid">
+                {["A", "B", "C", "D"].map((letter) => (
+                  <label key={letter}>
+                    <span>{letter}</span>
+                    <input value={questionDraft[letter]} onChange={(event) => updateQuestion(letter, event.target.value)} placeholder={`Choice ${letter}`} />
+                  </label>
+                ))}
+              </div>
+
+              <label className="prompt-box">
+                <span>Explanation</span>
+                <textarea value={questionDraft.explanation} onChange={(event) => updateQuestion("explanation", event.target.value)} placeholder="Explain why the correct answer is correct." />
+              </label>
+
+              <button className="button subtle" type="button" onClick={addQuestion}>
+                <Plus size={18} aria-hidden="true" />
+                Add Question
+              </button>
             </div>
 
-            <label className="prompt-box">
-              <span>Explanation</span>
-              <textarea value={questionDraft.explanation} onChange={(event) => updateQuestion("explanation", event.target.value)} placeholder="Explain why the correct answer is correct." />
-            </label>
-
-            <button className="button subtle" type="button" onClick={addQuestion}>
-              <Plus size={18} aria-hidden="true" />
-              Add Question
+            <button className="button primary large" type="button" onClick={saveDraftReviewer}>
+              <Save size={18} aria-hidden="true" />
+              Save Manual Reviewer
             </button>
           </div>
-
-          {errors.length ? (
-            <div className="generator-errors" role="alert">
-              {errors.map((error) => (
-                <p key={error}>{error}</p>
-              ))}
-            </div>
-          ) : null}
-
-          <button className="button primary large" type="button" onClick={saveDraftReviewer}>
-            <Save size={18} aria-hidden="true" />
-            Save Offline Reviewer
-          </button>
         </div>
 
         <aside className="generator-panel">
