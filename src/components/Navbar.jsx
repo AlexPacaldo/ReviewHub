@@ -5,8 +5,10 @@ export default function Navbar({ theme, onToggleTheme }) {
   return (
     <header className="navbar">
       <Link to="/" className="brand" aria-label="Review Hub home">
-        <BookOpen size={22} aria-hidden="true" />
-        <span>Review Hub</span>
+        <span className="brand-icon-wrap">
+          <img src="/src/assets/Icon.png" alt="Review Hub logo" width={28} height={28} />
+        </span>
+        <span>Hachi</span>
       </Link>
 
       <nav className="nav-links" aria-label="Main navigation">

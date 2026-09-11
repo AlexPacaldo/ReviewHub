@@ -36,8 +36,8 @@ export default function Home() {
     <div className="page">
       <section className="hero">
         <p className="eyebrow">Reviewer library</p>
-        <h1>Review Hub</h1>
-        <p>Study smarter. Test what you know.</p>
+        <h1>Hachi</h1>
+        <p>Your study companion.</p>
       </section>
 
       <section className="section-heading">

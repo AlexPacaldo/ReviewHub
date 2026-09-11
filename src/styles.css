@@ -102,6 +102,24 @@ main {
   font-weight: 800;
 }
 
+.brand-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+}
+
+.brand-icon-wrap img {
+  display: block;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .nav-links {
   gap: 6px;
 }
