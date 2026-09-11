@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, HardDrive, Trash2, Wifi, WifiOff } from "lucide-react";
+import { Download, HardDrive, Smartphone, Trash2, Wifi, WifiOff } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
@@ -28,6 +28,8 @@ function downloadJson(filename, data) {
 export default function Library() {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [offlineReady, setOfflineReady] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
   const [localReviewers, setLocalReviewers] = useState(getLocalReviewers);
   const [progress, setProgress] = useState(getAllProgress);
   const [history, setHistory] = useState(getAttemptHistory);
@@ -35,16 +37,29 @@ export default function Library() {
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+    const captureInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       window.navigator.standalone === true;
 
     setIsStandalone(standalone);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then(() => setOfflineReady(true))
+        .catch(() => setOfflineReady(false));
+    }
+
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
+      window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
     };
   }, []);
 
@@ -63,6 +78,15 @@ export default function Library() {
     setLocalReviewers(getLocalReviewers());
     setProgress(getAllProgress());
     setHistory(getAttemptHistory());
+  }
+
+  async function installApp() {
+    if (!installPrompt) {
+      return;
+    }
+
+    await installPrompt.prompt();
+    setInstallPrompt(null);
   }
 
   function runConfirmedAction() {
@@ -112,6 +136,11 @@ export default function Library() {
           <strong>{isStandalone ? "Installed" : "Browser"}</strong>
         </article>
         <article className="library-status-card">
+          <Smartphone size={20} aria-hidden="true" />
+          <span>Offline Ready</span>
+          <strong>{offlineReady ? "Ready" : "Preparing"}</strong>
+        </article>
+        <article className="library-status-card">
           <span>Built-in Reviewers</span>
           <strong>{stats.builtInReviewers}</strong>
         </article>
@@ -127,6 +156,29 @@ export default function Library() {
           <span>Completed Attempts</span>
           <strong>{stats.history}</strong>
         </article>
+      </section>
+
+      <section className="library-panel install-panel">
+        <div>
+          <h2>Offline App Access</h2>
+          <p className="muted">Open Review Hub once while online, then this device can reopen the app shell without internet.</p>
+        </div>
+        <div className="install-steps" aria-label="Offline app readiness">
+          <span className={offlineReady ? "complete" : ""}>App shell cached</span>
+          <span className={isStandalone ? "complete" : ""}>Installed app mode</span>
+          <span className={!isOnline ? "complete" : ""}>Offline mode supported</span>
+        </div>
+        {!isStandalone ? (
+          <div className="button-row">
+            {installPrompt ? (
+              <button className="button primary" type="button" onClick={installApp}>
+                Install Review Hub
+              </button>
+            ) : (
+              <p className="muted install-note">Use your browser menu and choose Install app or Add to Home Screen.</p>
+            )}
+          </div>
+        ) : null}
       </section>
 
       <section className="library-panel">
@@ -153,7 +205,7 @@ export default function Library() {
               <article className="library-row" key={reviewer.reviewerId}>
                 <div>
                   <h3>{reviewer.title}</h3>
-                  <p className="muted">{reviewer.subject} · {reviewer.questions?.length || reviewer.questionCount} questions</p>
+                  <p className="muted">{reviewer.subject} - {reviewer.questions?.length || reviewer.questionCount} questions</p>
                 </div>
                 <div className="button-row">
                   <Link className="button primary" to={`/reviewer/${reviewer.reviewerId}`}>

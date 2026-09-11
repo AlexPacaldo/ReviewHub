@@ -1,8 +1,22 @@
+import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { History, Library, Moon, Sun } from "lucide-react";
+import { History, Library, Moon, Sun, WifiOff } from "lucide-react";
 import appLogo from "../assets/Icon.png";
 
 export default function Navbar({ theme, onToggleTheme }) {
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+
+  useEffect(() => {
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
+
   return (
     <header className="navbar">
       <Link to="/" className="brand" aria-label="Review Hub home">
@@ -23,6 +37,13 @@ export default function Navbar({ theme, onToggleTheme }) {
           Library
         </NavLink>
       </nav>
+
+      {!isOnline ? (
+        <span className="offline-pill" role="status">
+          <WifiOff size={16} aria-hidden="true" />
+          Offline
+        </span>
+      ) : null}
 
       <button className="icon-button" type="button" onClick={onToggleTheme} aria-label="Toggle theme">
         {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}

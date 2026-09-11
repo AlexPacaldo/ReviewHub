@@ -137,6 +137,20 @@ main {
   background: var(--surface-2);
 }
 
+.offline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 10px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--border));
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
 .icon-button,
 .button {
   min-height: 42px;
@@ -955,7 +969,7 @@ legend {
 
 .library-status-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -998,10 +1012,48 @@ legend {
   padding: 22px;
 }
 
+.install-panel {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
 .library-panel h2,
 .library-panel h3,
 .library-panel p {
   margin: 0;
+}
+
+.install-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.install-steps span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.install-steps span.complete {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 34%, var(--border));
+}
+
+.install-note {
+  margin: 0;
+}
+
+.install-panel .button-row {
+  grid-column: 1 / -1;
 }
 
 .library-panel-head,
@@ -1050,6 +1102,10 @@ legend {
     width: 100%;
   }
 
+  .offline-pill {
+    margin-left: auto;
+  }
+
   .nav-links a {
     flex: 1;
     justify-content: center;
@@ -1067,9 +1123,14 @@ legend {
 
   .section-heading,
   .quiz-topbar,
-  .history-card {
+  .history-card,
+  .install-panel {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .install-panel {
+    grid-template-columns: 1fr;
   }
 
   .search-field,
