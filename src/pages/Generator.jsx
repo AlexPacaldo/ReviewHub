@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileJson, FileText, HardDrive, Plus, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Clipboard, Download, FileJson, FileText, HardDrive, Plus, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -13,6 +13,47 @@ const emptyQuestion = {
   D: "",
   correctAnswer: "A",
   explanation: ""
+};
+
+const sampleReviewerTemplate = {
+  reviewerId: "sample-course-prelim-reviewer",
+  title: "Sample Course - Prelim Reviewer",
+  subject: "Sample Course",
+  coverage: ["Topic 1", "Topic 2"],
+  questionCount: 2,
+  questionType: "multiple_choice",
+  choicesPerQuestion: 4,
+  instructions: "Select the best answer for each question.",
+  questions: [
+    {
+      id: 1,
+      topic: "Topic 1",
+      question: "What is the main idea of this sample question?",
+      choices: {
+        A: "The correct answer",
+        B: "A close but incorrect answer",
+        C: "An unrelated answer",
+        D: "Another incorrect answer"
+      },
+      correctAnswer: "A",
+      answerText: "The correct answer",
+      explanation: "Explain why A is correct using only the source material."
+    },
+    {
+      id: 2,
+      topic: "Topic 2",
+      question: "Which choice best matches the source material?",
+      choices: {
+        A: "Incorrect option",
+        B: "Correct option",
+        C: "Incorrect option",
+        D: "Incorrect option"
+      },
+      correctAnswer: "B",
+      answerText: "Correct option",
+      explanation: "Explain why B is correct and why the other options are less accurate."
+    }
+  ]
 };
 
 function slugify(value) {
@@ -52,6 +93,16 @@ function buildReviewer({ title, subject, instructions }, questions) {
     instructions: instructions.trim() || "Select the best answer for each question.",
     questions: reviewerQuestions
   };
+}
+
+function downloadTextFile(filename, text) {
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function normalizeReviewerJson(reviewer) {
@@ -107,6 +158,7 @@ export default function Generator() {
   const [questions, setQuestions] = useState([]);
   const [jsonText, setJsonText] = useState("");
   const [errors, setErrors] = useState([]);
+  const [templateMessage, setTemplateMessage] = useState("");
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -120,6 +172,7 @@ export default function Generator() {
   }, []);
 
   const draftPreview = useMemo(() => buildReviewer(details, questions), [details, questions]);
+  const sampleTemplateText = useMemo(() => JSON.stringify(sampleReviewerTemplate, null, 2), []);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -188,6 +241,21 @@ export default function Generator() {
     } catch {
       setErrors(["Paste valid reviewer JSON before saving."]);
     }
+  }
+
+  async function copySampleTemplate() {
+    try {
+      await navigator.clipboard.writeText(sampleTemplateText);
+      setTemplateMessage("Template copied.");
+    } catch {
+      setJsonText(sampleTemplateText);
+      setTemplateMessage("Template placed in the JSON box.");
+    }
+  }
+
+  function downloadSampleTemplate() {
+    downloadTextFile("review_hub_reviewer_template.json", sampleTemplateText);
+    setTemplateMessage("Template downloaded.");
   }
 
   function handleJsonFile(event) {
@@ -267,6 +335,28 @@ export default function Generator() {
                 Import JSON File
                 <input type="file" accept="application/json,.json" onChange={handleJsonFile} />
               </label>
+            </div>
+          </div>
+
+          <div className="template-panel">
+            <div className="generator-panel-head compact">
+              <Clipboard size={20} aria-hidden="true" />
+              <div>
+                <h2>JSON Template</h2>
+                <p className="muted">Give this format to an AI tool, then paste the completed JSON above.</p>
+              </div>
+            </div>
+            <pre className="template-preview">{sampleTemplateText}</pre>
+            <div className="button-row">
+              <button className="button subtle" type="button" onClick={copySampleTemplate}>
+                <Clipboard size={17} aria-hidden="true" />
+                Copy Template
+              </button>
+              <button className="button subtle" type="button" onClick={downloadSampleTemplate}>
+                <Download size={17} aria-hidden="true" />
+                Download Template
+              </button>
+              {templateMessage ? <span className="template-message">{templateMessage}</span> : null}
             </div>
           </div>
 

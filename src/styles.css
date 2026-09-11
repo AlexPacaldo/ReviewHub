@@ -796,6 +796,35 @@ legend {
   border-radius: 8px;
 }
 
+.template-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.template-preview {
+  max-height: 240px;
+  margin: 0;
+  overflow: auto;
+  padding: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.template-message {
+  color: var(--success);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
 .file-button {
   position: relative;
   overflow: hidden;
