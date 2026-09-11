@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { BookOpen, History, Moon, Sun } from "lucide-react";
+import { BookOpen, History, Library, Moon, Sun } from "lucide-react";
 
 export default function Navbar({ theme, onToggleTheme }) {
   return (
@@ -14,6 +14,10 @@ export default function Navbar({ theme, onToggleTheme }) {
         <NavLink to="/history">
           <History size={17} aria-hidden="true" />
           History
+        </NavLink>
+        <NavLink to="/library">
+          <Library size={17} aria-hidden="true" />
+          Library
         </NavLink>
       </nav>
 

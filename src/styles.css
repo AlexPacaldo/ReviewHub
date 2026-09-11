@@ -935,6 +935,81 @@ legend {
   align-items: center;
 }
 
+.library-status-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.library-status-card,
+.library-panel,
+.library-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.library-status-card {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-height: 112px;
+  padding: 16px;
+}
+
+.library-status-card svg {
+  color: var(--accent);
+}
+
+.library-status-card span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.library-status-card strong {
+  font-size: 1.25rem;
+}
+
+.library-panel {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 22px;
+}
+
+.library-panel h2,
+.library-panel h3,
+.library-panel p {
+  margin: 0;
+}
+
+.library-panel-head,
+.library-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.library-list {
+  display: grid;
+  gap: 10px;
+}
+
+.library-row {
+  padding: 16px;
+  box-shadow: none;
+}
+
+.library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .history-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -991,6 +1066,7 @@ legend {
 
   .summary-grid,
   .history-stats,
+  .library-status-grid,
   .review-stats,
   .answer-comparison {
     grid-template-columns: repeat(2, 1fr);
@@ -1017,6 +1093,7 @@ legend {
 @media (max-width: 460px) {
   .summary-grid,
   .history-stats,
+  .library-status-grid,
   .review-stats,
   .answer-comparison {
     grid-template-columns: 1fr;
@@ -1027,5 +1104,11 @@ legend {
   .question-panel,
   .results-summary {
     padding: 20px;
+  }
+
+  .library-panel-head,
+  .library-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

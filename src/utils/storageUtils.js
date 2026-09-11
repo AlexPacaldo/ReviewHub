@@ -31,6 +31,10 @@ export function getAllProgress() {
   return readJson(KEYS.progress, {});
 }
 
+export function clearAllQuizProgress() {
+  writeJson(KEYS.progress, {});
+}
+
 export function loadQuizProgress(reviewerId) {
   return getAllProgress()[reviewerId] || null;
 }
@@ -92,4 +96,18 @@ export function deleteLocalReviewer(reviewerId) {
   writeJson(KEYS.localReviewers, nextReviewers);
   clearQuizProgress(reviewerId);
   return nextReviewers;
+}
+
+export function clearLocalReviewers() {
+  writeJson(KEYS.localReviewers, []);
+}
+
+export function getLocalDataSnapshot() {
+  return {
+    exportedAt: new Date().toISOString(),
+    progress: getAllProgress(),
+    history: getAttemptHistory(),
+    localReviewers: getLocalReviewers(),
+    theme: getThemePreference()
+  };
 }
