@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clipboard, Download, FileJson, FileText, HardDrive, Plus, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Clipboard, Download, FileJson, FileText, HardDrive, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
-import { saveLocalReviewer } from "../utils/storageUtils.js";
+import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
 const emptyQuestion = {
   topic: "",
@@ -148,17 +148,20 @@ function normalizeReviewerJson(reviewer) {
 
 export default function Generator() {
   const navigate = useNavigate();
+  const savedDraft = getGeneratorDraft();
+  const skipNextAutosave = useRef(false);
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
-  const [details, setDetails] = useState({
+  const [details, setDetails] = useState(savedDraft?.details || {
     title: "",
     subject: "",
     instructions: "Select the best answer for each question."
   });
-  const [questionDraft, setQuestionDraft] = useState(emptyQuestion);
-  const [questions, setQuestions] = useState([]);
-  const [jsonText, setJsonText] = useState("");
+  const [questionDraft, setQuestionDraft] = useState(savedDraft?.questionDraft || emptyQuestion);
+  const [questions, setQuestions] = useState(savedDraft?.questions || []);
+  const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
   const [templateMessage, setTemplateMessage] = useState("");
+  const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -170,6 +173,21 @@ export default function Generator() {
       window.removeEventListener("offline", updateOnlineStatus);
     };
   }, []);
+
+  useEffect(() => {
+    if (skipNextAutosave.current) {
+      skipNextAutosave.current = false;
+      return;
+    }
+
+    saveGeneratorDraft({
+      details,
+      questionDraft,
+      questions,
+      jsonText
+    });
+    setDraftMessage("Draft saved on this device.");
+  }, [details, questionDraft, questions, jsonText]);
 
   const draftPreview = useMemo(() => buildReviewer(details, questions), [details, questions]);
   const sampleTemplateText = useMemo(() => JSON.stringify(sampleReviewerTemplate, null, 2), []);
@@ -222,6 +240,7 @@ export default function Generator() {
     }
 
     saveLocalReviewer(reviewer);
+    clearGeneratorDraft();
     navigate(`/reviewer/${reviewer.reviewerId}`);
   }
 
@@ -237,6 +256,7 @@ export default function Generator() {
       }
 
       saveLocalReviewer(reviewer);
+      clearGeneratorDraft();
       navigate(`/reviewer/${reviewer.reviewerId}`);
     } catch {
       setErrors(["Paste valid reviewer JSON before saving."]);
@@ -273,6 +293,22 @@ export default function Generator() {
     event.target.value = "";
   }
 
+  function clearDraft() {
+    clearGeneratorDraft();
+    skipNextAutosave.current = true;
+    setDetails({
+      title: "",
+      subject: "",
+      instructions: "Select the best answer for each question."
+    });
+    setQuestionDraft(emptyQuestion);
+    setQuestions([]);
+    setJsonText("");
+    setErrors([]);
+    setTemplateMessage("");
+    setDraftMessage("Draft cleared.");
+  }
+
   return (
     <div className="page">
       <section className="section-heading">
@@ -280,11 +316,18 @@ export default function Generator() {
           <p className="eyebrow">AI Generator</p>
           <h1>Create a reviewer draft</h1>
           <p className="muted">Build a local reviewer now. Later, online or device AI can fill this same draft format automatically.</p>
+          {draftMessage ? <p className="draft-save-note">{draftMessage}</p> : null}
         </div>
-        <span className={`generator-status ${isOnline ? "online" : "offline"}`}>
-          {isOnline ? <Wifi size={17} aria-hidden="true" /> : <WifiOff size={17} aria-hidden="true" />}
-          {isOnline ? "Online" : "Offline"}
-        </span>
+        <div className="generator-heading-actions">
+          <span className={`generator-status ${isOnline ? "online" : "offline"}`}>
+            {isOnline ? <Wifi size={17} aria-hidden="true" /> : <WifiOff size={17} aria-hidden="true" />}
+            {isOnline ? "Online" : "Offline"}
+          </span>
+          <button className="button subtle" type="button" onClick={clearDraft}>
+            <RotateCcw size={17} aria-hidden="true" />
+            Clear Draft
+          </button>
+        </div>
       </section>
 
       <section className="generator-layout">

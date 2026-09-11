@@ -660,6 +660,20 @@ legend {
   border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
 }
 
+.generator-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.draft-save-note {
+  margin: 10px 0 0;
+  color: var(--success);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .generator-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.8fr);

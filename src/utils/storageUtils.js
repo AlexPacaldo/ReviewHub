@@ -3,7 +3,8 @@ const KEYS = {
   history: "reviewer_attempt_history",
   theme: "reviewer_theme",
   lastAttempt: "reviewer_last_attempt",
-  localReviewers: "reviewer_local_reviewers"
+  localReviewers: "reviewer_local_reviewers",
+  generatorDraft: "reviewer_generator_draft"
 };
 
 function readJson(key, fallback) {
@@ -102,12 +103,28 @@ export function clearLocalReviewers() {
   writeJson(KEYS.localReviewers, []);
 }
 
+export function getGeneratorDraft() {
+  return readJson(KEYS.generatorDraft, null);
+}
+
+export function saveGeneratorDraft(draft) {
+  writeJson(KEYS.generatorDraft, {
+    ...draft,
+    savedAt: new Date().toISOString()
+  });
+}
+
+export function clearGeneratorDraft() {
+  localStorage.removeItem(KEYS.generatorDraft);
+}
+
 export function getLocalDataSnapshot() {
   return {
     exportedAt: new Date().toISOString(),
     progress: getAllProgress(),
     history: getAttemptHistory(),
     localReviewers: getLocalReviewers(),
+    generatorDraft: getGeneratorDraft(),
     theme: getThemePreference()
   };
 }
