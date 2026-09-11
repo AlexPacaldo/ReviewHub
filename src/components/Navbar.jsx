@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { History, Library, Moon, Sun, WifiOff } from "lucide-react";
+import { History, Library, Moon, Sparkles, Sun, WifiOff } from "lucide-react";
 import appLogo from "../assets/Icon.png";
 
 export default function Navbar({ theme, onToggleTheme }) {
@@ -28,6 +28,10 @@ export default function Navbar({ theme, onToggleTheme }) {
 
       <nav className="nav-links" aria-label="Main navigation">
         <NavLink to="/">Reviewers</NavLink>
+        <NavLink to="/generator">
+          <Sparkles size={17} aria-hidden="true" />
+          Generator
+        </NavLink>
         <NavLink to="/history">
           <History size={17} aria-hidden="true" />
           History

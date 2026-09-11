@@ -8,6 +8,7 @@ import Results from "./pages/Results.jsx";
 import ReviewAnswers from "./pages/ReviewAnswers.jsx";
 import History from "./pages/History.jsx";
 import Library from "./pages/Library.jsx";
+import Generator from "./pages/Generator.jsx";
 import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/review/:reviewerId" element={<ReviewAnswers />} />
           <Route path="/history" element={<History />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/generator" element={<Generator />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
