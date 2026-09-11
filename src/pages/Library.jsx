@@ -7,10 +7,12 @@ import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
 import {
   clearAllQuizProgress,
   clearAttemptHistory,
+  clearGeneratorDraft,
   clearLocalReviewers,
   deleteLocalReviewer,
   getAllProgress,
   getAttemptHistory,
+  getGeneratorDraft,
   getLocalDataSnapshot,
   getLocalReviewers
 } from "../utils/storageUtils.js";
@@ -33,6 +35,7 @@ export default function Library() {
   const [localReviewers, setLocalReviewers] = useState(getLocalReviewers);
   const [progress, setProgress] = useState(getAllProgress);
   const [history, setHistory] = useState(getAttemptHistory);
+  const [generatorDraft, setGeneratorDraft] = useState(getGeneratorDraft);
   const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
@@ -70,14 +73,16 @@ export default function Library() {
       allReviewers: getAllReviewers().length,
       localReviewers: localReviewers.length,
       history: history.length,
-      progressSessions
+      progressSessions,
+      generatorDrafts: generatorDraft ? 1 : 0
     };
-  }, [history.length, localReviewers.length, progress]);
+  }, [generatorDraft, history.length, localReviewers.length, progress]);
 
   function refreshLocalData() {
     setLocalReviewers(getLocalReviewers());
     setProgress(getAllProgress());
     setHistory(getAttemptHistory());
+    setGeneratorDraft(getGeneratorDraft());
   }
 
   async function installApp() {
@@ -104,6 +109,10 @@ export default function Library() {
 
     if (confirmAction?.type === "clear-local-reviewers") {
       clearLocalReviewers();
+    }
+
+    if (confirmAction?.type === "clear-generator-draft") {
+      clearGeneratorDraft();
     }
 
     setConfirmAction(null);
@@ -151,6 +160,10 @@ export default function Library() {
         <article className="library-status-card">
           <span>Unfinished Quizzes</span>
           <strong>{stats.progressSessions}</strong>
+        </article>
+        <article className="library-status-card">
+          <span>Generator Draft</span>
+          <strong>{stats.generatorDrafts ? "Saved" : "None"}</strong>
         </article>
         <article className="library-status-card">
           <span>Completed Attempts</span>
@@ -233,6 +246,28 @@ export default function Library() {
       <section className="library-panel">
         <h2>Local Data</h2>
         <p className="muted">These actions only affect data stored on this device.</p>
+        <div className="local-data-grid">
+          <article className="local-data-row">
+            <div>
+              <h3>Generator Draft</h3>
+              <p className="muted">
+                {generatorDraft
+                  ? `Saved ${new Date(generatorDraft.savedAt).toLocaleString()} with ${generatorDraft.questions?.length || 0} added questions.`
+                  : "No unfinished Generator draft is saved on this device."}
+              </p>
+            </div>
+            <div className="button-row">
+              <Link className="button subtle" to="/generator">
+                Open Generator
+              </Link>
+              {generatorDraft ? (
+                <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-generator-draft" })}>
+                  Clear Draft
+                </button>
+              ) : null}
+            </div>
+          </article>
+        </div>
         <div className="library-actions">
           <button className="button subtle" type="button" onClick={() => downloadJson("review_hub_local_backup.json", getLocalDataSnapshot())}>
             <Download size={17} aria-hidden="true" />

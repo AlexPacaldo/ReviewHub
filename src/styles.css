@@ -1405,9 +1405,25 @@ legend {
   gap: 10px;
 }
 
-.library-row {
+.library-row,
+.local-data-row {
   padding: 16px;
   box-shadow: none;
+}
+
+.local-data-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.local-data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .library-actions {
@@ -1536,7 +1552,8 @@ legend {
   }
 
   .library-panel-head,
-  .library-row {
+  .library-row,
+  .local-data-row {
     align-items: stretch;
     flex-direction: column;
   }
