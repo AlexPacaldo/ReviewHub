@@ -2,7 +2,8 @@ const KEYS = {
   progress: "reviewer_quiz_progress",
   history: "reviewer_attempt_history",
   theme: "reviewer_theme",
-  lastAttempt: "reviewer_last_attempt"
+  lastAttempt: "reviewer_last_attempt",
+  localReviewers: "reviewer_local_reviewers"
 };
 
 function readJson(key, fallback) {
@@ -67,4 +68,28 @@ export function getAttemptById(attemptId) {
 
 export function getLatestAttempt(reviewerId) {
   return getAttemptHistory().find((attempt) => attempt.reviewerId === reviewerId) || null;
+}
+
+export function getLocalReviewers() {
+  return readJson(KEYS.localReviewers, []);
+}
+
+export function saveLocalReviewer(reviewer) {
+  const existing = getLocalReviewers().filter((item) => item.reviewerId !== reviewer.reviewerId);
+  const nextReviewers = [
+    {
+      ...reviewer,
+      savedAt: new Date().toISOString()
+    },
+    ...existing
+  ];
+  writeJson(KEYS.localReviewers, nextReviewers);
+  return nextReviewers;
+}
+
+export function deleteLocalReviewer(reviewerId) {
+  const nextReviewers = getLocalReviewers().filter((reviewer) => reviewer.reviewerId !== reviewerId);
+  writeJson(KEYS.localReviewers, nextReviewers);
+  clearQuizProgress(reviewerId);
+  return nextReviewers;
 }
