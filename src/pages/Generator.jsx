@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, HardDrive, Plus, Save, Sparkles, Trash2, Wifi, WifiOff } from "lucide-react";
+import { FileJson, FileText, HardDrive, Plus, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -54,6 +54,47 @@ function buildReviewer({ title, subject, instructions }, questions) {
   };
 }
 
+function normalizeReviewerJson(reviewer) {
+  const questions = Array.isArray(reviewer?.questions) ? reviewer.questions : [];
+  const normalizedQuestions = questions.map((question, index) => {
+    const correctAnswer = String(question.correctAnswer || "A").toUpperCase();
+    const choices = question.choices || {};
+
+    return {
+      id: question.id || index + 1,
+      topic: question.topic || "Generated Reviewer",
+      question: question.question || "",
+      choices: {
+        A: choices.A || "",
+        B: choices.B || "",
+        C: choices.C || "",
+        D: choices.D || ""
+      },
+      correctAnswer,
+      answerText: question.answerText || choices[correctAnswer] || "",
+      explanation: question.explanation || ""
+    };
+  });
+  const title = reviewer?.title || "Generated Reviewer";
+  const subject = reviewer?.subject || "Generated";
+  const coverage = Array.isArray(reviewer?.coverage) && reviewer.coverage.length
+    ? reviewer.coverage
+    : [...new Set(normalizedQuestions.map((question) => question.topic).filter(Boolean))];
+
+  return {
+    ...reviewer,
+    reviewerId: `${slugify(reviewer?.reviewerId || title || subject || "generated-reviewer")}-${Date.now()}`,
+    title,
+    subject,
+    coverage,
+    questionCount: normalizedQuestions.length,
+    questionType: "multiple_choice",
+    choicesPerQuestion: 4,
+    instructions: reviewer?.instructions || "Select the best answer for each question.",
+    questions: normalizedQuestions
+  };
+}
+
 export default function Generator() {
   const navigate = useNavigate();
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
@@ -64,6 +105,7 @@ export default function Generator() {
   });
   const [questionDraft, setQuestionDraft] = useState(emptyQuestion);
   const [questions, setQuestions] = useState([]);
+  const [jsonText, setJsonText] = useState("");
   const [errors, setErrors] = useState([]);
 
   useEffect(() => {
@@ -130,6 +172,39 @@ export default function Generator() {
     navigate(`/reviewer/${reviewer.reviewerId}`);
   }
 
+  function saveReviewerJson(rawJson) {
+    try {
+      const parsedReviewer = JSON.parse(rawJson);
+      const reviewer = normalizeReviewerJson(parsedReviewer);
+      const validation = validateReviewer(reviewer);
+
+      if (!validation.isValid) {
+        setErrors(validation.errors);
+        return;
+      }
+
+      saveLocalReviewer(reviewer);
+      navigate(`/reviewer/${reviewer.reviewerId}`);
+    } catch {
+      setErrors(["Paste valid reviewer JSON before saving."]);
+    }
+  }
+
+  function handleJsonFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextJsonText = String(reader.result || "");
+      setJsonText(nextJsonText);
+      saveReviewerJson(nextJsonText);
+    };
+    reader.onerror = () => setErrors(["Could not read that JSON file."]);
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
   return (
     <div className="page">
       <section className="section-heading">
@@ -169,6 +244,31 @@ export default function Generator() {
             <span>Instructions</span>
             <textarea value={details.instructions} onChange={(event) => updateDetails("instructions", event.target.value)} />
           </label>
+
+          <div className="json-import-panel">
+            <div className="generator-panel-head compact">
+              <FileJson size={20} aria-hidden="true" />
+              <div>
+                <h2>Paste Reviewer JSON</h2>
+                <p className="muted">Use this when an AI tool already produced reviewer JSON.</p>
+              </div>
+            </div>
+            <label className="prompt-box">
+              <span>JSON</span>
+              <textarea value={jsonText} onChange={(event) => setJsonText(event.target.value)} placeholder='{"title":"Sample Reviewer","subject":"Sample","questions":[...]}' />
+            </label>
+            <div className="button-row">
+              <button className="button subtle" type="button" onClick={() => saveReviewerJson(jsonText)}>
+                <Save size={17} aria-hidden="true" />
+                Save JSON
+              </button>
+              <label className="button subtle file-button">
+                <Upload size={17} aria-hidden="true" />
+                Import JSON File
+                <input type="file" accept="application/json,.json" onChange={handleJsonFile} />
+              </label>
+            </div>
+          </div>
 
           <div className="question-builder">
             <div className="generator-panel-head compact">

@@ -787,6 +787,27 @@ legend {
   border-radius: 8px;
 }
 
+.json-import-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--accent-soft) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 8px;
+}
+
+.file-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.file-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .generator-errors {
   display: grid;
   gap: 6px;
