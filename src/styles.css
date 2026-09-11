@@ -387,47 +387,6 @@ main {
   margin-top: 36px;
 }
 
-.import-panel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin: 0 0 18px;
-  padding: 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.import-panel h2 {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
-}
-
-.import-panel p {
-  margin: 0;
-}
-
-.import-status {
-  margin: 0 0 18px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 700;
-}
-
-.import-status.success {
-  color: var(--success);
-  background: var(--success-soft);
-  border-color: color-mix(in srgb, var(--success) 38%, var(--border));
-}
-
-.import-status.error {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: color-mix(in srgb, var(--danger) 38%, var(--border));
-}
-
 .attempt-list,
 .history-list,
 .review-list {
@@ -1015,7 +974,6 @@ legend {
 
   .section-heading,
   .quiz-topbar,
-  .import-panel,
   .history-card {
     align-items: stretch;
     flex-direction: column;
