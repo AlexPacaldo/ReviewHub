@@ -519,6 +519,39 @@ main {
   border-radius: 8px;
 }
 
+.availability-box {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.availability-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.availability-box h2 {
+  margin: 0 0 3px;
+  font-size: 1rem;
+}
+
+.availability-box p {
+  margin: 0;
+}
+
 fieldset {
   margin: 18px 0;
   padding: 0;
@@ -1124,12 +1157,19 @@ legend {
   .section-heading,
   .quiz-topbar,
   .history-card,
-  .install-panel {
+  .install-panel,
+  .availability-box {
     align-items: stretch;
+  }
+
+  .section-heading,
+  .quiz-topbar,
+  .history-card {
     flex-direction: column;
   }
 
-  .install-panel {
+  .install-panel,
+  .availability-box {
     grid-template-columns: 1fr;
   }
 

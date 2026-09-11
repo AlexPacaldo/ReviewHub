@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, CloudOff, HardDrive, Play } from "lucide-react";
 import { getReviewerById } from "../data/reviewerRegistry.js";
 import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
@@ -13,6 +13,7 @@ export default function ReviewerSetup() {
   const reviewer = getReviewerById(reviewerId);
   const savedProgress = reviewer ? loadQuizProgress(reviewer.reviewerId) : null;
   const [showStartOver, setShowStartOver] = useState(false);
+  const isLocalReviewer = reviewer?.source === "local";
 
   const availableCounts = useMemo(() => {
     const total = reviewer?.questions?.length || 0;
@@ -54,6 +55,23 @@ export default function ReviewerSetup() {
         <div className="stat-strip">
           <span><strong>{reviewer.questions.length}</strong> available questions</span>
           <span><strong>{reviewer.coverage.length}</strong> coverage areas</span>
+        </div>
+
+        <div className="availability-box">
+          <div className="availability-icon" aria-hidden="true">
+            {isLocalReviewer ? <HardDrive size={20} /> : <CloudOff size={20} />}
+          </div>
+          <div>
+            <h2>{isLocalReviewer ? "Saved on this device" : "Built into the app"}</h2>
+            <p className="muted">
+              {isLocalReviewer
+                ? "This reviewer is stored locally and remains available without signing in."
+                : "This reviewer is bundled with Review Hub, so it is already available for offline study."}
+            </p>
+          </div>
+          <Link className="button subtle" to="/library">
+            Manage Library
+          </Link>
         </div>
 
         <div className="coverage-block setup">
