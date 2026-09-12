@@ -222,6 +222,11 @@ ${sourceText || "[Paste study material here]"}`
     setQuestionDraft((current) => ({ ...current, [key]: value }));
   }
 
+  function updateJsonText(value) {
+    setJsonText(value);
+    setJsonCheck(null);
+  }
+
   function validateQuestionDraft() {
     const missingFields = ["topic", "question", "A", "B", "C", "D", "explanation"].filter((field) => !questionDraft[field].trim());
     if (missingFields.length) {
@@ -341,8 +346,8 @@ ${sourceText || "[Paste study material here]"}`
     const reader = new FileReader();
     reader.onload = () => {
       const nextJsonText = String(reader.result || "");
-      setJsonText(nextJsonText);
-      saveReviewerJson(nextJsonText);
+      updateJsonText(nextJsonText);
+      checkReviewerJson(nextJsonText);
     };
     reader.onerror = () => setErrors(["Could not read that JSON file."]);
     reader.readAsText(file);
@@ -437,7 +442,7 @@ ${sourceText || "[Paste study material here]"}`
             </div>
             <label className="prompt-box">
               <span>JSON</span>
-              <textarea value={jsonText} onChange={(event) => setJsonText(event.target.value)} placeholder='{"title":"Sample Reviewer","subject":"Sample","questions":[...]}' />
+              <textarea value={jsonText} onChange={(event) => updateJsonText(event.target.value)} placeholder='{"title":"Sample Reviewer","subject":"Sample","questions":[...]}' />
             </label>
             <div className="button-row">
               <button className="button subtle" type="button" onClick={() => checkReviewerJson(jsonText)}>
@@ -450,7 +455,7 @@ ${sourceText || "[Paste study material here]"}`
               </button>
               <label className="button subtle file-button">
                 <Upload size={17} aria-hidden="true" />
-                Import JSON File
+                Load JSON File
                 <input type="file" accept="application/json,.json" onChange={handleJsonFile} />
               </label>
             </div>
