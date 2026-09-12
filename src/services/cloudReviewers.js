@@ -36,3 +36,17 @@ export async function upsertCloudReviewer(userId, reviewer) {
 
   return { data, error };
 }
+
+export async function deleteCloudReviewer(userId, reviewerId) {
+  if (!supabase || !userId) {
+    return { error: new Error("Supabase is not configured.") };
+  }
+
+  const { error } = await supabase
+    .from(REVIEWERS_TABLE)
+    .delete()
+    .eq("owner_id", userId)
+    .eq("reviewer_id", reviewerId);
+
+  return { error };
+}

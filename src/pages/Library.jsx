@@ -5,19 +5,21 @@ import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { listMyCloudReviewers, upsertCloudReviewer } from "../services/cloudReviewers.js";
+import { deleteCloudReviewer, listMyCloudReviewers, upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
   clearAllQuizProgress,
   clearAttemptHistory,
   clearGeneratorDraft,
   clearLocalReviewers,
   deleteLocalReviewer,
+  getCloudReviewerCache,
   getAllProgress,
   getAttemptHistory,
   getGeneratorDraft,
   getLocalDataSnapshot,
   getLocalReviewers,
   restoreLocalDataSnapshot,
+  saveCloudReviewerCache,
   saveLocalReviewer
 } from "../utils/storageUtils.js";
 
@@ -179,6 +181,7 @@ export default function Library() {
     }
 
     setCloudReviewers(data || []);
+    saveCloudReviewerCache((data || []).map((item) => item.data || item));
   }
 
   function getCloudReviewerData(item) {
@@ -269,7 +272,36 @@ export default function Library() {
     }
   }
 
-  function runConfirmedAction() {
+  async function deleteReviewerFromCloud(item) {
+    if (!user) return;
+
+    const reviewer = getCloudReviewerData(item);
+    const reviewerId = reviewer?.reviewerId || item?.reviewer_id;
+
+    if (!reviewerId) {
+      setCloudMessage("Could not delete this cloud reviewer because it is missing a reviewer ID.");
+      return;
+    }
+
+    const { error } = await deleteCloudReviewer(user.id, reviewerId);
+
+    if (error) {
+      setCloudMessage(error.message || "Could not delete cloud reviewer.");
+      return;
+    }
+
+    const nextCloudReviewers = cloudReviewers.filter((cloudItem) => {
+      const cloudReviewer = getCloudReviewerData(cloudItem);
+      return (cloudReviewer?.reviewerId || cloudItem?.reviewer_id) !== reviewerId;
+    });
+    const nextCachedReviewers = getCloudReviewerCache().filter((cloudReviewer) => cloudReviewer.reviewerId !== reviewerId);
+
+    setCloudReviewers(nextCloudReviewers);
+    saveCloudReviewerCache(nextCachedReviewers);
+    setCloudMessage("Cloud reviewer deleted.");
+  }
+
+  async function runConfirmedAction() {
     if (confirmAction?.type === "clear-history") {
       clearAttemptHistory();
     }
@@ -284,6 +316,10 @@ export default function Library() {
 
     if (confirmAction?.type === "clear-local-reviewers") {
       clearLocalReviewers();
+    }
+
+    if (confirmAction?.type === "remove-cloud-reviewer") {
+      await deleteReviewerFromCloud(confirmAction.item);
     }
 
     if (confirmAction?.type === "clear-generator-draft") {
@@ -433,6 +469,14 @@ export default function Library() {
                       <Download size={17} aria-hidden="true" />
                       {savedOffline ? "Saved Offline" : "Save Offline"}
                     </button>
+                    <button
+                      className="button subtle danger-text"
+                      type="button"
+                      onClick={() => setConfirmAction({ type: "remove-cloud-reviewer", item })}
+                    >
+                      <Trash2 size={17} aria-hidden="true" />
+                      Delete Cloud
+                    </button>
                   </div>
                 </article>
               );
@@ -580,7 +624,9 @@ export default function Library() {
       <ConfirmModal
         open={Boolean(confirmAction)}
         title="Confirm Action"
-        message="This changes data saved on this device. This cannot be undone."
+        message={confirmAction?.type === "remove-cloud-reviewer"
+          ? "This deletes the reviewer from your cloud account. Offline copies on this device will stay."
+          : "This changes data saved on this device. This cannot be undone."}
         confirmLabel="Continue"
         onCancel={() => setConfirmAction(null)}
         onConfirm={runConfirmedAction}
