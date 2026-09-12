@@ -20,6 +20,10 @@ function writeJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function isObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 export function getThemePreference() {
   return localStorage.getItem(KEYS.theme) || "light";
 }
@@ -118,11 +122,35 @@ export function clearGeneratorDraft() {
   localStorage.removeItem(KEYS.generatorDraft);
 }
 
+export function restoreLocalDataSnapshot(snapshot) {
+  if (!isObject(snapshot)) {
+    throw new Error("Backup file must contain a local data object.");
+  }
+
+  writeJson(KEYS.progress, isObject(snapshot.progress) ? snapshot.progress : {});
+  writeJson(KEYS.history, Array.isArray(snapshot.history) ? snapshot.history : []);
+  writeJson(KEYS.lastAttempt, isObject(snapshot.lastAttempt) ? snapshot.lastAttempt : {});
+  writeJson(KEYS.localReviewers, Array.isArray(snapshot.localReviewers) ? snapshot.localReviewers : []);
+
+  if (isObject(snapshot.generatorDraft)) {
+    writeJson(KEYS.generatorDraft, snapshot.generatorDraft);
+  } else {
+    localStorage.removeItem(KEYS.generatorDraft);
+  }
+
+  if (typeof snapshot.theme === "string") {
+    saveThemePreference(snapshot.theme);
+  }
+
+  return getLocalDataSnapshot();
+}
+
 export function getLocalDataSnapshot() {
   return {
     exportedAt: new Date().toISOString(),
     progress: getAllProgress(),
     history: getAttemptHistory(),
+    lastAttempt: readJson(KEYS.lastAttempt, {}),
     localReviewers: getLocalReviewers(),
     generatorDraft: getGeneratorDraft(),
     theme: getThemePreference()

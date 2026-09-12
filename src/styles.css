@@ -1464,6 +1464,12 @@ legend {
   gap: 10px;
 }
 
+.backup-message {
+  color: var(--success);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
 .history-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

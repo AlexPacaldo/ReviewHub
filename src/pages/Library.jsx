@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, HardDrive, Smartphone, Trash2, Wifi, WifiOff } from "lucide-react";
+import { Download, HardDrive, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
@@ -14,7 +14,8 @@ import {
   getAttemptHistory,
   getGeneratorDraft,
   getLocalDataSnapshot,
-  getLocalReviewers
+  getLocalReviewers,
+  restoreLocalDataSnapshot
 } from "../utils/storageUtils.js";
 
 function downloadJson(filename, data) {
@@ -37,6 +38,7 @@ export default function Library() {
   const [history, setHistory] = useState(getAttemptHistory);
   const [generatorDraft, setGeneratorDraft] = useState(getGeneratorDraft);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [backupMessage, setBackupMessage] = useState("");
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -92,6 +94,26 @@ export default function Library() {
 
     await installPrompt.prompt();
     setInstallPrompt(null);
+  }
+
+  function restoreBackupFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const snapshot = JSON.parse(String(reader.result || ""));
+        restoreLocalDataSnapshot(snapshot);
+        refreshLocalData();
+        setBackupMessage("Backup restored on this device.");
+      } catch (error) {
+        setBackupMessage(error?.message || "Could not restore that backup file.");
+      }
+    };
+    reader.onerror = () => setBackupMessage("Could not read that backup file.");
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   function runConfirmedAction() {
@@ -273,6 +295,11 @@ export default function Library() {
             <Download size={17} aria-hidden="true" />
             Export Local Backup
           </button>
+          <label className="button subtle file-button">
+            <Upload size={17} aria-hidden="true" />
+            Restore Backup
+            <input type="file" accept="application/json,.json" onChange={restoreBackupFile} />
+          </label>
           <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-progress" })}>
             Clear Unfinished Quizzes
           </button>
@@ -280,6 +307,7 @@ export default function Library() {
             Clear Attempt History
           </button>
         </div>
+        {backupMessage ? <p className="backup-message">{backupMessage}</p> : null}
       </section>
 
       <ConfirmModal
