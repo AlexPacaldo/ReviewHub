@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { History, Library, Moon, Sparkles, Sun, WifiOff } from "lucide-react";
+import { History, Library, Moon, Sparkles, Sun, UserRound, WifiOff } from "lucide-react";
 import appLogo from "../assets/Icon.png";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Navbar({ theme, onToggleTheme }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const { user } = useAuth();
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -39,6 +41,10 @@ export default function Navbar({ theme, onToggleTheme }) {
         <NavLink to="/library">
           <Library size={17} aria-hidden="true" />
           Library
+        </NavLink>
+        <NavLink to="/account">
+          <UserRound size={17} aria-hidden="true" />
+          {user ? "Account" : "Sign In"}
         </NavLink>
       </nav>
 

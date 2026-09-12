@@ -9,6 +9,8 @@ import ReviewAnswers from "./pages/ReviewAnswers.jsx";
 import History from "./pages/History.jsx";
 import Library from "./pages/Library.jsx";
 import Generator from "./pages/Generator.jsx";
+import Account from "./pages/Account.jsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js";
 
 export default function App() {
@@ -28,7 +30,7 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <AuthProvider>
       <Navbar theme={theme} onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} />
       {updateReady ? (
         <div className="update-banner" role="status">
@@ -48,9 +50,10 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/library" element={<Library />} />
           <Route path="/generator" element={<Generator />} />
+          <Route path="/account" element={<Account />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-    </>
+    </AuthProvider>
   );
 }

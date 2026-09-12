@@ -645,6 +645,54 @@ legend {
   color: var(--accent);
 }
 
+.account-status,
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.account-status svg,
+.account-card svg {
+  color: var(--accent);
+}
+
+.account-card {
+  justify-content: space-between;
+}
+
+.account-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.account-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 900;
+}
+
+.account-form input {
+  min-height: 48px;
+  padding: 0 14px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.account-message {
+  margin: 14px 0 0;
+  color: var(--accent);
+  font-weight: 900;
+}
+
 .button-row,
 .button-grid,
 .quiz-actions,
@@ -1615,7 +1663,9 @@ legend {
 
   .library-panel-head,
   .library-row,
-  .local-data-row {
+  .local-data-row,
+  .account-card,
+  .account-status {
     align-items: stretch;
     flex-direction: column;
   }
