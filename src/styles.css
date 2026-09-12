@@ -808,6 +808,15 @@ legend {
   border-top: 1px solid var(--border);
 }
 
+.ai-prompt-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--success-soft) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 26%, var(--border));
+  border-radius: 8px;
+}
+
 .json-import-panel {
   display: grid;
   gap: 14px;

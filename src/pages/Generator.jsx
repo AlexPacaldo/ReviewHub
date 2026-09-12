@@ -158,9 +158,11 @@ export default function Generator() {
   });
   const [questionDraft, setQuestionDraft] = useState(savedDraft?.questionDraft || emptyQuestion);
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
+  const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
   const [templateMessage, setTemplateMessage] = useState("");
+  const [promptMessage, setPromptMessage] = useState("");
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
 
   useEffect(() => {
@@ -184,13 +186,32 @@ export default function Generator() {
       details,
       questionDraft,
       questions,
+      sourceText,
       jsonText
     });
     setDraftMessage("Draft saved on this device.");
-  }, [details, questionDraft, questions, jsonText]);
+  }, [details, questionDraft, questions, sourceText, jsonText]);
 
   const draftPreview = useMemo(() => buildReviewer(details, questions), [details, questions]);
   const sampleTemplateText = useMemo(() => JSON.stringify(sampleReviewerTemplate, null, 2), []);
+  const aiPromptText = useMemo(() => (
+    `Create a complete multiple-choice reviewer from ONLY the study material below.
+
+Rules:
+- Return valid JSON only. Do not wrap it in markdown.
+- Follow the exact schema shown in the template.
+- Use 4 choices per question: A, B, C, and D.
+- Include correctAnswer and answerText for every question.
+- Include a short explanation for every question.
+- Keep questions verifiable from the study material.
+- If the material is short, create fewer high-quality questions instead of inventing facts.
+
+JSON template:
+${sampleTemplateText}
+
+Study material:
+${sourceText || "[Paste study material here]"}`
+  ), [sampleTemplateText, sourceText]);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -273,6 +294,15 @@ export default function Generator() {
     }
   }
 
+  async function copyAiPrompt() {
+    try {
+      await navigator.clipboard.writeText(aiPromptText);
+      setPromptMessage("AI prompt copied.");
+    } catch {
+      setPromptMessage("Copy failed. Select the prompt text manually.");
+    }
+  }
+
   function downloadSampleTemplate() {
     downloadTextFile("review_hub_reviewer_template.json", sampleTemplateText);
     setTemplateMessage("Template downloaded.");
@@ -303,9 +333,11 @@ export default function Generator() {
     });
     setQuestionDraft(emptyQuestion);
     setQuestions([]);
+    setSourceText("");
     setJsonText("");
     setErrors([]);
     setTemplateMessage("");
+    setPromptMessage("");
     setDraftMessage("Draft cleared.");
   }
 
@@ -346,6 +378,27 @@ export default function Generator() {
             <strong>File upload will go here</strong>
             <span>Online mode can use cloud AI. Offline mode can use local/device AI later if the app platform supports it.</span>
           </label>
+
+          <div className="ai-prompt-panel">
+            <div className="generator-panel-head compact">
+              <Clipboard size={20} aria-hidden="true" />
+              <div>
+                <h2>Study Material Prompt</h2>
+                <p className="muted">Paste notes here, then copy a complete prompt for ChatGPT or another AI tool.</p>
+              </div>
+            </div>
+            <label className="prompt-box">
+              <span>Study Material</span>
+              <textarea value={sourceText} onChange={(event) => setSourceText(event.target.value)} placeholder="Paste your handout, notes, or reviewer source text here." />
+            </label>
+            <div className="button-row">
+              <button className="button subtle" type="button" onClick={copyAiPrompt}>
+                <Clipboard size={17} aria-hidden="true" />
+                Copy AI Prompt
+              </button>
+              {promptMessage ? <span className="template-message">{promptMessage}</span> : null}
+            </div>
+          </div>
 
           <div className="json-import-panel">
             <div className="generator-panel-head compact">
