@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clipboard, Download, FileJson, FileText, HardDrive, Loader2, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { FileJson, FileText, HardDrive, Loader2, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -13,47 +13,6 @@ const emptyQuestion = {
   D: "",
   correctAnswer: "A",
   explanation: ""
-};
-
-const sampleReviewerTemplate = {
-  reviewerId: "sample-course-prelim-reviewer",
-  title: "Sample Course - Prelim Reviewer",
-  subject: "Sample Course",
-  coverage: ["Topic 1", "Topic 2"],
-  questionCount: 2,
-  questionType: "multiple_choice",
-  choicesPerQuestion: 4,
-  instructions: "Select the best answer for each question.",
-  questions: [
-    {
-      id: 1,
-      topic: "Topic 1",
-      question: "What is the main idea of this sample question?",
-      choices: {
-        A: "The correct answer",
-        B: "A close but incorrect answer",
-        C: "An unrelated answer",
-        D: "Another incorrect answer"
-      },
-      correctAnswer: "A",
-      answerText: "The correct answer",
-      explanation: "Explain why A is correct using only the source material."
-    },
-    {
-      id: 2,
-      topic: "Topic 2",
-      question: "Which choice best matches the source material?",
-      choices: {
-        A: "Incorrect option",
-        B: "Correct option",
-        C: "Incorrect option",
-        D: "Incorrect option"
-      },
-      correctAnswer: "B",
-      answerText: "Correct option",
-      explanation: "Explain why B is correct and why the other options are less accurate."
-    }
-  ]
 };
 
 function slugify(value) {
@@ -93,16 +52,6 @@ function buildReviewer({ title, subject, instructions }, questions) {
     instructions: instructions.trim() || "Select the best answer for each question.",
     questions: reviewerQuestions
   };
-}
-
-function downloadTextFile(filename, text) {
-  const blob = new Blob([text], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
 }
 
 function normalizeReviewerJson(reviewer) {
@@ -162,8 +111,6 @@ export default function Generator() {
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
   const [jsonCheck, setJsonCheck] = useState(null);
-  const [templateMessage, setTemplateMessage] = useState("");
-  const [promptMessage, setPromptMessage] = useState("");
   const [generationMessage, setGenerationMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
@@ -196,25 +143,6 @@ export default function Generator() {
   }, [details, questionDraft, questions, sourceText, jsonText]);
 
   const draftPreview = useMemo(() => buildReviewer(details, questions), [details, questions]);
-  const sampleTemplateText = useMemo(() => JSON.stringify(sampleReviewerTemplate, null, 2), []);
-  const aiPromptText = useMemo(() => (
-    `Create a complete multiple-choice reviewer from ONLY the study material below.
-
-Rules:
-- Return valid JSON only. Do not wrap it in markdown.
-- Follow the exact schema shown in the template.
-- Use 4 choices per question: A, B, C, and D.
-- Include correctAnswer and answerText for every question.
-- Include a short explanation for every question.
-- Keep questions verifiable from the study material.
-- If the material is short, create fewer high-quality questions instead of inventing facts.
-
-JSON template:
-${sampleTemplateText}
-
-Study material:
-${sourceText || "[Paste study material here]"}`
-  ), [sampleTemplateText, sourceText]);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -317,25 +245,6 @@ ${sourceText || "[Paste study material here]"}`
     }
   }
 
-  async function copySampleTemplate() {
-    try {
-      await navigator.clipboard.writeText(sampleTemplateText);
-      setTemplateMessage("Template copied.");
-    } catch {
-      setJsonText(sampleTemplateText);
-      setTemplateMessage("Template placed in the JSON box.");
-    }
-  }
-
-  async function copyAiPrompt() {
-    try {
-      await navigator.clipboard.writeText(aiPromptText);
-      setPromptMessage("AI prompt copied.");
-    } catch {
-      setPromptMessage("Copy failed. Select the prompt text manually.");
-    }
-  }
-
   async function generateReviewerWithAi() {
     const trimmedSourceText = sourceText.trim();
 
@@ -386,11 +295,6 @@ ${sourceText || "[Paste study material here]"}`
     }
   }
 
-  function downloadSampleTemplate() {
-    downloadTextFile("review_hub_reviewer_template.json", sampleTemplateText);
-    setTemplateMessage("Template downloaded.");
-  }
-
   function handleJsonFile(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -420,8 +324,6 @@ ${sourceText || "[Paste study material here]"}`
     setJsonText("");
     setErrors([]);
     setJsonCheck(null);
-    setTemplateMessage("");
-    setPromptMessage("");
     setDraftMessage("Draft cleared.");
   }
 
@@ -451,25 +353,21 @@ ${sourceText || "[Paste study material here]"}`
           <div className="generator-panel-head">
             <Sparkles size={22} aria-hidden="true" />
             <div>
-              <h2>AI File Generator</h2>
-              <p className="muted">Gemini runs through a secure Vercel API route, so your API key stays hidden.</p>
+              <h2>Generate Reviewer</h2>
+              <p className="muted">Paste your study material and let Gemini create a quiz-ready reviewer.</p>
             </div>
           </div>
 
-          <label className="upload-zone ai-upload-zone">
-            <input type="file" disabled aria-label="Upload study file for AI generation" />
-            <Upload size={30} aria-hidden="true" />
-            <strong>File upload is next</strong>
-            <span>For now, paste copied PDF text or notes below and generate with Gemini.</span>
-          </label>
-
           <div className="ai-prompt-panel">
-            <div className="generator-panel-head compact">
-              <Clipboard size={20} aria-hidden="true" />
-              <div>
-                <h2>Study Material Prompt</h2>
-                <p className="muted">Paste notes here, then generate directly or copy the prompt for another AI tool.</p>
-              </div>
+            <div className="generator-form-grid">
+              <label>
+                <span>Reviewer Title</span>
+                <input value={details.title} onChange={(event) => updateDetails("title", event.target.value)} placeholder="Example: Biology Prelim Reviewer" />
+              </label>
+              <label>
+                <span>Subject</span>
+                <input value={details.subject} onChange={(event) => updateDetails("subject", event.target.value)} placeholder="Example: Biology" />
+              </label>
             </div>
             <label className="prompt-box">
               <span>Study Material</span>
@@ -480,21 +378,54 @@ ${sourceText || "[Paste study material here]"}`
                 {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}
                 {isGenerating ? "Generating..." : "Generate with Gemini"}
               </button>
-              <button className="button subtle" type="button" onClick={copyAiPrompt}>
-                <Clipboard size={17} aria-hidden="true" />
-                Copy AI Prompt
-              </button>
-              {promptMessage ? <span className="template-message">{promptMessage}</span> : null}
               {generationMessage ? <span className="template-message">{generationMessage}</span> : null}
             </div>
           </div>
 
-          <div className="json-import-panel">
+          {jsonText ? (
+            <div className="json-import-panel">
+              <div className="generator-panel-head compact">
+                <FileJson size={20} aria-hidden="true" />
+                <div>
+                  <h2>Generated Reviewer</h2>
+                  <p className="muted">Check the generated reviewer, then save it to this device.</p>
+                </div>
+              </div>
+              {jsonCheck ? (
+                <div className="json-check-card" role="status">
+                  <strong>{jsonCheck.title}</strong>
+                  <span>{jsonCheck.subject}</span>
+                  <span>{jsonCheck.questions} questions across {jsonCheck.coverage} coverage areas</span>
+                </div>
+              ) : null}
+              <div className="button-row">
+                <button className="button subtle" type="button" onClick={() => checkReviewerJson(jsonText)}>
+                  <FileJson size={17} aria-hidden="true" />
+                  Check
+                </button>
+                <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)}>
+                  <Save size={17} aria-hidden="true" />
+                  Save Reviewer
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {errors.length ? (
+            <div className="generator-errors" role="alert">
+              {errors.map((error) => (
+                <p key={error}>{error}</p>
+              ))}
+            </div>
+          ) : null}
+
+          <details className="advanced-panel">
+            <summary>Advanced JSON Import</summary>
             <div className="generator-panel-head compact">
               <FileJson size={20} aria-hidden="true" />
               <div>
-                <h2>Paste Reviewer JSON</h2>
-                <p className="muted">Use this when an AI tool already produced reviewer JSON.</p>
+                <h2>Paste or Load Reviewer JSON</h2>
+                <p className="muted">Use this only if you already have reviewer JSON from somewhere else.</p>
               </div>
             </div>
             <label className="prompt-box">
@@ -523,39 +454,10 @@ ${sourceText || "[Paste study material here]"}`
                 <span>{jsonCheck.questions} questions across {jsonCheck.coverage} coverage areas</span>
               </div>
             ) : null}
-          </div>
+          </details>
 
-          {errors.length ? (
-            <div className="generator-errors" role="alert">
-              {errors.map((error) => (
-                <p key={error}>{error}</p>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="template-panel">
-            <div className="generator-panel-head compact">
-              <Clipboard size={20} aria-hidden="true" />
-              <div>
-                <h2>JSON Template</h2>
-                <p className="muted">Give this format to an AI tool, then paste the completed JSON above.</p>
-              </div>
-            </div>
-            <pre className="template-preview">{sampleTemplateText}</pre>
-            <div className="button-row">
-              <button className="button subtle" type="button" onClick={copySampleTemplate}>
-                <Clipboard size={17} aria-hidden="true" />
-                Copy Template
-              </button>
-              <button className="button subtle" type="button" onClick={downloadSampleTemplate}>
-                <Download size={17} aria-hidden="true" />
-                Download Template
-              </button>
-              {templateMessage ? <span className="template-message">{templateMessage}</span> : null}
-            </div>
-          </div>
-
-          <div className="manual-builder-panel">
+          <details className="advanced-panel">
+            <summary>Manual Builder</summary>
             <div className="generator-panel-head compact">
               <FileText size={20} aria-hidden="true" />
               <div>
@@ -634,7 +536,7 @@ ${sourceText || "[Paste study material here]"}`
               <Save size={18} aria-hidden="true" />
               Save Manual Reviewer
             </button>
-          </div>
+          </details>
         </div>
 
         <aside className="generator-panel">
@@ -669,16 +571,16 @@ ${sourceText || "[Paste study material here]"}`
             ) : (
               <div className="generator-path-list">
                 <article>
-                  <span>Online and signed in</span>
-                  <p>Online AI will generate reviewers, save them to the database, and let users share with friends.</p>
+                  <span>1. Paste material</span>
+                  <p>Copy text from your notes, handout, or PDF and paste it into the Study Material box.</p>
                 </article>
                 <article>
-                  <span>Offline or not signed in</span>
-                  <p>This manual draft flow saves reviewers only on this device.</p>
+                  <span>2. Generate</span>
+                  <p>Gemini creates multiple-choice questions using only the pasted material.</p>
                 </article>
                 <article>
-                  <span>Future app option</span>
-                  <p>The project is website-first for now. A mobile app can reuse this reviewer format later.</p>
+                  <span>3. Save</span>
+                  <p>Save the reviewer offline so it appears on the home page and works for quizzes.</p>
                 </article>
               </div>
             )}
