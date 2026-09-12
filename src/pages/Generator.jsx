@@ -363,7 +363,7 @@ export default function Generator() {
       const nextJsonText = JSON.stringify(data.reviewer, null, 2);
       updateJsonText(nextJsonText);
       checkReviewerJson(nextJsonText);
-      setGenerationMessage("Reviewer JSON generated. Check it, then save it.");
+      setGenerationMessage("Reviewer generated and checked. Save it when you are ready.");
     } catch (error) {
       setGenerationMessage("");
       setErrors([error?.message || "Could not generate a reviewer."]);
@@ -467,7 +467,7 @@ export default function Generator() {
                 <FileJson size={20} aria-hidden="true" />
                 <div>
                   <h2>Generated Reviewer</h2>
-                  <p className="muted">Check the generated reviewer, then save it to this device.</p>
+                  <p className="muted">This reviewer passed the app's JSON structure check.</p>
                 </div>
               </div>
               {jsonCheck ? (
@@ -478,10 +478,6 @@ export default function Generator() {
                 </div>
               ) : null}
               <div className="button-row">
-                <button className="button subtle" type="button" onClick={() => checkReviewerJson(jsonText)}>
-                  <FileJson size={17} aria-hidden="true" />
-                  Check
-                </button>
                 <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)}>
                   <Save size={17} aria-hidden="true" />
                   Save Reviewer
