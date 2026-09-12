@@ -1537,6 +1537,24 @@ legend {
   font-weight: 900;
 }
 
+.sync-message {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.sync-message.success {
+  color: var(--success);
+}
+
+.sync-message.error {
+  color: var(--danger);
+}
+
+.sync-message.pending {
+  color: var(--accent);
+}
+
 .history-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

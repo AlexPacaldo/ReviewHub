@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, HardDrive, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Cloud, Download, HardDrive, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
   clearAllQuizProgress,
   clearAttemptHistory,
@@ -29,6 +31,7 @@ function downloadJson(filename, data) {
 }
 
 export default function Library() {
+  const { configured, user } = useAuth();
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [isStandalone, setIsStandalone] = useState(false);
   const [offlineReady, setOfflineReady] = useState(false);
@@ -39,6 +42,7 @@ export default function Library() {
   const [generatorDraft, setGeneratorDraft] = useState(getGeneratorDraft);
   const [confirmAction, setConfirmAction] = useState(null);
   const [backupMessage, setBackupMessage] = useState("");
+  const [syncStatus, setSyncStatus] = useState({});
   const [storageInfo, setStorageInfo] = useState({
     supported: false,
     persisted: false,
@@ -167,6 +171,38 @@ export default function Library() {
     event.target.value = "";
   }
 
+  async function syncReviewerToCloud(reviewer) {
+    if (!configured) {
+      setSyncStatus((current) => ({
+        ...current,
+        [reviewer.reviewerId]: { type: "error", message: "Add Supabase env vars first." }
+      }));
+      return;
+    }
+
+    if (!user) {
+      setSyncStatus((current) => ({
+        ...current,
+        [reviewer.reviewerId]: { type: "error", message: "Sign in to sync this reviewer." }
+      }));
+      return;
+    }
+
+    setSyncStatus((current) => ({
+      ...current,
+      [reviewer.reviewerId]: { type: "pending", message: "Syncing..." }
+    }));
+
+    const { error } = await upsertCloudReviewer(user.id, reviewer);
+
+    setSyncStatus((current) => ({
+      ...current,
+      [reviewer.reviewerId]: error
+        ? { type: "error", message: error.message || "Could not sync reviewer." }
+        : { type: "success", message: "Synced to cloud." }
+    }));
+  }
+
   function runConfirmedAction() {
     if (confirmAction?.type === "clear-history") {
       clearAttemptHistory();
@@ -292,11 +328,32 @@ export default function Library() {
                 <div>
                   <h3>{reviewer.title}</h3>
                   <p className="muted">{reviewer.subject} - {reviewer.questions?.length || reviewer.questionCount} questions</p>
+                  {syncStatus[reviewer.reviewerId] ? (
+                    <p className={`sync-message ${syncStatus[reviewer.reviewerId].type}`}>
+                      {syncStatus[reviewer.reviewerId].message}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="button-row">
                   <Link className="button primary" to={`/reviewer/${reviewer.reviewerId}`}>
                     Open
                   </Link>
+                  {user ? (
+                    <button
+                      className="button subtle"
+                      type="button"
+                      onClick={() => syncReviewerToCloud(reviewer)}
+                      disabled={syncStatus[reviewer.reviewerId]?.type === "pending"}
+                    >
+                      <Cloud size={17} aria-hidden="true" />
+                      Sync to Cloud
+                    </button>
+                  ) : (
+                    <Link className="button subtle" to="/account">
+                      <Cloud size={17} aria-hidden="true" />
+                      Sign In to Sync
+                    </Link>
+                  )}
                   <button
                     className="button subtle danger-text"
                     type="button"
