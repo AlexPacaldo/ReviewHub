@@ -1,33 +1,11 @@
 import { useState } from "react";
-import { Cloud, LogOut, Mail, UserRound } from "lucide-react";
+import { Cloud, LogOut, UserRound } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { supabase } from "../lib/supabaseClient.js";
 
 export default function Account() {
   const { configured, loading, session, user } = useAuth();
-  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  async function signInWithEmail(event) {
-    event.preventDefault();
-    setMessage("");
-
-    if (!configured) {
-      setMessage("Add your Supabase URL and anon key in .env.local first.");
-      return;
-    }
-
-    setSubmitting(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin
-      }
-    });
-    setSubmitting(false);
-    setMessage(error ? error.message : "Check your email for the sign-in link.");
-  }
 
   async function signInWithGoogle() {
     setMessage("");
@@ -92,19 +70,6 @@ export default function Account() {
             <button className="button primary wide" type="button" onClick={signInWithGoogle}>
               Continue with Google
             </button>
-            <div className="account-divider">
-              <span>or</span>
-            </div>
-            <form className="account-form" onSubmit={signInWithEmail}>
-              <label>
-                <span>Email</span>
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
-              </label>
-              <button className="button subtle" type="submit" disabled={submitting}>
-                <Mail size={17} aria-hidden="true" />
-                {submitting ? "Sending..." : "Send Sign-In Link"}
-              </button>
-            </form>
           </div>
         )}
 

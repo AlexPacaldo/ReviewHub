@@ -698,24 +698,6 @@ legend {
   margin-top: 18px;
 }
 
-.account-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.account-divider::before,
-.account-divider::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  background: var(--border);
-}
-
 .button-row,
 .button-grid,
 .quiz-actions,
