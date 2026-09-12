@@ -766,9 +766,10 @@ legend {
 
 .generator-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+  max-width: 860px;
 }
 
 .generator-panel {
@@ -804,8 +805,8 @@ legend {
   display: grid;
   place-items: center;
   gap: 8px;
-  min-height: 220px;
-  padding: 26px;
+  min-height: 148px;
+  padding: 22px;
   color: var(--muted);
   text-align: center;
   background: var(--surface-2);
@@ -825,6 +826,10 @@ legend {
 .upload-zone span {
   max-width: 460px;
   line-height: 1.45;
+}
+
+.ai-upload-zone {
+  cursor: pointer;
 }
 
 .prompt-box {
@@ -854,8 +859,7 @@ legend {
 
 .prompt-box span,
 .generator-form-grid span,
-.choice-entry-grid span,
-.generator-path-list span {
+.choice-entry-grid span {
   font-weight: 900;
 }
 
@@ -974,77 +978,6 @@ legend {
 
 .generator-errors p {
   margin: 0;
-}
-
-.generator-preview {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.generator-preview strong {
-  font-size: 1.15rem;
-}
-
-.generator-preview span {
-  color: var(--muted);
-  font-weight: 800;
-}
-
-.generator-path-list {
-  display: grid;
-  gap: 10px;
-}
-
-.draft-question-list {
-  display: grid;
-  gap: 10px;
-}
-
-.draft-question-list article {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: start;
-  padding: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.draft-question-list article span {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--accent);
-  font-size: 0.82rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.draft-question-list article strong {
-  display: block;
-  line-height: 1.35;
-}
-
-.draft-question-list article p {
-  margin-top: 6px;
-}
-
-.generator-path-list article {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-.generator-path-list p {
-  color: var(--muted);
-  line-height: 1.45;
 }
 
 .quiz-topbar {

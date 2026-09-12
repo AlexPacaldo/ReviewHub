@@ -1,6 +1,7 @@
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemini-2.5-flash-lite";
 const MAX_SOURCE_LENGTH = 45000;
+const MAX_FILE_BASE64_LENGTH = 18000000;
 
 const reviewerSchema = {
   type: "OBJECT",
@@ -55,7 +56,7 @@ function getCandidateText(data) {
     .trim();
 }
 
-function buildPrompt({ sourceText, title, subject, instructions, questionCount }) {
+function buildPrompt({ sourceText, title, subject, instructions, questionCount, fileName }) {
   return `Create a complete multiple-choice reviewer from ONLY the study material below.
 
 Rules:
@@ -74,9 +75,10 @@ Reviewer details:
 - Title: ${title || "Generated Reviewer"}
 - Subject: ${subject || "Generated"}
 - Instructions: ${instructions || "Select the best answer for each question."}
+${fileName ? `- Uploaded file: ${fileName}` : ""}
 
 Study material:
-${sourceText}`;
+${sourceText || "[Use the uploaded file as the study material.]"}`;
 }
 
 export default async function handler(request, response) {
@@ -92,6 +94,7 @@ export default async function handler(request, response) {
 
   const {
     sourceText = "",
+    file = null,
     title = "",
     subject = "",
     instructions = "Select the best answer for each question.",
@@ -99,8 +102,14 @@ export default async function handler(request, response) {
   } = request.body || {};
 
   const trimmedSourceText = String(sourceText).trim();
-  if (trimmedSourceText.length < 100) {
+  const hasFileData = Boolean(file?.data && file?.mimeType);
+
+  if (!hasFileData && trimmedSourceText.length < 100) {
     return sendJson(response, 400, { error: "Add more study material before generating a reviewer." });
+  }
+
+  if (hasFileData && String(file.data).length > MAX_FILE_BASE64_LENGTH) {
+    return sendJson(response, 413, { error: "That file is too large. Try a smaller PDF or paste the important text." });
   }
 
   const safeSourceText = trimmedSourceText.slice(0, MAX_SOURCE_LENGTH);
@@ -110,8 +119,19 @@ export default async function handler(request, response) {
     title: String(title).trim(),
     subject: String(subject).trim(),
     instructions: String(instructions).trim(),
-    questionCount: Number(questionCount) || 20
+    questionCount: Number(questionCount) || 20,
+    fileName: file?.name ? String(file.name).trim() : ""
   });
+  const parts = [{ text: prompt }];
+
+  if (hasFileData) {
+    parts.push({
+      inline_data: {
+        mime_type: String(file.mimeType),
+        data: String(file.data)
+      }
+    });
+  }
 
   try {
     const geminiResponse = await fetch(`${GEMINI_ENDPOINT}/${model}:generateContent`, {
@@ -124,7 +144,7 @@ export default async function handler(request, response) {
         contents: [
           {
             role: "user",
-            parts: [{ text: prompt }]
+            parts
           }
         ],
         generationConfig: {

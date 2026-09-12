@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileJson, FileText, HardDrive, Loader2, Plus, RotateCcw, Save, Sparkles, Trash2, Wifi, WifiOff } from "lucide-react";
+import { FileJson, FileText, Loader2, Plus, RotateCcw, Save, Sparkles, Upload, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -14,6 +14,9 @@ const emptyQuestion = {
   correctAnswer: "A",
   explanation: ""
 };
+
+const TEXT_FILE_EXTENSIONS = [".txt", ".md", ".csv", ".json"];
+const MAX_UPLOAD_SIZE = 12 * 1024 * 1024;
 
 function slugify(value) {
   return value
@@ -108,6 +111,7 @@ export default function Generator() {
   const [questionDraft, setQuestionDraft] = useState(savedDraft?.questionDraft || emptyQuestion);
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
+  const [studyFile, setStudyFile] = useState(null);
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
   const [jsonCheck, setJsonCheck] = useState(null);
@@ -142,8 +146,6 @@ export default function Generator() {
     setDraftMessage("Draft saved on this device.");
   }, [details, questionDraft, questions, sourceText, jsonText]);
 
-  const draftPreview = useMemo(() => buildReviewer(details, questions), [details, questions]);
-
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
   }
@@ -155,6 +157,77 @@ export default function Generator() {
   function updateJsonText(value) {
     setJsonText(value);
     setJsonCheck(null);
+  }
+
+  function isTextFile(file) {
+    const fileName = file.name.toLowerCase();
+    return file.type.startsWith("text/") || TEXT_FILE_EXTENSIONS.some((extension) => fileName.endsWith(extension));
+  }
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not read that file."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Could not read that file."));
+      reader.readAsText(file);
+    });
+  }
+
+  async function handleStudyFile(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (file.size > MAX_UPLOAD_SIZE) {
+      setErrors(["That file is too large. Use a file under 12 MB or paste the important text."]);
+      return;
+    }
+
+    setErrors([]);
+    setGenerationMessage("");
+
+    try {
+      if (isTextFile(file)) {
+        const text = await readFileAsText(file);
+        setSourceText(text);
+        setStudyFile({
+          name: file.name,
+          mimeType: file.type || "text/plain",
+          size: file.size,
+          data: null
+        });
+        setGenerationMessage("Text file loaded.");
+        return;
+      }
+
+      const dataUrl = await readFileAsDataUrl(file);
+      const [, base64Data = ""] = dataUrl.split(",");
+      setStudyFile({
+        name: file.name,
+        mimeType: file.type || "application/pdf",
+        size: file.size,
+        data: base64Data
+      });
+      setGenerationMessage("File ready for Gemini.");
+    } catch (error) {
+      setStudyFile(null);
+      setErrors([error?.message || "Could not read that file."]);
+    }
+  }
+
+  function removeStudyFile() {
+    setStudyFile(null);
+    setGenerationMessage("");
   }
 
   function validateQuestionDraft() {
@@ -175,10 +248,6 @@ export default function Generator() {
     setQuestions((current) => [...current, questionDraft]);
     setQuestionDraft(emptyQuestion);
     setErrors([]);
-  }
-
-  function removeQuestion(indexToRemove) {
-    setQuestions((current) => current.filter((_, index) => index !== indexToRemove));
   }
 
   function saveDraftReviewer() {
@@ -247,14 +316,15 @@ export default function Generator() {
 
   async function generateReviewerWithAi() {
     const trimmedSourceText = sourceText.trim();
+    const hasUploadedFile = Boolean(studyFile?.data);
 
     if (!isOnline) {
       setErrors(["Connect to the internet before using Gemini generation."]);
       return;
     }
 
-    if (trimmedSourceText.length < 100) {
-      setErrors(["Paste more study material before generating a reviewer."]);
+    if (!hasUploadedFile && trimmedSourceText.length < 100) {
+      setErrors(["Upload a study file or paste more study material before generating a reviewer."]);
       return;
     }
 
@@ -271,6 +341,13 @@ export default function Generator() {
         },
         body: JSON.stringify({
           sourceText: trimmedSourceText,
+          file: hasUploadedFile
+            ? {
+                name: studyFile.name,
+                mimeType: studyFile.mimeType,
+                data: studyFile.data
+              }
+            : null,
           title: details.title,
           subject: details.subject,
           instructions: details.instructions,
@@ -306,6 +383,7 @@ export default function Generator() {
     setQuestionDraft(emptyQuestion);
     setQuestions([]);
     setSourceText("");
+    setStudyFile(null);
     setJsonText("");
     setErrors([]);
     setJsonCheck(null);
@@ -317,8 +395,8 @@ export default function Generator() {
       <section className="section-heading">
         <div>
           <p className="eyebrow">AI Generator</p>
-          <h1>Generate or import a reviewer</h1>
-          <p className="muted">Paste study material, generate reviewer JSON with Gemini, then save it for offline study.</p>
+          <h1>Generate a reviewer</h1>
+          <p className="muted">Upload study material, generate a reviewer with Gemini, then save it for offline study.</p>
           {draftMessage ? <p className="draft-save-note">{draftMessage}</p> : null}
         </div>
         <div className="generator-heading-actions">
@@ -339,7 +417,7 @@ export default function Generator() {
             <Sparkles size={22} aria-hidden="true" />
             <div>
               <h2>Generate Reviewer</h2>
-              <p className="muted">Paste your study material and let Gemini create a quiz-ready reviewer.</p>
+              <p className="muted">Upload a PDF or text file. You can also paste notes if that is faster.</p>
             </div>
           </div>
 
@@ -354,9 +432,25 @@ export default function Generator() {
                 <input value={details.subject} onChange={(event) => updateDetails("subject", event.target.value)} placeholder="Example: Biology" />
               </label>
             </div>
+
+            <label className="upload-zone ai-upload-zone">
+              <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />
+              <Upload size={30} aria-hidden="true" />
+              <strong>{studyFile ? studyFile.name : "Upload study material"}</strong>
+              <span>{studyFile ? `${(studyFile.size / 1024 / 1024).toFixed(2)} MB ready` : "PDF, TXT, MD, CSV, or JSON. Text files will also fill the notes box below."}</span>
+            </label>
+
+            {studyFile ? (
+              <div className="button-row">
+                <button className="button subtle" type="button" onClick={removeStudyFile}>
+                  Remove File
+                </button>
+              </div>
+            ) : null}
+
             <label className="prompt-box">
-              <span>Study Material</span>
-              <textarea value={sourceText} onChange={(event) => setSourceText(event.target.value)} placeholder="Paste your handout, notes, or reviewer source text here." />
+              <span>Extra Notes</span>
+              <textarea value={sourceText} onChange={(event) => setSourceText(event.target.value)} placeholder="Optional: paste notes here, or use this instead of uploading a file." />
             </label>
             <div className="button-row">
               <button className="button primary" type="button" onClick={generateReviewerWithAi} disabled={isGenerating || !isOnline}>
@@ -486,54 +580,6 @@ export default function Generator() {
             </button>
           </details>
         </div>
-
-        <aside className="generator-panel">
-          <div className="generator-panel-head">
-            <HardDrive size={22} aria-hidden="true" />
-            <div>
-              <h2>Draft Preview</h2>
-              <p className="muted">{questions.length} question{questions.length === 1 ? "" : "s"} ready to save.</p>
-            </div>
-          </div>
-
-          <div className="generator-preview">
-            <strong>{draftPreview.title || "Untitled reviewer"}</strong>
-            <span>{draftPreview.subject || "No subject yet"}</span>
-            <span>{draftPreview.coverage.length || 0} coverage areas</span>
-          </div>
-
-          <div className="draft-question-list">
-            {questions.length ? (
-              questions.map((question, index) => (
-                <article key={`${question.question}-${index}`}>
-                  <div>
-                    <span>Question {index + 1}</span>
-                    <strong>{question.question}</strong>
-                    <p className="muted">{question.correctAnswer}: {question[question.correctAnswer]}</p>
-                  </div>
-                  <button className="button subtle icon-danger" type="button" onClick={() => removeQuestion(index)} aria-label={`Remove question ${index + 1}`}>
-                    <Trash2 size={16} aria-hidden="true" />
-                  </button>
-                </article>
-              ))
-            ) : (
-              <div className="generator-path-list">
-                <article>
-                  <span>1. Paste material</span>
-                  <p>Copy text from your notes, handout, or PDF and paste it into the Study Material box.</p>
-                </article>
-                <article>
-                  <span>2. Generate</span>
-                  <p>Gemini creates multiple-choice questions using only the pasted material.</p>
-                </article>
-                <article>
-                  <span>3. Save</span>
-                  <p>Save the reviewer offline so it appears on the home page and works for quizzes.</p>
-                </article>
-              </div>
-            )}
-          </div>
-        </aside>
       </section>
     </div>
   );
