@@ -39,6 +39,12 @@ export default function Library() {
   const [generatorDraft, setGeneratorDraft] = useState(getGeneratorDraft);
   const [confirmAction, setConfirmAction] = useState(null);
   const [backupMessage, setBackupMessage] = useState("");
+  const [storageInfo, setStorageInfo] = useState({
+    supported: false,
+    persisted: false,
+    usage: null,
+    quota: null
+  });
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -61,6 +67,7 @@ export default function Library() {
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
     window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    refreshStorageInfo();
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
@@ -85,6 +92,50 @@ export default function Library() {
     setProgress(getAllProgress());
     setHistory(getAttemptHistory());
     setGeneratorDraft(getGeneratorDraft());
+  }
+
+  async function refreshStorageInfo() {
+    if (!navigator.storage) {
+      setStorageInfo({ supported: false, persisted: false, usage: null, quota: null });
+      return;
+    }
+
+    const [persisted, estimate] = await Promise.all([
+      navigator.storage.persisted ? navigator.storage.persisted() : false,
+      navigator.storage.estimate ? navigator.storage.estimate() : {}
+    ]);
+
+    setStorageInfo({
+      supported: true,
+      persisted,
+      usage: estimate.usage || null,
+      quota: estimate.quota || null
+    });
+  }
+
+  async function requestPersistentStorage() {
+    if (!navigator.storage?.persist) {
+      setBackupMessage("Persistent storage is not supported in this browser.");
+      return;
+    }
+
+    const persisted = await navigator.storage.persist();
+    await refreshStorageInfo();
+    setBackupMessage(persisted ? "Offline data is protected from automatic cleanup." : "Browser did not grant persistent storage yet.");
+  }
+
+  function formatBytes(value) {
+    if (!value) return "Unknown";
+    const units = ["B", "KB", "MB", "GB"];
+    let size = value;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex += 1;
+    }
+
+    return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
   }
 
   async function installApp() {
@@ -269,6 +320,21 @@ export default function Library() {
         <h2>Local Data</h2>
         <p className="muted">These actions only affect data stored on this device.</p>
         <div className="local-data-grid">
+          <article className="local-data-row">
+            <div>
+              <h3>Storage Protection</h3>
+              <p className="muted">
+                {storageInfo.supported
+                  ? `${storageInfo.persisted ? "Protected" : "Not protected yet"} - ${formatBytes(storageInfo.usage)} used of ${formatBytes(storageInfo.quota)} available.`
+                  : "This browser does not report storage protection status."}
+              </p>
+            </div>
+            <div className="button-row">
+              <button className="button subtle" type="button" onClick={requestPersistentStorage}>
+                Protect Offline Data
+              </button>
+            </div>
+          </article>
           <article className="local-data-row">
             <div>
               <h3>Generator Draft</h3>
