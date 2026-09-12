@@ -1,5 +1,5 @@
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = "gemini-2.5-flash-lite";
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const MAX_SOURCE_LENGTH = 45000;
 const MAX_FILE_BASE64_LENGTH = 18000000;
 
@@ -59,17 +59,68 @@ function getCandidateText(data) {
 function buildPrompt({ sourceText, title, subject, instructions, questionCount, fileName }) {
   return `Create a complete multiple-choice reviewer from ONLY the study material below.
 
-Rules:
+SOURCE RULES:
+- Use the uploaded file and pasted study material as the only source of truth.
+- Read the whole file before creating questions.
+- Preserve terminology used in the material.
+- Do not add facts from general knowledge.
+- Do not use the internet.
+- If something is not supported by the material, do not make it a question.
+- Cover important material throughout the file, not only the first pages.
+- Include definitions, examples, lists, comparisons, people, dates, frameworks, processes, stages, technologies, terminology, and important numbers when relevant.
+- Avoid creating several questions that test the exact same fact.
+
+IF THE MATERIAL IS ALREADY A QUIZ:
+- Convert all readable multiple-choice questions into the JSON format.
+- Preserve original question wording as closely as possible.
+- Preserve original answer choices and A/B/C/D positions unless there is a clear formatting issue.
+- If answers are visibly marked, record those answers.
+- Do not invent unreadable or missing text.
+
+IF THE MATERIAL IS A HANDOUT, MODULE, OR STUDY MATERIAL:
+- Create a useful exam reviewer, not copied sentences.
+- Include a mixture of definitions, identification, concepts, comparisons, scenarios, applications, processes, stages, examples, frameworks, important numbers, people, dates, technologies, and terminology.
+- Prefer ${questionCount} questions when the material supports it.
+- If the material is short, create fewer high-quality questions instead of inventing facts.
+
+MULTIPLE-CHOICE RULES:
+- Every question must have exactly 4 choices: A, B, C, and D.
+- Every question must have exactly one correct answer.
+- Wrong answers must be believable, related to the same topic, and clearly incorrect according to the material.
+- Do not use "All of the above", "None of the above", or "Both A and B" unless those exact choices already exist in an original quiz.
+- correctAnswer must be only "A", "B", "C", or "D".
+- answerText must exactly match choices[correctAnswer].
+- Include a short, source-supported explanation for every question.
+
+ANSWER POSITION RULES:
+- If you are generating new questions from study material, randomize correct answer positions.
+- Use A, B, C, and D throughout the reviewer.
+- Distribute correct answers as evenly as reasonably possible.
+- Do not make one letter the correct answer most of the time.
+- Do not create an obvious repeating pattern such as A, B, C, D, A, B, C, D.
+- Shuffle choices after deciding the correct answer, then update correctAnswer and answerText.
+- If the material is already an existing quiz, preserve original A/B/C/D positions.
+
+JSON RULES:
 - Return valid JSON only.
 - Do not wrap the answer in markdown.
 - Follow the exact schema requested by the API.
-- Use 4 choices per question: A, B, C, and D.
-- correctAnswer must be one of A, B, C, or D.
-- answerText must exactly match choices[correctAnswer].
-- Include a short explanation for every question.
-- Keep every question verifiable from the study material.
-- If the material is short, create fewer high-quality questions instead of inventing facts.
-- Prefer ${questionCount} questions when the material supports it.
+- reviewerId must be lowercase, URL-friendly, and use hyphens.
+- questionCount must exactly equal questions.length.
+- Question IDs must start at 1 and be sequential.
+- coverage must list major topics covered by the material.
+- topic must be useful for every question.
+
+FINAL SELF-CHECK BEFORE RETURNING JSON:
+- Valid JSON syntax.
+- questionCount matches the number of questions.
+- IDs are sequential with no duplicates.
+- Every question has choices A, B, C, and D.
+- Every correctAnswer exists in choices.
+- Every answerText exactly equals choices[correctAnswer].
+- Every question has a topic and explanation.
+- No obvious duplicate questions.
+- For generated questions, correct-answer positions are reasonably balanced and not patterned.
 
 Reviewer details:
 - Title: ${title || "Generated Reviewer"}
