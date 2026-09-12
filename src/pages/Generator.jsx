@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileJson, FileText, HardDrive, Loader2, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { FileJson, FileText, HardDrive, Loader2, Plus, RotateCcw, Save, Sparkles, Trash2, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -295,21 +295,6 @@ export default function Generator() {
     }
   }
 
-  function handleJsonFile(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const nextJsonText = String(reader.result || "");
-      updateJsonText(nextJsonText);
-      checkReviewerJson(nextJsonText);
-    };
-    reader.onerror = () => setErrors(["Could not read that JSON file."]);
-    reader.readAsText(file);
-    event.target.value = "";
-  }
-
   function clearDraft() {
     clearGeneratorDraft();
     skipNextAutosave.current = true;
@@ -418,43 +403,6 @@ export default function Generator() {
               ))}
             </div>
           ) : null}
-
-          <details className="advanced-panel">
-            <summary>Advanced JSON Import</summary>
-            <div className="generator-panel-head compact">
-              <FileJson size={20} aria-hidden="true" />
-              <div>
-                <h2>Paste or Load Reviewer JSON</h2>
-                <p className="muted">Use this only if you already have reviewer JSON from somewhere else.</p>
-              </div>
-            </div>
-            <label className="prompt-box">
-              <span>JSON</span>
-              <textarea value={jsonText} onChange={(event) => updateJsonText(event.target.value)} placeholder='{"title":"Sample Reviewer","subject":"Sample","questions":[...]}' />
-            </label>
-            <div className="button-row">
-              <button className="button subtle" type="button" onClick={() => checkReviewerJson(jsonText)}>
-                <FileJson size={17} aria-hidden="true" />
-                Check JSON
-              </button>
-              <button className="button subtle" type="button" onClick={() => saveReviewerJson(jsonText)}>
-                <Save size={17} aria-hidden="true" />
-                Save JSON
-              </button>
-              <label className="button subtle file-button">
-                <Upload size={17} aria-hidden="true" />
-                Load JSON File
-                <input type="file" accept="application/json,.json" onChange={handleJsonFile} />
-              </label>
-            </div>
-            {jsonCheck ? (
-              <div className="json-check-card" role="status">
-                <strong>JSON looks ready.</strong>
-                <span>{jsonCheck.title} - {jsonCheck.subject}</span>
-                <span>{jsonCheck.questions} questions across {jsonCheck.coverage} coverage areas</span>
-              </div>
-            ) : null}
-          </details>
 
           <details className="advanced-panel">
             <summary>Manual Builder</summary>

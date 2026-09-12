@@ -961,18 +961,6 @@ legend {
   font-weight: 900;
 }
 
-.file-button {
-  position: relative;
-  overflow: hidden;
-}
-
-.file-button input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .generator-errors {
   display: grid;
   gap: 6px;
