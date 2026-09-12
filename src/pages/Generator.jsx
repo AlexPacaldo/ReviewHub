@@ -379,7 +379,7 @@ ${sourceText || "[Paste study material here]"}`
         <div>
           <p className="eyebrow">AI Generator</p>
           <h1>Generate or import a reviewer</h1>
-          <p className="muted">Use AI-generated JSON now, then connect file upload and online/device AI later.</p>
+          <p className="muted">Use AI-generated JSON now, then connect online file upload and cloud AI later.</p>
           {draftMessage ? <p className="draft-save-note">{draftMessage}</p> : null}
         </div>
         <div className="generator-heading-actions">
@@ -408,7 +408,7 @@ ${sourceText || "[Paste study material here]"}`
             <input type="file" disabled aria-label="Upload study file for AI generation" />
             <Upload size={30} aria-hidden="true" />
             <strong>File upload will go here</strong>
-            <span>Online mode can use cloud AI. Offline mode can use local/device AI later if the app platform supports it.</span>
+            <span>When online and signed in, this will use cloud AI. Offline mode will stay focused on saved reviewers and local study.</span>
           </label>
 
           <div className="ai-prompt-panel">
@@ -620,8 +620,8 @@ ${sourceText || "[Paste study material here]"}`
                   <p>This manual draft flow saves reviewers only on this device.</p>
                 </article>
                 <article>
-                  <span>Future iPhone app</span>
-                  <p>Device AI can later fill this same draft when Apple exposes the right local model access.</p>
+                  <span>Future app option</span>
+                  <p>The project is website-first for now. A mobile app can reuse this reviewer format later.</p>
                 </article>
               </div>
             )}

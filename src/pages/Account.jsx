@@ -29,6 +29,26 @@ export default function Account() {
     setMessage(error ? error.message : "Check your email for the sign-in link.");
   }
 
+  async function signInWithGoogle() {
+    setMessage("");
+
+    if (!configured) {
+      setMessage("Add your Supabase URL and anon key in .env.local first.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) {
+      setMessage(error.message);
+    }
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
     setMessage("Signed out.");
@@ -39,7 +59,7 @@ export default function Account() {
       <section className="setup-panel">
         <p className="eyebrow">Account</p>
         <h1>Online Sync</h1>
-        <p className="muted">Sign in to prepare for cloud reviewers, database sync, friends, and sharing. Offline study still works without an account.</p>
+        <p className="muted">Sign in for cloud reviewers, database sync, friends, and sharing. Review Hub stays website-first for now, with offline study still available without an account.</p>
 
         <div className="account-status">
           <Cloud size={22} aria-hidden="true" />
@@ -68,16 +88,24 @@ export default function Account() {
             </button>
           </div>
         ) : (
-          <form className="account-form" onSubmit={signInWithEmail}>
-            <label>
-              <span>Email</span>
-              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
-            </label>
-            <button className="button primary" type="submit" disabled={submitting}>
-              <Mail size={17} aria-hidden="true" />
-              {submitting ? "Sending..." : "Send Sign-In Link"}
+          <div className="account-signin-stack">
+            <button className="button primary wide" type="button" onClick={signInWithGoogle}>
+              Continue with Google
             </button>
-          </form>
+            <div className="account-divider">
+              <span>or</span>
+            </div>
+            <form className="account-form" onSubmit={signInWithEmail}>
+              <label>
+                <span>Email</span>
+                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required />
+              </label>
+              <button className="button subtle" type="submit" disabled={submitting}>
+                <Mail size={17} aria-hidden="true" />
+                {submitting ? "Sending..." : "Send Sign-In Link"}
+              </button>
+            </form>
+          </div>
         )}
 
         {message ? <p className="account-message">{message}</p> : null}

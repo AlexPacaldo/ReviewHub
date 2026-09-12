@@ -669,7 +669,6 @@ legend {
 .account-form {
   display: grid;
   gap: 14px;
-  margin-top: 18px;
 }
 
 .account-form label {
@@ -691,6 +690,30 @@ legend {
   margin: 14px 0 0;
   color: var(--accent);
   font-weight: 900;
+}
+
+.account-signin-stack {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.account-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.account-divider::before,
+.account-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--border);
 }
 
 .button-row,
