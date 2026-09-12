@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Cloud, Download, HardDrive, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Cloud, Download, HardDrive, RefreshCw, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { upsertCloudReviewer } from "../services/cloudReviewers.js";
+import { listMyCloudReviewers, upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
   clearAllQuizProgress,
   clearAttemptHistory,
@@ -17,7 +17,8 @@ import {
   getGeneratorDraft,
   getLocalDataSnapshot,
   getLocalReviewers,
-  restoreLocalDataSnapshot
+  restoreLocalDataSnapshot,
+  saveLocalReviewer
 } from "../utils/storageUtils.js";
 
 function downloadJson(filename, data) {
@@ -43,6 +44,10 @@ export default function Library() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [backupMessage, setBackupMessage] = useState("");
   const [syncStatus, setSyncStatus] = useState({});
+  const [cloudReviewers, setCloudReviewers] = useState([]);
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [cloudMessage, setCloudMessage] = useState("");
+  const [offlineSaveStatus, setOfflineSaveStatus] = useState({});
   const [storageInfo, setStorageInfo] = useState({
     supported: false,
     persisted: false,
@@ -79,17 +84,22 @@ export default function Library() {
     };
   }, []);
 
+  useEffect(() => {
+    loadCloudReviewers();
+  }, [configured, user?.id]);
+
   const stats = useMemo(() => {
     const progressSessions = Object.keys(progress).length;
     return {
       builtInReviewers: reviewers.length,
       allReviewers: getAllReviewers().length,
       localReviewers: localReviewers.length,
+      cloudReviewers: cloudReviewers.length,
       history: history.length,
       progressSessions,
       generatorDrafts: generatorDraft ? 1 : 0
     };
-  }, [generatorDraft, history.length, localReviewers.length, progress]);
+  }, [cloudReviewers.length, generatorDraft, history.length, localReviewers.length, progress]);
 
   function refreshLocalData() {
     setLocalReviewers(getLocalReviewers());
@@ -151,6 +161,58 @@ export default function Library() {
     setInstallPrompt(null);
   }
 
+  async function loadCloudReviewers() {
+    if (!configured || !user) {
+      setCloudReviewers([]);
+      setCloudMessage("");
+      return;
+    }
+
+    setCloudLoading(true);
+    setCloudMessage("");
+    const { data, error } = await listMyCloudReviewers(user.id);
+    setCloudLoading(false);
+
+    if (error) {
+      setCloudMessage(error.message || "Could not load cloud reviewers.");
+      return;
+    }
+
+    setCloudReviewers(data || []);
+  }
+
+  function getCloudReviewerData(item) {
+    return item?.data || item;
+  }
+
+  function getCloudReviewerKey(item) {
+    return item?.id || item?.reviewer_id || getCloudReviewerData(item)?.reviewerId;
+  }
+
+  function isReviewerSavedOffline(reviewerId) {
+    return localReviewers.some((reviewer) => reviewer.reviewerId === reviewerId);
+  }
+
+  function saveCloudReviewerOffline(item) {
+    const reviewer = getCloudReviewerData(item);
+    const key = getCloudReviewerKey(item);
+
+    if (!reviewer?.reviewerId) {
+      setOfflineSaveStatus((current) => ({
+        ...current,
+        [key]: { type: "error", message: "This cloud reviewer is missing a reviewer ID." }
+      }));
+      return;
+    }
+
+    saveLocalReviewer(reviewer);
+    refreshLocalData();
+    setOfflineSaveStatus((current) => ({
+      ...current,
+      [key]: { type: "success", message: "Saved offline on this device." }
+    }));
+  }
+
   function restoreBackupFile(event) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -201,6 +263,10 @@ export default function Library() {
         ? { type: "error", message: error.message || "Could not sync reviewer." }
         : { type: "success", message: "Synced to cloud." }
     }));
+
+    if (!error) {
+      loadCloudReviewers();
+    }
   }
 
   function runConfirmedAction() {
@@ -234,7 +300,7 @@ export default function Library() {
         <div>
           <p className="eyebrow">Device Library</p>
           <h1>Library & Settings</h1>
-          <p className="muted">Manage data saved on this device. Account and cloud features can plug in here later.</p>
+          <p className="muted">Manage offline reviewers, cloud reviewers, backups, and device storage.</p>
         </div>
         <button className="button primary" type="button" onClick={() => downloadJson("review_hub_local_backup.json", getLocalDataSnapshot())}>
           <Download size={17} aria-hidden="true" />
@@ -265,6 +331,10 @@ export default function Library() {
         <article className="library-status-card">
           <span>Saved Offline</span>
           <strong>{stats.localReviewers}</strong>
+        </article>
+        <article className="library-status-card">
+          <span>Cloud Reviewers</span>
+          <strong>{user ? stats.cloudReviewers : "Sign in"}</strong>
         </article>
         <article className="library-status-card">
           <span>Unfinished Quizzes</span>
@@ -301,6 +371,80 @@ export default function Library() {
             )}
           </div>
         ) : null}
+      </section>
+
+      <section className="library-panel">
+        <div className="library-panel-head">
+          <div>
+            <h2>Cloud Reviewers</h2>
+            <p className="muted">Reviewers synced to your account. Save one offline to keep it available on this device.</p>
+          </div>
+          {user ? (
+            <button className="button subtle" type="button" onClick={loadCloudReviewers} disabled={cloudLoading}>
+              <RefreshCw size={17} aria-hidden="true" />
+              Refresh
+            </button>
+          ) : null}
+        </div>
+
+        {!configured ? (
+          <EmptyState
+            title="Cloud sync is not configured"
+            message="Add your Supabase URL and anon key in Vercel to enable account reviewers."
+          />
+        ) : !user ? (
+          <EmptyState
+            title="Sign in to view cloud reviewers"
+            message="Use Google sign-in to sync reviewers online and save them offline on each device."
+            action={
+              <Link className="button primary" to="/account">
+                Go to Account
+              </Link>
+            }
+          />
+        ) : cloudLoading ? (
+          <p className="muted">Loading cloud reviewers...</p>
+        ) : cloudReviewers.length ? (
+          <div className="library-list">
+            {cloudReviewers.map((item) => {
+              const reviewer = getCloudReviewerData(item);
+              const key = getCloudReviewerKey(item);
+              const reviewerId = reviewer?.reviewerId;
+              const savedOffline = isReviewerSavedOffline(reviewerId);
+
+              return (
+                <article className="library-row" key={key}>
+                  <div>
+                    <h3>{reviewer?.title || item.title || "Untitled Reviewer"}</h3>
+                    <p className="muted">
+                      {reviewer?.subject || item.subject || "No subject"} - {reviewer?.questions?.length || reviewer?.questionCount || 0} questions
+                    </p>
+                    {offlineSaveStatus[key] ? (
+                      <p className={`sync-message ${offlineSaveStatus[key].type}`}>{offlineSaveStatus[key].message}</p>
+                    ) : null}
+                  </div>
+                  <div className="button-row">
+                    {savedOffline ? (
+                      <Link className="button primary" to={`/reviewer/${reviewerId}`}>
+                        Open Offline
+                      </Link>
+                    ) : null}
+                    <button className="button subtle" type="button" onClick={() => saveCloudReviewerOffline(item)} disabled={savedOffline}>
+                      <Download size={17} aria-hidden="true" />
+                      {savedOffline ? "Saved Offline" : "Save Offline"}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyState
+            title="No cloud reviewers yet"
+            message="Sync a saved offline reviewer to your account and it will appear here."
+          />
+        )}
+        {cloudMessage ? <p className="backup-message">{cloudMessage}</p> : null}
       </section>
 
       <section className="library-panel">
@@ -368,7 +512,7 @@ export default function Library() {
         ) : (
           <EmptyState
             title="No saved offline reviewers"
-            message="When online cloud reviewers exist later, this is where saved-for-offline reviewers will appear."
+            message="Save a cloud reviewer offline or create a reviewer to keep it on this device."
           />
         )}
       </section>
