@@ -4,7 +4,7 @@ import { FileJson, FileText, Loader2, Plus, RotateCcw, Save, Sparkles, Upload, W
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { upsertCloudReviewer } from "../services/cloudReviewers.js";
-import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
+import { clearGeneratorDraft, getCloudReviewerCache, getGeneratorDraft, saveCloudReviewerCache, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
 const emptyQuestion = {
   topic: "",
@@ -122,10 +122,12 @@ export default function Generator() {
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
   const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "50");
+  const [saveOfflineCopy, setSaveOfflineCopy] = useState(savedDraft?.saveOfflineCopy || false);
   const [studyFile, setStudyFile] = useState(null);
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
   const [jsonCheck, setJsonCheck] = useState(null);
+  const [savedReviewer, setSavedReviewer] = useState(null);
   const [generationMessage, setGenerationMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingReviewer, setIsSavingReviewer] = useState(false);
@@ -154,10 +156,11 @@ export default function Generator() {
       questions,
       sourceText,
       targetQuestionCount,
+      saveOfflineCopy,
       jsonText
     });
     setDraftMessage("Draft saved on this device.");
-  }, [details, questionDraft, questions, sourceText, targetQuestionCount, jsonText]);
+  }, [details, questionDraft, questions, sourceText, targetQuestionCount, saveOfflineCopy, jsonText]);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -263,16 +266,33 @@ export default function Generator() {
     setErrors([]);
   }
 
-  async function persistReviewer(reviewer) {
-    saveLocalReviewer(reviewer);
-
+  async function persistReviewer(reviewer, { saveOffline = false } = {}) {
     if (configured && user) {
       const { error } = await upsertCloudReviewer(user.id, reviewer);
 
       if (error) {
-        throw new Error(`Saved offline, but cloud sync failed: ${error.message || "Unknown error"}`);
+        throw new Error(`Cloud save failed: ${error.message || "Unknown error"}`);
       }
+
+      const cachedReviewers = getCloudReviewerCache().filter((item) => item.reviewerId !== reviewer.reviewerId);
+      saveCloudReviewerCache([reviewer, ...cachedReviewers]);
+
+      if (saveOffline) {
+        saveLocalReviewer(reviewer);
+        return "cloud-and-offline";
+      }
+
+      return "cloud";
     }
+
+    saveLocalReviewer(reviewer);
+    return "offline";
+  }
+
+  function getSaveMessage(saveMode) {
+    if (saveMode === "cloud-and-offline") return "Reviewer saved to cloud and this device.";
+    if (saveMode === "cloud") return "Reviewer saved to cloud.";
+    return "Reviewer saved offline on this device.";
   }
 
   async function saveDraftReviewer() {
@@ -293,7 +313,7 @@ export default function Generator() {
     setIsSavingReviewer(true);
 
     try {
-      await persistReviewer(reviewer);
+      await persistReviewer(reviewer, { saveOffline: saveOfflineCopy });
       clearGeneratorDraft();
       navigate(`/reviewer/${reviewer.reviewerId}`);
     } catch (error) {
@@ -315,9 +335,10 @@ export default function Generator() {
       }
 
       setIsSavingReviewer(true);
-      await persistReviewer(reviewer);
+      const saveMode = await persistReviewer(reviewer, { saveOffline: saveOfflineCopy });
       clearGeneratorDraft();
-      navigate(`/reviewer/${reviewer.reviewerId}`);
+      setSavedReviewer({ reviewerId: reviewer.reviewerId, saveMode });
+      setGenerationMessage(getSaveMessage(saveMode));
     } catch (error) {
       setErrors([error?.message || "Paste valid reviewer JSON before saving."]);
     } finally {
@@ -367,6 +388,7 @@ export default function Generator() {
     setIsGenerating(true);
     setErrors([]);
     setJsonCheck(null);
+    setSavedReviewer(null);
     setGenerationMessage("Generating reviewer with Gemini...");
 
     try {
@@ -396,10 +418,21 @@ export default function Generator() {
         throw new Error(data?.error || "Gemini could not generate a reviewer.");
       }
 
-      const nextJsonText = JSON.stringify(data.reviewer, null, 2);
+      const reviewer = normalizeReviewerJson(data.reviewer);
+      const validation = validateReviewer(reviewer);
+
+      if (!validation.isValid) {
+        throw new Error(validation.errors[0] || "Gemini generated an invalid reviewer.");
+      }
+
+      const saveMode = await persistReviewer(reviewer, { saveOffline: saveOfflineCopy });
+      const nextJsonText = JSON.stringify(reviewer, null, 2);
       updateJsonText(nextJsonText);
       checkReviewerJson(nextJsonText);
-      setGenerationMessage("Reviewer generated and checked. Save it when you are ready.");
+      skipNextAutosave.current = true;
+      clearGeneratorDraft();
+      setSavedReviewer({ reviewerId: reviewer.reviewerId, saveMode });
+      setGenerationMessage(`Reviewer generated. ${getSaveMessage(saveMode)}`);
     } catch (error) {
       setGenerationMessage("");
       setErrors([error?.message || "Could not generate a reviewer."]);
@@ -420,10 +453,12 @@ export default function Generator() {
     setQuestions([]);
     setSourceText("");
     setTargetQuestionCount("50");
+    setSaveOfflineCopy(false);
     setStudyFile(null);
     setJsonText("");
     setErrors([]);
     setJsonCheck(null);
+    setSavedReviewer(null);
     setDraftMessage("Draft cleared.");
   }
 
@@ -505,6 +540,16 @@ export default function Generator() {
               <span>Extra Notes</span>
               <textarea value={sourceText} onChange={(event) => setSourceText(event.target.value)} placeholder="Optional: paste notes here, or use this instead of uploading a file." />
             </label>
+            {configured && user ? (
+              <label className="generator-checkbox">
+                <input
+                  type="checkbox"
+                  checked={saveOfflineCopy}
+                  onChange={(event) => setSaveOfflineCopy(event.target.checked)}
+                />
+                <span>Also save an offline copy on this device</span>
+              </label>
+            ) : null}
             <div className="button-row">
               <button className="button primary" type="button" onClick={generateReviewerWithAi} disabled={isGenerating || !isOnline}>
                 {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}
@@ -531,10 +576,16 @@ export default function Generator() {
                 </div>
               ) : null}
               <div className="button-row">
-                <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)} disabled={isSavingReviewer}>
-                  {isSavingReviewer ? <Loader2 size={17} aria-hidden="true" /> : <Save size={17} aria-hidden="true" />}
-                  {isSavingReviewer ? "Saving..." : configured && user ? "Save to Cloud & Offline" : "Save Offline"}
-                </button>
+                {savedReviewer ? (
+                  <button className="button primary" type="button" onClick={() => navigate(`/reviewer/${savedReviewer.reviewerId}`)}>
+                    Open Reviewer
+                  </button>
+                ) : (
+                  <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)} disabled={isSavingReviewer}>
+                    {isSavingReviewer ? <Loader2 size={17} aria-hidden="true" /> : <Save size={17} aria-hidden="true" />}
+                    {isSavingReviewer ? "Saving..." : configured && user ? "Save to Cloud" : "Save Offline"}
+                  </button>
+                )}
               </div>
             </div>
           ) : null}

@@ -935,6 +935,21 @@ legend {
   border-radius: 8px;
 }
 
+.generator-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.generator-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
 .json-import-panel {
   display: grid;
   gap: 14px;
