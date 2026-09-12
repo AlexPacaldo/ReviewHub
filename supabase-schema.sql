@@ -12,6 +12,8 @@ create table if not exists public.reviewers (
 
 alter table public.reviewers enable row level security;
 
+grant select, insert, update, delete on public.reviewers to authenticated;
+
 drop policy if exists "Users can read own reviewers" on public.reviewers;
 create policy "Users can read own reviewers"
 on public.reviewers

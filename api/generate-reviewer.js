@@ -61,7 +61,7 @@ function getQuestionCountInstruction(questionCount) {
     return "Create enough questions to comprehensively cover the important material. Do not create repetitive filler questions.";
   }
 
-  return `Create exactly ${questionCount} questions if the material contains enough information. If it does not, create fewer high-quality questions instead of inventing facts.`;
+  return `Create exactly ${questionCount} questions. If the material is an existing quiz with fewer than ${questionCount} readable questions, convert all readable questions. If the material is a handout, module, or lecture file, generate the full ${questionCount} questions by covering different facts, concepts, examples, and applications from across the material.`;
 }
 
 function buildPrompt({ sourceText, title, subject, instructions, questionCount, fileName }) {
@@ -91,7 +91,8 @@ IF THE MATERIAL IS A HANDOUT, MODULE, OR STUDY MATERIAL:
 - Create a useful exam reviewer, not copied sentences.
 - Include a mixture of definitions, identification, concepts, comparisons, scenarios, applications, processes, stages, examples, frameworks, important numbers, people, dates, technologies, and terminology.
 - ${questionCountInstruction}
-- If the material is short, create fewer high-quality questions instead of inventing facts.
+- Do not stop after a short sample. Produce the complete questions array requested by the selected question count whenever the material supports it.
+- Only create fewer questions when the source is truly too short or unreadable, and never invent facts.
 
 MULTIPLE-CHOICE RULES:
 - Every question must have exactly 4 choices: A, B, C, and D.
@@ -213,6 +214,7 @@ export default async function handler(request, response) {
         ],
         generationConfig: {
           temperature: 0.35,
+          maxOutputTokens: 32768,
           response_mime_type: "application/json",
           response_schema: reviewerSchema
         }
