@@ -1,16 +1,46 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReviewerCard from "../components/ReviewerCard.jsx";
 import ReviewerSearch from "../components/ReviewerSearch.jsx";
 import EmptyState from "../components/EmptyState.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { getAllReviewers } from "../data/reviewerRegistry.js";
-import { deleteLocalReviewer, getAllProgress, getAttemptHistory } from "../utils/storageUtils.js";
+import { listMyCloudReviewers } from "../services/cloudReviewers.js";
+import { clearCloudReviewerCache, deleteLocalReviewer, getAllProgress, getAttemptHistory, saveCloudReviewerCache } from "../utils/storageUtils.js";
 
 export default function Home() {
+  const { configured, loading, user } = useAuth();
   const [search, setSearch] = useState("");
   const [reviewerList, setReviewerList] = useState(getAllReviewers);
   const progress = getAllProgress();
   const recentAttempts = getAttemptHistory().slice(0, 5);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSignedInReviewers() {
+      if (loading) return;
+
+      if (!configured || !user) {
+        clearCloudReviewerCache();
+        setReviewerList(getAllReviewers());
+        return;
+      }
+
+      const { data, error } = await listMyCloudReviewers(user.id);
+
+      if (!isMounted || error) return;
+
+      saveCloudReviewerCache((data || []).map((item) => item.data || item));
+      setReviewerList(getAllReviewers());
+    }
+
+    loadSignedInReviewers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [configured, loading, user?.id]);
 
   const filteredReviewers = useMemo(() => {
     const term = search.trim().toLowerCase();

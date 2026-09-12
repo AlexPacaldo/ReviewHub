@@ -10,7 +10,8 @@ export default function ReviewerCard({ reviewer, progress, onDelete }) {
         <span className="course-code">{code}</span>
         <span className="question-count">{reviewer.questions?.length || reviewer.questionCount} Questions</span>
       </div>
-      {reviewer.source === "local" ? <span className="local-badge">Saved offline</span> : null}
+      {reviewer.source === "local" ? <span className="reviewer-source-badge offline">Saved offline</span> : null}
+      {reviewer.source === "cloud" ? <span className="reviewer-source-badge cloud">Cloud synced</span> : null}
 
       <h3>{reviewer.subject}</h3>
       <p className="muted">{reviewer.title}</p>

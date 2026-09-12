@@ -1,6 +1,6 @@
 import technoPrelim from "./reviewers/bm2506_technopreneurship_prelim_reviewer.json";
 import technoPrelimReviewerFromMaam from "./reviewers/technopreneurship_quiz_50_questions_verified.json";
-import { getLocalReviewers } from "../utils/storageUtils.js";
+import { getCloudReviewerCache, getLocalReviewers } from "../utils/storageUtils.js";
 
 const REQUIRED_CHOICE_KEYS = ["A", "B", "C", "D"];
 
@@ -46,14 +46,24 @@ export const reviewers = [technoPrelim, technoPrelimReviewerFromMaam].map((revie
   validation: validateReviewer(reviewer)
 }));
 
-export function getAllReviewers() {
-  const localReviewers = getLocalReviewers().map((reviewer) => ({
+function withValidation(reviewer, source) {
+  return {
     ...reviewer,
-    source: "local",
+    source,
     validation: validateReviewer(reviewer)
-  }));
+  };
+}
 
-  return [...reviewers, ...localReviewers];
+export function getAllReviewers() {
+  const cloudReviewers = getCloudReviewerCache().map((reviewer) => withValidation(reviewer, "cloud"));
+  const localReviewers = getLocalReviewers().map((reviewer) => withValidation(reviewer, "local"));
+  const mergedReviewers = new Map();
+
+  [...reviewers, ...cloudReviewers, ...localReviewers].forEach((reviewer) => {
+    mergedReviewers.set(reviewer.reviewerId, reviewer);
+  });
+
+  return [...mergedReviewers.values()];
 }
 
 export function getReviewerById(reviewerId) {

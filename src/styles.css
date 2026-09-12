@@ -415,15 +415,23 @@ main {
   background: var(--accent-soft);
 }
 
-.local-badge {
+.reviewer-source-badge {
   width: fit-content;
   margin-top: 12px;
   padding: 6px 9px;
-  color: var(--success);
-  background: var(--success-soft);
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 900;
+}
+
+.reviewer-source-badge.offline {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.reviewer-source-badge.cloud {
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .reviewer-actions {

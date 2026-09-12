@@ -4,6 +4,7 @@ const KEYS = {
   theme: "reviewer_theme",
   lastAttempt: "reviewer_last_attempt",
   localReviewers: "reviewer_local_reviewers",
+  cloudReviewerCache: "reviewer_cloud_reviewer_cache",
   generatorDraft: "reviewer_generator_draft"
 };
 
@@ -107,6 +108,20 @@ export function clearLocalReviewers() {
   writeJson(KEYS.localReviewers, []);
 }
 
+export function getCloudReviewerCache() {
+  return readJson(KEYS.cloudReviewerCache, []);
+}
+
+export function saveCloudReviewerCache(reviewers) {
+  const nextReviewers = Array.isArray(reviewers) ? reviewers : [];
+  writeJson(KEYS.cloudReviewerCache, nextReviewers);
+  return nextReviewers;
+}
+
+export function clearCloudReviewerCache() {
+  localStorage.removeItem(KEYS.cloudReviewerCache);
+}
+
 export function getGeneratorDraft() {
   return readJson(KEYS.generatorDraft, null);
 }
@@ -131,6 +146,7 @@ export function restoreLocalDataSnapshot(snapshot) {
   writeJson(KEYS.history, Array.isArray(snapshot.history) ? snapshot.history : []);
   writeJson(KEYS.lastAttempt, isObject(snapshot.lastAttempt) ? snapshot.lastAttempt : {});
   writeJson(KEYS.localReviewers, Array.isArray(snapshot.localReviewers) ? snapshot.localReviewers : []);
+  writeJson(KEYS.cloudReviewerCache, Array.isArray(snapshot.cloudReviewerCache) ? snapshot.cloudReviewerCache : []);
 
   if (isObject(snapshot.generatorDraft)) {
     writeJson(KEYS.generatorDraft, snapshot.generatorDraft);
@@ -152,6 +168,7 @@ export function getLocalDataSnapshot() {
     history: getAttemptHistory(),
     lastAttempt: readJson(KEYS.lastAttempt, {}),
     localReviewers: getLocalReviewers(),
+    cloudReviewerCache: getCloudReviewerCache(),
     generatorDraft: getGeneratorDraft(),
     theme: getThemePreference()
   };
