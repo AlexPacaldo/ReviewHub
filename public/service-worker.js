@@ -1,4 +1,4 @@
-const CACHE_VERSION = "review-hub-v1";
+const CACHE_VERSION = "review-hub-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,28 +6,80 @@ const APP_SHELL = [
   "./icon.svg"
 ];
 
-async function cacheAppShell() {
-  const cache = await caches.open(CACHE_VERSION);
-  await cache.addAll(APP_SHELL);
-
-  const indexResponse = await fetch("./index.html", { cache: "no-store" });
-  const indexHtml = await indexResponse.clone().text();
-  await cache.put("./index.html", indexResponse);
-
-  const assetUrls = [...indexHtml.matchAll(/(?:src|href)="([^"]+)"/g)]
-    .map((match) => match[1])
-    .filter((url) => url.includes("/assets/"))
-    .map((url) => new URL(url, self.registration.scope).toString());
-
+async function cacheUrls(cache, urls) {
   await Promise.all(
-    assetUrls.map(async (url) => {
+    urls.map(async (url) => {
       try {
         await cache.add(url);
       } catch {
-        // Non-critical assets should not block the app shell from installing.
+        // Optional shell files should not prevent service worker installation.
       }
     })
   );
+}
+
+async function cacheAppShell() {
+  const cache = await caches.open(CACHE_VERSION);
+  await cacheUrls(cache, APP_SHELL);
+
+  try {
+    const indexResponse = await fetch("./index.html", { cache: "no-store" });
+    const indexHtml = await indexResponse.clone().text();
+    await cache.put("./index.html", indexResponse);
+    await cache.put("./", new Response(indexHtml, {
+      headers: { "Content-Type": "text/html" }
+    }));
+
+    const assetUrls = [...indexHtml.matchAll(/(?:src|href)="([^"]+)"/g)]
+      .map((match) => match[1])
+      .filter((url) => url.includes("/assets/"))
+      .map((url) => new URL(url, self.registration.scope).toString());
+
+    await cacheUrls(cache, assetUrls);
+  } catch {
+    // A later online visit can refresh the app shell.
+  }
+}
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_VERSION);
+
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    return (await caches.match(request)) || caches.match("./index.html");
+  }
+}
+
+async function cacheFirst(request) {
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) return cachedResponse;
+
+  const response = await fetch(request);
+  if (response.ok) {
+    const cache = await caches.open(CACHE_VERSION);
+    await cache.put(request, response.clone());
+  }
+  return response;
+}
+
+async function staleWhileRevalidate(request) {
+  const cachedResponse = await caches.match(request);
+  const fetchPromise = fetch(request)
+    .then(async (response) => {
+      if (response.ok) {
+        const cache = await caches.open(CACHE_VERSION);
+        await cache.put(request, response.clone());
+      }
+      return response;
+    })
+    .catch(() => cachedResponse);
+
+  return cachedResponse || fetchPromise;
 }
 
 self.addEventListener("install", (event) => {
@@ -46,27 +98,19 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
+  const url = new URL(request.url);
 
-  if (request.method !== "GET") return;
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        const copy = response.clone();
-        if (response.ok && new URL(request.url).origin === self.location.origin) {
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      })
-      .catch(async () => {
-        const cachedResponse = await caches.match(request);
-        if (cachedResponse) return cachedResponse;
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request));
+    return;
+  }
 
-        if (request.mode === "navigate") {
-          return caches.match("./index.html");
-        }
+  if (url.pathname.includes("/assets/")) {
+    event.respondWith(cacheFirst(request));
+    return;
+  }
 
-        return Response.error();
-      })
-  );
+  event.respondWith(staleWhileRevalidate(request));
 });
