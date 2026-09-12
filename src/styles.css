@@ -210,6 +210,25 @@ main {
   background: var(--surface-2);
 }
 
+.update-banner {
+  position: sticky;
+  top: 72px;
+  z-index: 19;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--text);
+  background: var(--accent-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  font-weight: 900;
+}
+
+.update-banner .button {
+  min-height: 34px;
+}
+
 .button.large,
 .button.wide {
   width: 100%;
@@ -1494,6 +1513,11 @@ legend {
 
   .offline-pill {
     margin-left: auto;
+  }
+
+  .update-banner {
+    top: 0;
+    flex-wrap: wrap;
   }
 
   .nav-links a {

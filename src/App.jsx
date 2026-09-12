@@ -13,15 +13,31 @@ import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js
 
 export default function App() {
   const [theme, setTheme] = useState(getThemePreference);
+  const [updateReady, setUpdateReady] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     saveThemePreference(theme);
   }, [theme]);
 
+  useEffect(() => {
+    const showUpdateNotice = () => setUpdateReady(true);
+
+    window.addEventListener("reviewhub:update-ready", showUpdateNotice);
+    return () => window.removeEventListener("reviewhub:update-ready", showUpdateNotice);
+  }, []);
+
   return (
     <>
       <Navbar theme={theme} onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} />
+      {updateReady ? (
+        <div className="update-banner" role="status">
+          <span>New offline version ready.</span>
+          <button className="button subtle" type="button" onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
+      ) : null}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
