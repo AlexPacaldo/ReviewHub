@@ -161,6 +161,7 @@ export default function Generator() {
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
+  const [jsonCheck, setJsonCheck] = useState(null);
   const [templateMessage, setTemplateMessage] = useState("");
   const [promptMessage, setPromptMessage] = useState("");
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
@@ -284,6 +285,31 @@ ${sourceText || "[Paste study material here]"}`
     }
   }
 
+  function checkReviewerJson(rawJson) {
+    try {
+      const parsedReviewer = JSON.parse(rawJson);
+      const reviewer = normalizeReviewerJson(parsedReviewer);
+      const validation = validateReviewer(reviewer);
+
+      if (!validation.isValid) {
+        setJsonCheck(null);
+        setErrors(validation.errors);
+        return;
+      }
+
+      setErrors([]);
+      setJsonCheck({
+        title: reviewer.title,
+        subject: reviewer.subject,
+        questions: reviewer.questions.length,
+        coverage: reviewer.coverage.length
+      });
+    } catch {
+      setJsonCheck(null);
+      setErrors(["Paste valid reviewer JSON before checking."]);
+    }
+  }
+
   async function copySampleTemplate() {
     try {
       await navigator.clipboard.writeText(sampleTemplateText);
@@ -336,6 +362,7 @@ ${sourceText || "[Paste study material here]"}`
     setSourceText("");
     setJsonText("");
     setErrors([]);
+    setJsonCheck(null);
     setTemplateMessage("");
     setPromptMessage("");
     setDraftMessage("Draft cleared.");
@@ -413,6 +440,10 @@ ${sourceText || "[Paste study material here]"}`
               <textarea value={jsonText} onChange={(event) => setJsonText(event.target.value)} placeholder='{"title":"Sample Reviewer","subject":"Sample","questions":[...]}' />
             </label>
             <div className="button-row">
+              <button className="button subtle" type="button" onClick={() => checkReviewerJson(jsonText)}>
+                <FileJson size={17} aria-hidden="true" />
+                Check JSON
+              </button>
               <button className="button subtle" type="button" onClick={() => saveReviewerJson(jsonText)}>
                 <Save size={17} aria-hidden="true" />
                 Save JSON
@@ -423,6 +454,13 @@ ${sourceText || "[Paste study material here]"}`
                 <input type="file" accept="application/json,.json" onChange={handleJsonFile} />
               </label>
             </div>
+            {jsonCheck ? (
+              <div className="json-check-card" role="status">
+                <strong>JSON looks ready.</strong>
+                <span>{jsonCheck.title} - {jsonCheck.subject}</span>
+                <span>{jsonCheck.questions} questions across {jsonCheck.coverage} coverage areas</span>
+              </div>
+            ) : null}
           </div>
 
           {errors.length ? (

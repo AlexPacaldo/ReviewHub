@@ -826,6 +826,22 @@ legend {
   border-radius: 8px;
 }
 
+.json-check-card {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  color: var(--success);
+  background: var(--success-soft);
+  border: 1px solid color-mix(in srgb, var(--success) 34%, var(--border));
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.json-check-card span {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .template-panel {
   display: grid;
   gap: 14px;
