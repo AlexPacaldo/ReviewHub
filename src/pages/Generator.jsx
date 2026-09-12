@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clipboard, Download, FileJson, FileText, HardDrive, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Clipboard, Download, FileJson, FileText, HardDrive, Loader2, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -164,6 +164,8 @@ export default function Generator() {
   const [jsonCheck, setJsonCheck] = useState(null);
   const [templateMessage, setTemplateMessage] = useState("");
   const [promptMessage, setPromptMessage] = useState("");
+  const [generationMessage, setGenerationMessage] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
 
   useEffect(() => {
@@ -334,6 +336,56 @@ ${sourceText || "[Paste study material here]"}`
     }
   }
 
+  async function generateReviewerWithAi() {
+    const trimmedSourceText = sourceText.trim();
+
+    if (!isOnline) {
+      setErrors(["Connect to the internet before using Gemini generation."]);
+      return;
+    }
+
+    if (trimmedSourceText.length < 100) {
+      setErrors(["Paste more study material before generating a reviewer."]);
+      return;
+    }
+
+    setIsGenerating(true);
+    setErrors([]);
+    setJsonCheck(null);
+    setGenerationMessage("Generating reviewer with Gemini...");
+
+    try {
+      const response = await fetch("/api/generate-reviewer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          sourceText: trimmedSourceText,
+          title: details.title,
+          subject: details.subject,
+          instructions: details.instructions,
+          questionCount: 20
+        })
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Gemini could not generate a reviewer.");
+      }
+
+      const nextJsonText = JSON.stringify(data.reviewer, null, 2);
+      updateJsonText(nextJsonText);
+      checkReviewerJson(nextJsonText);
+      setGenerationMessage("Reviewer JSON generated. Check it, then save it.");
+    } catch (error) {
+      setGenerationMessage("");
+      setErrors([error?.message || "Could not generate a reviewer."]);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
   function downloadSampleTemplate() {
     downloadTextFile("review_hub_reviewer_template.json", sampleTemplateText);
     setTemplateMessage("Template downloaded.");
@@ -379,7 +431,7 @@ ${sourceText || "[Paste study material here]"}`
         <div>
           <p className="eyebrow">AI Generator</p>
           <h1>Generate or import a reviewer</h1>
-          <p className="muted">Use AI-generated JSON now, then connect online file upload and cloud AI later.</p>
+          <p className="muted">Paste study material, generate reviewer JSON with Gemini, then save it for offline study.</p>
           {draftMessage ? <p className="draft-save-note">{draftMessage}</p> : null}
         </div>
         <div className="generator-heading-actions">
@@ -400,15 +452,15 @@ ${sourceText || "[Paste study material here]"}`
             <Sparkles size={22} aria-hidden="true" />
             <div>
               <h2>AI File Generator</h2>
-              <p className="muted">This will become the main upload-to-reviewer workflow.</p>
+              <p className="muted">Gemini runs through a secure Vercel API route, so your API key stays hidden.</p>
             </div>
           </div>
 
           <label className="upload-zone ai-upload-zone">
             <input type="file" disabled aria-label="Upload study file for AI generation" />
             <Upload size={30} aria-hidden="true" />
-            <strong>File upload will go here</strong>
-            <span>When online and signed in, this will use cloud AI. Offline mode will stay focused on saved reviewers and local study.</span>
+            <strong>File upload is next</strong>
+            <span>For now, paste copied PDF text or notes below and generate with Gemini.</span>
           </label>
 
           <div className="ai-prompt-panel">
@@ -416,7 +468,7 @@ ${sourceText || "[Paste study material here]"}`
               <Clipboard size={20} aria-hidden="true" />
               <div>
                 <h2>Study Material Prompt</h2>
-                <p className="muted">Paste notes here, then copy a complete prompt for ChatGPT or another AI tool.</p>
+                <p className="muted">Paste notes here, then generate directly or copy the prompt for another AI tool.</p>
               </div>
             </div>
             <label className="prompt-box">
@@ -424,11 +476,16 @@ ${sourceText || "[Paste study material here]"}`
               <textarea value={sourceText} onChange={(event) => setSourceText(event.target.value)} placeholder="Paste your handout, notes, or reviewer source text here." />
             </label>
             <div className="button-row">
+              <button className="button primary" type="button" onClick={generateReviewerWithAi} disabled={isGenerating || !isOnline}>
+                {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}
+                {isGenerating ? "Generating..." : "Generate with Gemini"}
+              </button>
               <button className="button subtle" type="button" onClick={copyAiPrompt}>
                 <Clipboard size={17} aria-hidden="true" />
                 Copy AI Prompt
               </button>
               {promptMessage ? <span className="template-message">{promptMessage}</span> : null}
+              {generationMessage ? <span className="template-message">{generationMessage}</span> : null}
             </div>
           </div>
 
