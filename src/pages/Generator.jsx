@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileJson, FileText, Loader2, Plus, RotateCcw, Save, Sparkles, Upload, Wifi, WifiOff } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { validateReviewer } from "../data/reviewerRegistry.js";
+import { upsertCloudReviewer } from "../services/cloudReviewers.js";
 import { clearGeneratorDraft, getGeneratorDraft, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
 
 const emptyQuestion = {
@@ -107,6 +109,7 @@ function normalizeReviewerJson(reviewer) {
 
 export default function Generator() {
   const navigate = useNavigate();
+  const { configured, user } = useAuth();
   const savedDraft = getGeneratorDraft();
   const skipNextAutosave = useRef(false);
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
@@ -125,6 +128,7 @@ export default function Generator() {
   const [jsonCheck, setJsonCheck] = useState(null);
   const [generationMessage, setGenerationMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSavingReviewer, setIsSavingReviewer] = useState(false);
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
 
   useEffect(() => {
@@ -259,7 +263,19 @@ export default function Generator() {
     setErrors([]);
   }
 
-  function saveDraftReviewer() {
+  async function persistReviewer(reviewer) {
+    saveLocalReviewer(reviewer);
+
+    if (configured && user) {
+      const { error } = await upsertCloudReviewer(user.id, reviewer);
+
+      if (error) {
+        throw new Error(`Saved offline, but cloud sync failed: ${error.message || "Unknown error"}`);
+      }
+    }
+  }
+
+  async function saveDraftReviewer() {
     const reviewer = buildReviewer(details, questions);
     const validation = validateReviewer(reviewer);
     const nextErrors = [];
@@ -274,12 +290,20 @@ export default function Generator() {
       return;
     }
 
-    saveLocalReviewer(reviewer);
-    clearGeneratorDraft();
-    navigate(`/reviewer/${reviewer.reviewerId}`);
+    setIsSavingReviewer(true);
+
+    try {
+      await persistReviewer(reviewer);
+      clearGeneratorDraft();
+      navigate(`/reviewer/${reviewer.reviewerId}`);
+    } catch (error) {
+      setErrors([error?.message || "Could not save reviewer."]);
+    } finally {
+      setIsSavingReviewer(false);
+    }
   }
 
-  function saveReviewerJson(rawJson) {
+  async function saveReviewerJson(rawJson) {
     try {
       const parsedReviewer = JSON.parse(rawJson);
       const reviewer = normalizeReviewerJson(parsedReviewer);
@@ -290,11 +314,14 @@ export default function Generator() {
         return;
       }
 
-      saveLocalReviewer(reviewer);
+      setIsSavingReviewer(true);
+      await persistReviewer(reviewer);
       clearGeneratorDraft();
       navigate(`/reviewer/${reviewer.reviewerId}`);
-    } catch {
-      setErrors(["Paste valid reviewer JSON before saving."]);
+    } catch (error) {
+      setErrors([error?.message || "Paste valid reviewer JSON before saving."]);
+    } finally {
+      setIsSavingReviewer(false);
     }
   }
 
@@ -504,9 +531,9 @@ export default function Generator() {
                 </div>
               ) : null}
               <div className="button-row">
-                <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)}>
-                  <Save size={17} aria-hidden="true" />
-                  Save Reviewer
+                <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)} disabled={isSavingReviewer}>
+                  {isSavingReviewer ? <Loader2 size={17} aria-hidden="true" /> : <Save size={17} aria-hidden="true" />}
+                  {isSavingReviewer ? "Saving..." : configured && user ? "Save to Cloud & Offline" : "Save Offline"}
                 </button>
               </div>
             </div>
@@ -596,9 +623,9 @@ export default function Generator() {
               </button>
             </div>
 
-            <button className="button primary large" type="button" onClick={saveDraftReviewer}>
-              <Save size={18} aria-hidden="true" />
-              Save Manual Reviewer
+            <button className="button primary large" type="button" onClick={saveDraftReviewer} disabled={isSavingReviewer}>
+              {isSavingReviewer ? <Loader2 size={18} aria-hidden="true" /> : <Save size={18} aria-hidden="true" />}
+              {isSavingReviewer ? "Saving..." : configured && user ? "Save Manual to Cloud & Offline" : "Save Manual Offline"}
             </button>
           </details>
         </div>
