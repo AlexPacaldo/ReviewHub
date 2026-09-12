@@ -3,6 +3,13 @@ import { ArrowRight, Layers, Trash2 } from "lucide-react";
 
 export default function ReviewerCard({ reviewer, progress, onDelete }) {
   const code = reviewer.title.split(" ")[0];
+  const statusLabels = {
+    cloud: "Cloud only",
+    local: "Offline only",
+    both: "Cloud + offline"
+  };
+  const statusClass = reviewer.storageStatus || reviewer.source;
+  const statusLabel = statusLabels[statusClass];
 
   return (
     <article className="reviewer-card">
@@ -10,8 +17,7 @@ export default function ReviewerCard({ reviewer, progress, onDelete }) {
         <span className="course-code">{code}</span>
         <span className="question-count">{reviewer.questions?.length || reviewer.questionCount} Questions</span>
       </div>
-      {reviewer.source === "local" ? <span className="reviewer-source-badge offline">Saved offline</span> : null}
-      {reviewer.source === "cloud" ? <span className="reviewer-source-badge cloud">Cloud synced</span> : null}
+      {statusLabel ? <span className={`reviewer-source-badge ${statusClass}`}>{statusLabel}</span> : null}
 
       <h3>{reviewer.subject}</h3>
       <p className="muted">{reviewer.title}</p>

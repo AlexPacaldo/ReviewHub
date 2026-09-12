@@ -13,6 +13,8 @@
   --success-soft: #dcfce7;
   --danger: #b91c1c;
   --danger-soft: #fee2e2;
+  --warning: #a16207;
+  --warning-soft: #fef3c7;
   --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
 
@@ -31,6 +33,8 @@
   --success-soft: #12351f;
   --danger: #fca5a5;
   --danger-soft: #451a1a;
+  --warning: #facc15;
+  --warning-soft: #3f2f08;
   --shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
 }
 
@@ -424,7 +428,7 @@ main {
   font-weight: 900;
 }
 
-.reviewer-source-badge.offline {
+.reviewer-source-badge.local {
   color: var(--success);
   background: var(--success-soft);
 }
@@ -432,6 +436,11 @@ main {
 .reviewer-source-badge.cloud {
   color: var(--accent);
   background: var(--accent-soft);
+}
+
+.reviewer-source-badge.both {
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 .reviewer-actions {

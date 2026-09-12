@@ -33,6 +33,19 @@ function downloadJson(filename, data) {
   URL.revokeObjectURL(url);
 }
 
+function ReviewerStatusBadge({ status }) {
+  const labels = {
+    cloud: "Cloud only",
+    local: "Offline only",
+    both: "Cloud + offline"
+  };
+  const label = labels[status];
+
+  if (!label) return null;
+
+  return <span className={`reviewer-source-badge ${status}`}>{label}</span>;
+}
+
 export default function Library() {
   const { configured, user } = useAuth();
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
@@ -455,6 +468,7 @@ export default function Library() {
                     <p className="muted">
                       {reviewer?.subject || item.subject || "No subject"} - {reviewer?.questions?.length || reviewer?.questionCount || 0} questions
                     </p>
+                    <ReviewerStatusBadge status={savedOffline ? "both" : "cloud"} />
                     {offlineSaveStatus[key] ? (
                       <p className={`sync-message ${offlineSaveStatus[key].type}`}>{offlineSaveStatus[key].message}</p>
                     ) : null}
@@ -462,7 +476,7 @@ export default function Library() {
                   <div className="button-row">
                     {savedOffline ? (
                       <Link className="button primary" to={`/reviewer/${reviewerId}`}>
-                        Open Offline
+                        Open
                       </Link>
                     ) : null}
                     <button className="button subtle" type="button" onClick={() => saveCloudReviewerOffline(item)} disabled={savedOffline}>
@@ -516,6 +530,7 @@ export default function Library() {
                 <div>
                   <h3>{reviewer.title}</h3>
                   <p className="muted">{reviewer.subject} - {reviewer.questions?.length || reviewer.questionCount} questions</p>
+                  <ReviewerStatusBadge status={syncStatus[reviewer.reviewerId]?.type === "success" ? "both" : "local"} />
                   {syncStatus[reviewer.reviewerId] ? (
                     <p className={`sync-message ${syncStatus[reviewer.reviewerId].type}`}>
                       {syncStatus[reviewer.reviewerId].message}
@@ -526,7 +541,7 @@ export default function Library() {
                   <Link className="button primary" to={`/reviewer/${reviewer.reviewerId}`}>
                     Open
                   </Link>
-                  {user ? (
+                  {syncStatus[reviewer.reviewerId]?.type === "success" ? null : user ? (
                     <button
                       className="button subtle"
                       type="button"

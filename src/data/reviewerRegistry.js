@@ -43,13 +43,15 @@ export function validateReviewer(reviewer) {
 export const reviewers = [technoPrelim, technoPrelimReviewerFromMaam].map((reviewer) => ({
   ...reviewer,
   source: "built-in",
+  storageStatus: "built-in",
   validation: validateReviewer(reviewer)
 }));
 
-function withValidation(reviewer, source) {
+function withValidation(reviewer, source, storageStatus = source) {
   return {
     ...reviewer,
     source,
+    storageStatus,
     validation: validateReviewer(reviewer)
   };
 }
@@ -60,6 +62,17 @@ export function getAllReviewers() {
   const mergedReviewers = new Map();
 
   [...reviewers, ...cloudReviewers, ...localReviewers].forEach((reviewer) => {
+    const existing = mergedReviewers.get(reviewer.reviewerId);
+
+    if (existing?.source === "cloud" && reviewer.source === "local") {
+      mergedReviewers.set(reviewer.reviewerId, {
+        ...reviewer,
+        storageStatus: "both",
+        validation: validateReviewer(reviewer)
+      });
+      return;
+    }
+
     mergedReviewers.set(reviewer.reviewerId, reviewer);
   });
 
