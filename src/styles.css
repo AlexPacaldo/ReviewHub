@@ -757,6 +757,14 @@ legend {
   gap: 10px;
 }
 
+.generator-page {
+  width: min(860px, calc(100% - 32px));
+}
+
+.generator-page .section-heading {
+  align-items: end;
+}
+
 .draft-save-note {
   margin: 10px 0 0;
   color: var(--success);
@@ -769,7 +777,6 @@ legend {
   grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
-  max-width: 860px;
 }
 
 .generator-panel {

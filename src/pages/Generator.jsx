@@ -391,7 +391,7 @@ export default function Generator() {
   }
 
   return (
-    <div className="page">
+    <div className="page generator-page">
       <section className="section-heading">
         <div>
           <p className="eyebrow">AI Generator</p>
