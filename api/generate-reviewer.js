@@ -56,7 +56,17 @@ function getCandidateText(data) {
     .trim();
 }
 
+function getQuestionCountInstruction(questionCount) {
+  if (questionCount === "comprehensive") {
+    return "Create enough questions to comprehensively cover the important material. Do not create repetitive filler questions.";
+  }
+
+  return `Create exactly ${questionCount} questions if the material contains enough information. If it does not, create fewer high-quality questions instead of inventing facts.`;
+}
+
 function buildPrompt({ sourceText, title, subject, instructions, questionCount, fileName }) {
+  const questionCountInstruction = getQuestionCountInstruction(questionCount);
+
   return `Create a complete multiple-choice reviewer from ONLY the study material below.
 
 SOURCE RULES:
@@ -80,7 +90,7 @@ IF THE MATERIAL IS ALREADY A QUIZ:
 IF THE MATERIAL IS A HANDOUT, MODULE, OR STUDY MATERIAL:
 - Create a useful exam reviewer, not copied sentences.
 - Include a mixture of definitions, identification, concepts, comparisons, scenarios, applications, processes, stages, examples, frameworks, important numbers, people, dates, technologies, and terminology.
-- Prefer ${questionCount} questions when the material supports it.
+- ${questionCountInstruction}
 - If the material is short, create fewer high-quality questions instead of inventing facts.
 
 MULTIPLE-CHOICE RULES:
@@ -149,7 +159,7 @@ export default async function handler(request, response) {
     title = "",
     subject = "",
     instructions = "Select the best answer for each question.",
-    questionCount = 20
+    questionCount = 50
   } = request.body || {};
 
   const trimmedSourceText = String(sourceText).trim();
@@ -165,12 +175,15 @@ export default async function handler(request, response) {
 
   const safeSourceText = trimmedSourceText.slice(0, MAX_SOURCE_LENGTH);
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const parsedQuestionCount = questionCount === "comprehensive"
+    ? "comprehensive"
+    : Math.max(1, Math.min(150, Number(questionCount) || 50));
   const prompt = buildPrompt({
     sourceText: safeSourceText,
     title: String(title).trim(),
     subject: String(subject).trim(),
     instructions: String(instructions).trim(),
-    questionCount: Number(questionCount) || 20,
+    questionCount: parsedQuestionCount,
     fileName: file?.name ? String(file.name).trim() : ""
   });
   const parts = [{ text: prompt }];

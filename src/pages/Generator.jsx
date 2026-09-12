@@ -17,6 +17,13 @@ const emptyQuestion = {
 
 const TEXT_FILE_EXTENSIONS = [".txt", ".md", ".csv", ".json"];
 const MAX_UPLOAD_SIZE = 12 * 1024 * 1024;
+const QUESTION_COUNT_OPTIONS = [
+  { value: "20", label: "20" },
+  { value: "50", label: "50" },
+  { value: "75", label: "75" },
+  { value: "100", label: "100" },
+  { value: "comprehensive", label: "Comprehensive" }
+];
 
 function slugify(value) {
   return value
@@ -111,6 +118,7 @@ export default function Generator() {
   const [questionDraft, setQuestionDraft] = useState(savedDraft?.questionDraft || emptyQuestion);
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
+  const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "50");
   const [studyFile, setStudyFile] = useState(null);
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
   const [errors, setErrors] = useState([]);
@@ -141,10 +149,11 @@ export default function Generator() {
       questionDraft,
       questions,
       sourceText,
+      targetQuestionCount,
       jsonText
     });
     setDraftMessage("Draft saved on this device.");
-  }, [details, questionDraft, questions, sourceText, jsonText]);
+  }, [details, questionDraft, questions, sourceText, targetQuestionCount, jsonText]);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -351,7 +360,7 @@ export default function Generator() {
           title: details.title,
           subject: details.subject,
           instructions: details.instructions,
-          questionCount: 20
+          questionCount: targetQuestionCount
         })
       });
       const data = await response.json();
@@ -383,6 +392,7 @@ export default function Generator() {
     setQuestionDraft(emptyQuestion);
     setQuestions([]);
     setSourceText("");
+    setTargetQuestionCount("50");
     setStudyFile(null);
     setJsonText("");
     setErrors([]);
@@ -432,6 +442,22 @@ export default function Generator() {
                 <input value={details.subject} onChange={(event) => updateDetails("subject", event.target.value)} placeholder="Example: Biology" />
               </label>
             </div>
+
+            <fieldset className="generator-option-group">
+              <legend>Number of Questions</legend>
+              <div className="segmented">
+                {QUESTION_COUNT_OPTIONS.map((option) => (
+                  <button
+                    className={targetQuestionCount === option.value ? "active" : ""}
+                    type="button"
+                    key={option.value}
+                    onClick={() => setTargetQuestionCount(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <label className="upload-zone ai-upload-zone">
               <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />

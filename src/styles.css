@@ -902,6 +902,10 @@ legend {
   border-radius: 8px;
 }
 
+.generator-option-group {
+  margin: 0;
+}
+
 .advanced-panel {
   display: grid;
   gap: 16px;
