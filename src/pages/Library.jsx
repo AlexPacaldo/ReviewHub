@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Cloud, Download, HardDrive, RefreshCw, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Cloud, Download, HardDrive, Pencil, RefreshCw, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
@@ -240,6 +240,95 @@ export default function Library() {
       ...current,
       [key]: { type: "success", message: "Saved offline on this device." }
     }));
+  }
+
+  function getRenamedReviewer(reviewer) {
+    const nextTitle = window.prompt("Reviewer title", reviewer.title || "");
+    if (nextTitle === null) return null;
+
+    const trimmedTitle = nextTitle.trim();
+    if (!trimmedTitle) {
+      setCloudMessage({ type: "error", message: "Reviewer title cannot be empty." });
+      return null;
+    }
+
+    const nextSubject = window.prompt("Subject", reviewer.subject || "");
+    if (nextSubject === null) return null;
+
+    const trimmedSubject = nextSubject.trim();
+    if (!trimmedSubject) {
+      setCloudMessage({ type: "error", message: "Subject cannot be empty." });
+      return null;
+    }
+
+    if (trimmedTitle === reviewer.title && trimmedSubject === reviewer.subject) {
+      return null;
+    }
+
+    return {
+      ...reviewer,
+      title: trimmedTitle,
+      subject: trimmedSubject
+    };
+  }
+
+  async function renameReviewerEverywhere(reviewer) {
+    if (!reviewer?.reviewerId) {
+      setCloudMessage({ type: "error", message: "This reviewer is missing a reviewer ID." });
+      return;
+    }
+
+    const renamedReviewer = getRenamedReviewer(reviewer);
+    if (!renamedReviewer) return;
+
+    const hasOfflineCopy = isReviewerSavedOffline(reviewer.reviewerId);
+    const hasCloudCopy = cloudReviewerIds.has(reviewer.reviewerId);
+
+    if (hasCloudCopy) {
+      if (!user) {
+        setCloudMessage({ type: "error", message: "Sign in to rename the cloud copy." });
+        return;
+      }
+
+      const { error } = await upsertCloudReviewer(user.id, renamedReviewer);
+
+      if (error) {
+        setCloudMessage({ type: "error", message: error.message || "Could not rename cloud reviewer." });
+        return;
+      }
+
+      setCloudReviewers((current) => current.map((item) => {
+        const itemReviewer = getCloudReviewerData(item);
+        const itemReviewerId = itemReviewer?.reviewerId || item?.reviewer_id;
+
+        if (itemReviewerId !== renamedReviewer.reviewerId) return item;
+
+        return {
+          ...item,
+          title: renamedReviewer.title,
+          subject: renamedReviewer.subject,
+          data: renamedReviewer
+        };
+      }));
+      saveCloudReviewerCache([
+        renamedReviewer,
+        ...getCloudReviewerCache().filter((item) => item.reviewerId !== renamedReviewer.reviewerId)
+      ]);
+    }
+
+    if (hasOfflineCopy) {
+      saveLocalReviewer(renamedReviewer);
+      refreshLocalData();
+    }
+
+    setCloudMessage({
+      type: "success",
+      message: hasCloudCopy && hasOfflineCopy
+        ? "Reviewer renamed in cloud and offline."
+        : hasCloudCopy
+          ? "Cloud reviewer renamed."
+          : "Offline reviewer renamed."
+    });
   }
 
   function restoreBackupFile(event) {
@@ -549,6 +638,10 @@ export default function Library() {
                       <Download size={17} aria-hidden="true" />
                       {savedOffline ? "Saved Offline" : "Save Offline"}
                     </button>
+                    <button className="button subtle" type="button" onClick={() => renameReviewerEverywhere(reviewer)}>
+                      <Pencil size={17} aria-hidden="true" />
+                      Rename
+                    </button>
                     <button
                       className="button subtle danger-text"
                       type="button"
@@ -648,12 +741,16 @@ export default function Library() {
                         Sign In to Sync
                       </Link>
                     )}
+                    <button className="button subtle" type="button" onClick={() => renameReviewerEverywhere(reviewer)}>
+                      <Pencil size={17} aria-hidden="true" />
+                      Rename
+                    </button>
                     <button
                       className="button subtle danger-text"
                       type="button"
                       onClick={() => setConfirmAction({ type: "remove-reviewer", reviewerId: reviewer.reviewerId })}
                     >
-                      Remove
+                      Delete Offline
                     </button>
                   </div>
                 </article>
