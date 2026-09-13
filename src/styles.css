@@ -1473,6 +1473,38 @@ legend {
   gap: 10px;
 }
 
+.library-inline-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.library-inline-state svg {
+  color: var(--accent);
+}
+
+.sync-all-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.sync-all-panel h3,
+.sync-all-panel p {
+  margin: 0;
+}
+
+.sync-all-panel h3 {
+  font-size: 1rem;
+}
+
 .library-row,
 .local-data-row {
   padding: 16px;
@@ -1651,6 +1683,7 @@ legend {
   .library-panel-head,
   .library-row,
   .local-data-row,
+  .sync-all-panel,
   .account-card,
   .account-status {
     align-items: stretch;

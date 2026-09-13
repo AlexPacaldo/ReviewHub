@@ -61,7 +61,8 @@ export default function Library() {
   const [syncStatus, setSyncStatus] = useState({});
   const [cloudReviewers, setCloudReviewers] = useState([]);
   const [cloudLoading, setCloudLoading] = useState(false);
-  const [cloudMessage, setCloudMessage] = useState("");
+  const [cloudMessage, setCloudMessage] = useState(null);
+  const [syncAllLoading, setSyncAllLoading] = useState(false);
   const [offlineSaveStatus, setOfflineSaveStatus] = useState({});
   const [storageInfo, setStorageInfo] = useState({
     supported: false,
@@ -102,6 +103,18 @@ export default function Library() {
   useEffect(() => {
     loadCloudReviewers();
   }, [configured, user?.id]);
+
+  const cloudReviewerIds = useMemo(() => {
+    return new Set(cloudReviewers.map((item) => {
+      const reviewer = getCloudReviewerData(item);
+      return reviewer?.reviewerId || item?.reviewer_id;
+    }).filter(Boolean));
+  }, [cloudReviewers]);
+
+  const unsyncedLocalReviewers = useMemo(() => {
+    if (!user) return [];
+    return localReviewers.filter((reviewer) => !cloudReviewerIds.has(reviewer.reviewerId));
+  }, [cloudReviewerIds, localReviewers, user]);
 
   const stats = useMemo(() => {
     const progressSessions = Object.keys(progress).length;
@@ -179,17 +192,17 @@ export default function Library() {
   async function loadCloudReviewers() {
     if (!configured || !user) {
       setCloudReviewers([]);
-      setCloudMessage("");
+      setCloudMessage(null);
       return;
     }
 
     setCloudLoading(true);
-    setCloudMessage("");
+    setCloudMessage(null);
     const { data, error } = await listMyCloudReviewers(user.id);
     setCloudLoading(false);
 
     if (error) {
-      setCloudMessage(error.message || "Could not load cloud reviewers.");
+      setCloudMessage({ type: "error", message: error.message || "Could not load cloud reviewers." });
       return;
     }
 
@@ -285,6 +298,56 @@ export default function Library() {
     }
   }
 
+  async function syncAllLocalReviewersToCloud() {
+    if (!configured) {
+      setCloudMessage({ type: "error", message: "Add Supabase env vars first." });
+      return;
+    }
+
+    if (!user) {
+      setCloudMessage({ type: "error", message: "Sign in to sync offline reviewers." });
+      return;
+    }
+
+    if (!unsyncedLocalReviewers.length) {
+      setCloudMessage({ type: "success", message: "All offline reviewers are already synced." });
+      return;
+    }
+
+    setSyncAllLoading(true);
+    setCloudMessage({ type: "pending", message: `Syncing ${unsyncedLocalReviewers.length} offline reviewer${unsyncedLocalReviewers.length === 1 ? "" : "s"}...` });
+    setSyncStatus((current) => {
+      const nextStatus = { ...current };
+      unsyncedLocalReviewers.forEach((reviewer) => {
+        nextStatus[reviewer.reviewerId] = { type: "pending", message: "Syncing..." };
+      });
+      return nextStatus;
+    });
+
+    const results = [];
+
+    for (const reviewer of unsyncedLocalReviewers) {
+      const { error } = await upsertCloudReviewer(user.id, reviewer);
+      results.push({ reviewer, error });
+
+      setSyncStatus((current) => ({
+        ...current,
+        [reviewer.reviewerId]: error
+          ? { type: "error", message: error.message || "Could not sync reviewer." }
+          : { type: "success", message: "Synced to cloud." }
+      }));
+    }
+
+    const failed = results.filter((result) => result.error);
+    const succeeded = results.length - failed.length;
+
+    setSyncAllLoading(false);
+    await loadCloudReviewers();
+    setCloudMessage(failed.length
+      ? { type: "error", message: `${succeeded} synced, ${failed.length} failed. Check the offline reviewer messages below.` }
+      : { type: "success", message: `${succeeded} offline reviewer${succeeded === 1 ? "" : "s"} synced to cloud.` });
+  }
+
   async function deleteReviewerFromCloud(item) {
     if (!user) return;
 
@@ -292,14 +355,14 @@ export default function Library() {
     const reviewerId = reviewer?.reviewerId || item?.reviewer_id;
 
     if (!reviewerId) {
-      setCloudMessage("Could not delete this cloud reviewer because it is missing a reviewer ID.");
+      setCloudMessage({ type: "error", message: "Could not delete this cloud reviewer because it is missing a reviewer ID." });
       return;
     }
 
     const { error } = await deleteCloudReviewer(user.id, reviewerId);
 
     if (error) {
-      setCloudMessage(error.message || "Could not delete cloud reviewer.");
+      setCloudMessage({ type: "error", message: error.message || "Could not delete cloud reviewer." });
       return;
     }
 
@@ -311,7 +374,7 @@ export default function Library() {
 
     setCloudReviewers(nextCloudReviewers);
     saveCloudReviewerCache(nextCachedReviewers);
-    setCloudMessage("Cloud reviewer deleted.");
+    setCloudMessage({ type: "success", message: "Cloud reviewer deleted." });
   }
 
   async function runConfirmedAction() {
@@ -452,7 +515,10 @@ export default function Library() {
             }
           />
         ) : cloudLoading ? (
-          <p className="muted">Loading cloud reviewers...</p>
+          <div className="library-inline-state">
+            <RefreshCw size={18} aria-hidden="true" />
+            <span>Loading cloud reviewers...</span>
+          </div>
         ) : cloudReviewers.length ? (
           <div className="library-list">
             {cloudReviewers.map((item) => {
@@ -502,7 +568,7 @@ export default function Library() {
             message="Sync a saved offline reviewer to your account and it will appear here."
           />
         )}
-        {cloudMessage ? <p className="backup-message">{cloudMessage}</p> : null}
+        {cloudMessage ? <p className={`sync-message ${cloudMessage.type}`}>{cloudMessage.message}</p> : null}
       </section>
 
       <section className="library-panel">
@@ -523,50 +589,76 @@ export default function Library() {
           ) : null}
         </div>
 
+        {user && localReviewers.length ? (
+          <div className="sync-all-panel">
+            <div>
+              <h3>{unsyncedLocalReviewers.length ? "Offline reviewers ready to sync" : "Offline reviewers are synced"}</h3>
+              <p className="muted">
+                {unsyncedLocalReviewers.length
+                  ? `${unsyncedLocalReviewers.length} offline reviewer${unsyncedLocalReviewers.length === 1 ? "" : "s"} can be uploaded to your cloud account.`
+                  : "Every offline reviewer on this device is already in your cloud account."}
+              </p>
+            </div>
+            <button
+              className="button subtle"
+              type="button"
+              onClick={syncAllLocalReviewersToCloud}
+              disabled={!unsyncedLocalReviewers.length || syncAllLoading}
+            >
+              <Cloud size={17} aria-hidden="true" />
+              {syncAllLoading ? "Syncing..." : "Sync All to Cloud"}
+            </button>
+          </div>
+        ) : null}
+
         {localReviewers.length ? (
           <div className="library-list">
-            {localReviewers.map((reviewer) => (
-              <article className="library-row" key={reviewer.reviewerId}>
-                <div>
-                  <h3>{reviewer.title}</h3>
-                  <p className="muted">{reviewer.subject} - {reviewer.questions?.length || reviewer.questionCount} questions</p>
-                  <ReviewerStatusBadge status={syncStatus[reviewer.reviewerId]?.type === "success" ? "both" : "local"} />
-                  {syncStatus[reviewer.reviewerId] ? (
-                    <p className={`sync-message ${syncStatus[reviewer.reviewerId].type}`}>
-                      {syncStatus[reviewer.reviewerId].message}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="button-row">
-                  <Link className="button primary" to={`/reviewer/${reviewer.reviewerId}`}>
-                    Open
-                  </Link>
-                  {syncStatus[reviewer.reviewerId]?.type === "success" ? null : user ? (
-                    <button
-                      className="button subtle"
-                      type="button"
-                      onClick={() => syncReviewerToCloud(reviewer)}
-                      disabled={syncStatus[reviewer.reviewerId]?.type === "pending"}
-                    >
-                      <Cloud size={17} aria-hidden="true" />
-                      Sync to Cloud
-                    </button>
-                  ) : (
-                    <Link className="button subtle" to="/account">
-                      <Cloud size={17} aria-hidden="true" />
-                      Sign In to Sync
+            {localReviewers.map((reviewer) => {
+              const syncedToCloud = cloudReviewerIds.has(reviewer.reviewerId) || syncStatus[reviewer.reviewerId]?.type === "success";
+
+              return (
+                <article className="library-row" key={reviewer.reviewerId}>
+                  <div>
+                    <h3>{reviewer.title}</h3>
+                    <p className="muted">{reviewer.subject} - {reviewer.questions?.length || reviewer.questionCount} questions</p>
+                    <ReviewerStatusBadge status={syncedToCloud ? "both" : "local"} />
+                    {syncStatus[reviewer.reviewerId] ? (
+                      <p className={`sync-message ${syncStatus[reviewer.reviewerId].type}`}>
+                        {syncStatus[reviewer.reviewerId].message}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="button-row">
+                    <Link className="button primary" to={`/reviewer/${reviewer.reviewerId}`}>
+                      Open
                     </Link>
-                  )}
-                  <button
-                    className="button subtle danger-text"
-                    type="button"
-                    onClick={() => setConfirmAction({ type: "remove-reviewer", reviewerId: reviewer.reviewerId })}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </article>
-            ))}
+                    {syncedToCloud ? null : user ? (
+                      <button
+                        className="button subtle"
+                        type="button"
+                        onClick={() => syncReviewerToCloud(reviewer)}
+                        disabled={syncStatus[reviewer.reviewerId]?.type === "pending"}
+                      >
+                        <Cloud size={17} aria-hidden="true" />
+                        Sync to Cloud
+                      </button>
+                    ) : (
+                      <Link className="button subtle" to="/account">
+                        <Cloud size={17} aria-hidden="true" />
+                        Sign In to Sync
+                      </Link>
+                    )}
+                    <button
+                      className="button subtle danger-text"
+                      type="button"
+                      onClick={() => setConfirmAction({ type: "remove-reviewer", reviewerId: reviewer.reviewerId })}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
           <EmptyState

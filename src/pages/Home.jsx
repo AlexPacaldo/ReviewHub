@@ -6,12 +6,13 @@ import EmptyState from "../components/EmptyState.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { getAllReviewers } from "../data/reviewerRegistry.js";
 import { listMyCloudReviewers } from "../services/cloudReviewers.js";
-import { clearCloudReviewerCache, deleteLocalReviewer, getAllProgress, getAttemptHistory, saveCloudReviewerCache } from "../utils/storageUtils.js";
+import { clearCloudReviewerCache, deleteLocalReviewer, getAllProgress, getAttemptHistory, REVIEWER_DATA_CHANGED_EVENT, saveCloudReviewerCache } from "../utils/storageUtils.js";
 
 export default function Home() {
   const { configured, loading, user } = useAuth();
   const [search, setSearch] = useState("");
   const [reviewerList, setReviewerList] = useState(getAllReviewers);
+  const [cloudLoadMessage, setCloudLoadMessage] = useState("");
   const progress = getAllProgress();
   const recentAttempts = getAttemptHistory().slice(0, 5);
 
@@ -24,13 +25,21 @@ export default function Home() {
       if (!configured || !user) {
         clearCloudReviewerCache();
         setReviewerList(getAllReviewers());
+        setCloudLoadMessage("");
         return;
       }
 
       const { data, error } = await listMyCloudReviewers(user.id);
 
-      if (!isMounted || error) return;
+      if (!isMounted) return;
 
+      if (error) {
+        setCloudLoadMessage(error.message || "Could not refresh cloud reviewers.");
+        setReviewerList(getAllReviewers());
+        return;
+      }
+
+      setCloudLoadMessage("");
       saveCloudReviewerCache((data || []).map((item) => item.data || item));
       setReviewerList(getAllReviewers());
     }
@@ -41,6 +50,17 @@ export default function Home() {
       isMounted = false;
     };
   }, [configured, loading, user?.id]);
+
+  useEffect(() => {
+    const refreshReviewers = () => setReviewerList(getAllReviewers());
+
+    window.addEventListener(REVIEWER_DATA_CHANGED_EVENT, refreshReviewers);
+    window.addEventListener("storage", refreshReviewers);
+    return () => {
+      window.removeEventListener(REVIEWER_DATA_CHANGED_EVENT, refreshReviewers);
+      window.removeEventListener("storage", refreshReviewers);
+    };
+  }, []);
 
   const filteredReviewers = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -100,6 +120,7 @@ export default function Home() {
       ) : (
         <EmptyState title="No reviewers found" message="Try another search term." />
       )}
+      {cloudLoadMessage ? <p className="sync-message error">{cloudLoadMessage}</p> : null}
 
       <section className="recent-section">
         <div className="section-heading compact">

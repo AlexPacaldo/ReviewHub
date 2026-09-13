@@ -8,6 +8,8 @@ const KEYS = {
   generatorDraft: "reviewer_generator_draft"
 };
 
+export const REVIEWER_DATA_CHANGED_EVENT = "reviewer-data-changed";
+
 function readJson(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -19,6 +21,12 @@ function readJson(key, fallback) {
 
 function writeJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+function notifyReviewerDataChanged() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(REVIEWER_DATA_CHANGED_EVENT));
+  }
 }
 
 function isObject(value) {
@@ -94,6 +102,7 @@ export function saveLocalReviewer(reviewer) {
     ...existing
   ];
   writeJson(KEYS.localReviewers, nextReviewers);
+  notifyReviewerDataChanged();
   return nextReviewers;
 }
 
@@ -101,11 +110,13 @@ export function deleteLocalReviewer(reviewerId) {
   const nextReviewers = getLocalReviewers().filter((reviewer) => reviewer.reviewerId !== reviewerId);
   writeJson(KEYS.localReviewers, nextReviewers);
   clearQuizProgress(reviewerId);
+  notifyReviewerDataChanged();
   return nextReviewers;
 }
 
 export function clearLocalReviewers() {
   writeJson(KEYS.localReviewers, []);
+  notifyReviewerDataChanged();
 }
 
 export function getCloudReviewerCache() {
@@ -115,11 +126,13 @@ export function getCloudReviewerCache() {
 export function saveCloudReviewerCache(reviewers) {
   const nextReviewers = Array.isArray(reviewers) ? reviewers : [];
   writeJson(KEYS.cloudReviewerCache, nextReviewers);
+  notifyReviewerDataChanged();
   return nextReviewers;
 }
 
 export function clearCloudReviewerCache() {
   localStorage.removeItem(KEYS.cloudReviewerCache);
+  notifyReviewerDataChanged();
 }
 
 export function getGeneratorDraft() {
@@ -158,6 +171,7 @@ export function restoreLocalDataSnapshot(snapshot) {
     saveThemePreference(snapshot.theme);
   }
 
+  notifyReviewerDataChanged();
   return getLocalDataSnapshot();
 }
 
