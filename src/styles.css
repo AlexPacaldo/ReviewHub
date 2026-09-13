@@ -1532,6 +1532,46 @@ legend {
   gap: 10px;
 }
 
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.friend-search-form,
+.share-form {
+  display: grid;
+  gap: 12px;
+}
+
+.friend-search-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.share-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: end;
+}
+
+.share-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 900;
+}
+
+.friend-search-form input,
+.share-form input,
+.share-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
 .backup-message {
   color: var(--success);
   font-size: 0.9rem;
@@ -1636,7 +1676,9 @@ legend {
   .library-status-grid,
   .review-stats,
   .answer-comparison,
-  .generator-layout {
+  .generator-layout,
+  .friends-grid,
+  .share-form {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1645,7 +1687,8 @@ legend {
   }
 
   .generator-form-grid,
-  .choice-entry-grid {
+  .choice-entry-grid,
+  .friend-search-form {
     grid-template-columns: 1fr;
   }
 
@@ -1669,7 +1712,9 @@ legend {
   .library-status-grid,
   .review-stats,
   .answer-comparison,
-  .generator-layout {
+  .generator-layout,
+  .friends-grid,
+  .share-form {
     grid-template-columns: 1fr;
   }
 

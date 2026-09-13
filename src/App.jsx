@@ -10,6 +10,7 @@ import History from "./pages/History.jsx";
 import Library from "./pages/Library.jsx";
 import Generator from "./pages/Generator.jsx";
 import Account from "./pages/Account.jsx";
+import Friends from "./pages/Friends.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js";
 
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/review/:reviewerId" element={<ReviewAnswers />} />
           <Route path="/history" element={<History />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/friends" element={<Friends />} />
           <Route path="/generator" element={<Generator />} />
           <Route path="/account" element={<Account />} />
           <Route path="*" element={<Navigate to="/" replace />} />

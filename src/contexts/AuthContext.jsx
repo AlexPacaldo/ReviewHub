@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase } from "../lib/supabaseClient.js";
+import { ensureMyProfile } from "../services/social.js";
 
 const AuthContext = createContext(null);
 
@@ -31,6 +32,12 @@ export function AuthProvider({ children }) {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      ensureMyProfile(session.user);
+    }
+  }, [session?.user?.id]);
 
   const value = useMemo(() => ({
     configured: isSupabaseConfigured,
