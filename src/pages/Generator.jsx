@@ -128,6 +128,7 @@ export default function Generator() {
   const [errors, setErrors] = useState([]);
   const [jsonCheck, setJsonCheck] = useState(null);
   const [savedReviewer, setSavedReviewer] = useState(null);
+  const [generationStats, setGenerationStats] = useState(null);
   const [generationMessage, setGenerationMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingReviewer, setIsSavingReviewer] = useState(false);
@@ -389,6 +390,7 @@ export default function Generator() {
     setErrors([]);
     setJsonCheck(null);
     setSavedReviewer(null);
+    setGenerationStats(null);
     setGenerationMessage("Generating reviewer with Gemini...");
 
     try {
@@ -432,7 +434,14 @@ export default function Generator() {
       skipNextAutosave.current = true;
       clearGeneratorDraft();
       setSavedReviewer({ reviewerId: reviewer.reviewerId, saveMode });
-      setGenerationMessage(`Reviewer generated. ${getSaveMessage(saveMode)}`);
+      setGenerationStats({
+        requested: data.requestedQuestionCount || targetQuestionCount,
+        generated: data.generatedQuestionCount || reviewer.questions.length,
+        warning: data.warning || ""
+      });
+      setGenerationMessage(data.warning
+        ? `${data.warning} ${getSaveMessage(saveMode)}`
+        : `Reviewer generated with ${reviewer.questions.length} questions. ${getSaveMessage(saveMode)}`);
     } catch (error) {
       setGenerationMessage("");
       setErrors([error?.message || "Could not generate a reviewer."]);
@@ -459,6 +468,7 @@ export default function Generator() {
     setErrors([]);
     setJsonCheck(null);
     setSavedReviewer(null);
+    setGenerationStats(null);
     setDraftMessage("Draft cleared.");
   }
 
@@ -573,6 +583,11 @@ export default function Generator() {
                   <strong>{jsonCheck.title}</strong>
                   <span>{jsonCheck.subject}</span>
                   <span>{jsonCheck.questions} questions across {jsonCheck.coverage} coverage areas</span>
+                  {generationStats ? (
+                    <span>
+                      Requested {generationStats.requested}; generated {generationStats.generated}
+                    </span>
+                  ) : null}
                 </div>
               ) : null}
               <div className="button-row">
