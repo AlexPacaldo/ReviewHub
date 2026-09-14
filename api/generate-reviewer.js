@@ -1,7 +1,7 @@
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const MAX_SOURCE_LENGTH = 45000;
-const MAX_FILE_BASE64_LENGTH = 18000000;
+const MAX_FILE_BASE64_LENGTH = 4200000;
 const MAX_COMPLETION_ATTEMPTS = 3;
 
 const reviewerSchema = {
@@ -335,7 +335,7 @@ export default async function handler(request, response) {
   }
 
   if (hasFileData && String(file.data).length > MAX_FILE_BASE64_LENGTH) {
-    return sendJson(response, 413, { error: "That file is too large. Try a smaller PDF or paste the important text." });
+    return sendJson(response, 413, { error: "That file is too large to send to the AI after browser encoding. Compress or split the PDF, or paste the important notes." });
   }
 
   const safeSourceText = trimmedSourceText.slice(0, MAX_SOURCE_LENGTH);

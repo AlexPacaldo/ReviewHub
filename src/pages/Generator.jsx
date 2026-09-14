@@ -19,6 +19,8 @@ const emptyQuestion = {
 
 const TEXT_FILE_EXTENSIONS = [".txt", ".md", ".csv", ".json"];
 const MAX_UPLOAD_SIZE = 12 * 1024 * 1024;
+const MAX_AI_FILE_UPLOAD_SIZE = 3 * 1024 * 1024;
+const MAX_AI_SOURCE_TEXT_LENGTH = 45000;
 const QUESTION_COUNT_OPTIONS = [
   { value: "20", label: "20" },
   { value: "50", label: "50" },
@@ -105,6 +107,22 @@ function normalizeReviewerJson(reviewer) {
     instructions: reviewer?.instructions || "Select the best answer for each question.",
     questions: normalizedQuestions
   };
+}
+
+function getFriendlyGenerationError(error) {
+  const message = error?.message || "";
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes("expected pattern") ||
+    lowerMessage.includes("function_payload_too_large") ||
+    lowerMessage.includes("payload too large") ||
+    lowerMessage.includes("413")
+  ) {
+    return "That file is too large to send to the AI after browser encoding. Compress or split the PDF, or paste the important notes into Extra Notes.";
+  }
+
+  return message || "Could not generate a reviewer.";
 }
 
 export default function Generator() {
@@ -224,6 +242,12 @@ export default function Generator() {
           data: null
         });
         setGenerationMessage("Text file loaded.");
+        return;
+      }
+
+      if (file.size > MAX_AI_FILE_UPLOAD_SIZE) {
+        setStudyFile(null);
+        setErrors(["That PDF is too large for AI upload on Vercel. Compress or split it below 3 MB, or paste the important notes into Extra Notes."]);
         return;
       }
 
@@ -373,7 +397,7 @@ export default function Generator() {
   }
 
   async function generateReviewerWithAi() {
-    const trimmedSourceText = sourceText.trim();
+    const trimmedSourceText = sourceText.trim().slice(0, MAX_AI_SOURCE_TEXT_LENGTH);
     const hasUploadedFile = Boolean(studyFile?.data);
 
     if (!isOnline) {
@@ -444,7 +468,7 @@ export default function Generator() {
         : `Reviewer generated with ${reviewer.questions.length} questions. ${getSaveMessage(saveMode)}`);
     } catch (error) {
       setGenerationMessage("");
-      setErrors([error?.message || "Could not generate a reviewer."]);
+      setErrors([getFriendlyGenerationError(error)]);
     } finally {
       setIsGenerating(false);
     }
@@ -535,7 +559,7 @@ export default function Generator() {
               <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />
               <Upload size={30} aria-hidden="true" />
               <strong>{studyFile ? studyFile.name : "Upload study material"}</strong>
-              <span>{studyFile ? `${(studyFile.size / 1024 / 1024).toFixed(2)} MB ready` : "PDF, TXT, MD, CSV, or JSON. Text files will also fill the notes box below."}</span>
+              <span>{studyFile ? `${(studyFile.size / 1024 / 1024).toFixed(2)} MB ready` : "PDF under 3 MB, or TXT, MD, CSV, JSON. Text files will also fill the notes box below."}</span>
             </label>
 
             {studyFile ? (
