@@ -130,15 +130,28 @@ function getFriendlyGenerationError(error) {
 }
 
 async function extractPdfText(file) {
+  if (!Promise.withResolvers) {
+    Promise.withResolvers = function withResolvers() {
+      let resolve;
+      let reject;
+      const promise = new Promise((nextResolve, nextReject) => {
+        resolve = nextResolve;
+        reject = nextReject;
+      });
+
+      return { promise, resolve, reject };
+    };
+  }
+
   const [pdfjsLib, pdfWorker] = await Promise.all([
-    import("pdfjs-dist"),
-    import("pdfjs-dist/build/pdf.worker.mjs?url")
+    import("pdfjs-dist/legacy/build/pdf.mjs"),
+    import("pdfjs-dist/legacy/build/pdf.worker.mjs?url")
   ]);
 
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
   const data = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const pdf = await pdfjsLib.getDocument({ data, disableWorker: true }).promise;
   const pageTexts = [];
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
