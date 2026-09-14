@@ -143,10 +143,14 @@ async function extractPdfText(file) {
     };
   }
 
-  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const [pdfjsLib, pdfWorker] = await Promise.all([
+    import("pdfjs-dist/legacy/build/pdf.mjs"),
+    import("pdfjs-dist/legacy/build/pdf.worker.mjs?url")
+  ]);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
 
   const data = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data, disableWorker: true }).promise;
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
   const pageTexts = [];
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
