@@ -143,12 +143,7 @@ async function extractPdfText(file) {
     };
   }
 
-  const [pdfjsLib, pdfWorker] = await Promise.all([
-    import("pdfjs-dist/legacy/build/pdf.mjs"),
-    import("pdfjs-dist/legacy/build/pdf.worker.mjs?url")
-  ]);
-
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
   const data = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data, disableWorker: true }).promise;
