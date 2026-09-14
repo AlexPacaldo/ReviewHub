@@ -29,6 +29,10 @@ const QUESTION_COUNT_OPTIONS = [
   { value: "comprehensive", label: "Comprehensive" }
 ];
 
+function isPdfFile(file) {
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+}
+
 function slugify(value) {
   return value
     .toLowerCase()
@@ -123,6 +127,34 @@ function getFriendlyGenerationError(error) {
   }
 
   return message || "Could not generate a reviewer.";
+}
+
+async function extractPdfText(file) {
+  const [pdfjsLib, pdfWorker] = await Promise.all([
+    import("pdfjs-dist"),
+    import("pdfjs-dist/build/pdf.worker.mjs?url")
+  ]);
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker.default;
+
+  const data = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  const pageTexts = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const page = await pdf.getPage(pageNumber);
+    const textContent = await page.getTextContent();
+    const text = textContent.items
+      .map((item) => item.str || "")
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (text) pageTexts.push(`Page ${pageNumber}: ${text}`);
+    if (pageTexts.join("\n\n").length >= MAX_AI_SOURCE_TEXT_LENGTH) break;
+  }
+
+  return pageTexts.join("\n\n").slice(0, MAX_AI_SOURCE_TEXT_LENGTH);
 }
 
 export default function Generator() {
@@ -229,7 +261,7 @@ export default function Generator() {
     }
 
     setErrors([]);
-    setGenerationMessage("");
+    setGenerationMessage(isPdfFile(file) && file.size > MAX_AI_FILE_UPLOAD_SIZE ? "Large PDF detected. Extracting text in your browser..." : "");
 
     try {
       if (isTextFile(file)) {
@@ -246,8 +278,29 @@ export default function Generator() {
       }
 
       if (file.size > MAX_AI_FILE_UPLOAD_SIZE) {
-        setStudyFile(null);
-        setErrors(["That PDF is too large for AI upload on Vercel. Compress or split it below 3 MB, or paste the important notes into Extra Notes."]);
+        if (!isPdfFile(file)) {
+          setStudyFile(null);
+          setErrors(["That file is too large for AI upload on Vercel. Use a smaller file or paste the important notes into Extra Notes."]);
+          return;
+        }
+
+        const extractedText = await extractPdfText(file);
+
+        if (extractedText.length < 100) {
+          setStudyFile(null);
+          setErrors(["That PDF is too large to upload and the app could not extract enough readable text. It may be scanned images. Compress/split it, OCR it, or paste the important notes into Extra Notes."]);
+          setGenerationMessage("");
+          return;
+        }
+
+        setSourceText(extractedText);
+        setStudyFile({
+          name: `${file.name} (text extracted)`,
+          mimeType: "text/plain",
+          size: file.size,
+          data: null
+        });
+        setGenerationMessage(`Extracted text from ${file.name}. Gemini will use the text instead of uploading the large PDF.`);
         return;
       }
 
