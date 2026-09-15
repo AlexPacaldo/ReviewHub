@@ -1,7 +1,8 @@
-const CACHE_VERSION = "review-hub-v2";
+const CACHE_VERSION = "review-hub-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./offline.html",
   "./manifest.webmanifest",
   "./icon.png",
   "./icon.svg"
@@ -52,7 +53,7 @@ async function networkFirst(request) {
     }
     return response;
   } catch {
-    return (await caches.match(request)) || caches.match("./index.html");
+    return (await caches.match(request)) || caches.match("./index.html") || caches.match("./offline.html");
   }
 }
 

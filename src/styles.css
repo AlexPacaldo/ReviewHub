@@ -236,7 +236,23 @@ main {
   font-weight: 900;
 }
 
-.update-banner .button {
+.install-banner {
+  position: sticky;
+  top: 72px;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--text);
+  background: var(--success-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--success) 28%, var(--border));
+  font-weight: 900;
+}
+
+.update-banner .button,
+.install-banner .button {
   min-height: 34px;
 }
 
@@ -1786,6 +1802,27 @@ legend {
   font-size: 1rem;
 }
 
+.sync-queue-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 14px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 8px;
+}
+
+.sync-queue-panel h3,
+.sync-queue-panel p {
+  margin: 0;
+}
+
+.sync-queue-panel h3 {
+  font-size: 1rem;
+}
+
 .library-row,
 .local-data-row {
   padding: 16px;
@@ -1903,7 +1940,8 @@ legend {
     margin-left: auto;
   }
 
-  .update-banner {
+  .update-banner,
+  .install-banner {
     top: 0;
     flex-wrap: wrap;
   }
@@ -2014,6 +2052,7 @@ legend {
   .library-row,
   .local-data-row,
   .sync-all-panel,
+  .sync-queue-panel,
   .account-card,
   .account-status,
   .account-profile-card {

@@ -11,6 +11,7 @@ import {
   clearAttemptHistory,
   clearGeneratorDraft,
   clearLocalReviewers,
+  clearSyncQueue,
   deleteLocalReviewer,
   getCloudReviewerCache,
   getAllProgress,
@@ -18,6 +19,9 @@ import {
   getGeneratorDraft,
   getLocalDataSnapshot,
   getLocalReviewers,
+  getSyncQueue,
+  queueReviewerForCloudSync,
+  removeReviewerFromSyncQueue,
   restoreLocalDataSnapshot,
   saveCloudReviewerCache,
   saveLocalReviewer
@@ -64,6 +68,7 @@ export default function Library() {
   const [cloudMessage, setCloudMessage] = useState(null);
   const [syncAllLoading, setSyncAllLoading] = useState(false);
   const [offlineSaveStatus, setOfflineSaveStatus] = useState({});
+  const [syncQueue, setSyncQueue] = useState(getSyncQueue);
   const [storageInfo, setStorageInfo] = useState({
     supported: false,
     persisted: false,
@@ -101,6 +106,11 @@ export default function Library() {
   }, []);
 
   useEffect(() => {
+    if (!isOnline || !configured || !user || !syncQueue.length) return;
+    processSyncQueue();
+  }, [isOnline, configured, user?.id, syncQueue.length]);
+
+  useEffect(() => {
     loadCloudReviewers();
   }, [configured, user?.id]);
 
@@ -125,15 +135,17 @@ export default function Library() {
       cloudReviewers: cloudReviewers.length,
       history: history.length,
       progressSessions,
-      generatorDrafts: generatorDraft ? 1 : 0
+      generatorDrafts: generatorDraft ? 1 : 0,
+      queuedSyncs: syncQueue.length
     };
-  }, [cloudReviewers.length, generatorDraft, history.length, localReviewers.length, progress]);
+  }, [cloudReviewers.length, generatorDraft, history.length, localReviewers.length, progress, syncQueue.length]);
 
   function refreshLocalData() {
     setLocalReviewers(getLocalReviewers());
     setProgress(getAllProgress());
     setHistory(getAttemptHistory());
     setGeneratorDraft(getGeneratorDraft());
+    setSyncQueue(getSyncQueue());
   }
 
   async function refreshStorageInfo() {
@@ -368,6 +380,16 @@ export default function Library() {
       return;
     }
 
+    if (!isOnline) {
+      queueReviewerForCloudSync(reviewer);
+      setSyncQueue(getSyncQueue());
+      setSyncStatus((current) => ({
+        ...current,
+        [reviewer.reviewerId]: { type: "pending", message: "Queued. It will sync when this device is online." }
+      }));
+      return;
+    }
+
     setSyncStatus((current) => ({
       ...current,
       [reviewer.reviewerId]: { type: "pending", message: "Syncing..." }
@@ -387,6 +409,43 @@ export default function Library() {
     }
   }
 
+  async function processSyncQueue() {
+    const queuedItems = getSyncQueue();
+    if (!queuedItems.length || !user || !configured || !navigator.onLine) return;
+
+    setCloudMessage({ type: "pending", message: `Syncing ${queuedItems.length} queued reviewer${queuedItems.length === 1 ? "" : "s"}...` });
+
+    for (const item of queuedItems) {
+      if (item.type !== "upsert-reviewer" || !item.reviewer?.reviewerId) continue;
+
+      setSyncStatus((current) => ({
+        ...current,
+        [item.reviewer.reviewerId]: { type: "pending", message: "Syncing queued change..." }
+      }));
+
+      const { error } = await upsertCloudReviewer(user.id, item.reviewer);
+
+      if (error) {
+        setSyncStatus((current) => ({
+          ...current,
+          [item.reviewer.reviewerId]: { type: "error", message: error.message || "Queued sync failed." }
+        }));
+      } else {
+        removeReviewerFromSyncQueue(item.reviewer.reviewerId);
+        setSyncStatus((current) => ({
+          ...current,
+          [item.reviewer.reviewerId]: { type: "success", message: "Queued sync complete." }
+        }));
+      }
+    }
+
+    setSyncQueue(getSyncQueue());
+    await loadCloudReviewers();
+    setCloudMessage(getSyncQueue().length
+      ? { type: "error", message: `${getSyncQueue().length} queued reviewer${getSyncQueue().length === 1 ? "" : "s"} still need sync.` }
+      : { type: "success", message: "Queued offline changes synced." });
+  }
+
   async function syncAllLocalReviewersToCloud() {
     if (!configured) {
       setCloudMessage({ type: "error", message: "Add Supabase env vars first." });
@@ -400,6 +459,20 @@ export default function Library() {
 
     if (!unsyncedLocalReviewers.length) {
       setCloudMessage({ type: "success", message: "All offline reviewers are already synced." });
+      return;
+    }
+
+    if (!isOnline) {
+      unsyncedLocalReviewers.forEach((reviewer) => queueReviewerForCloudSync(reviewer));
+      setSyncQueue(getSyncQueue());
+      setCloudMessage({ type: "pending", message: `${unsyncedLocalReviewers.length} offline reviewer${unsyncedLocalReviewers.length === 1 ? "" : "s"} queued for sync.` });
+      setSyncStatus((current) => {
+        const nextStatus = { ...current };
+        unsyncedLocalReviewers.forEach((reviewer) => {
+          nextStatus[reviewer.reviewerId] = { type: "pending", message: "Queued for cloud sync." };
+        });
+        return nextStatus;
+      });
       return;
     }
 
@@ -491,6 +564,11 @@ export default function Library() {
       clearGeneratorDraft();
     }
 
+    if (confirmAction?.type === "clear-sync-queue") {
+      clearSyncQueue();
+      setCloudMessage({ type: "success", message: "Queued sync actions cleared." });
+    }
+
     setConfirmAction(null);
     refreshLocalData();
   }
@@ -548,6 +626,10 @@ export default function Library() {
         <article className="library-status-card">
           <span>Completed Attempts</span>
           <strong>{stats.history}</strong>
+        </article>
+        <article className="library-status-card">
+          <span>Queued Syncs</span>
+          <strong>{stats.queuedSyncs}</strong>
         </article>
       </section>
 
@@ -701,6 +783,24 @@ export default function Library() {
               <Cloud size={17} aria-hidden="true" />
               {syncAllLoading ? "Syncing..." : "Sync All to Cloud"}
             </button>
+          </div>
+        ) : null}
+
+        {syncQueue.length ? (
+          <div className="sync-queue-panel">
+            <div>
+              <h3>{syncQueue.length} sync action{syncQueue.length === 1 ? "" : "s"} waiting</h3>
+              <p className="muted">Queued reviewers will upload automatically when this device is online and signed in.</p>
+            </div>
+            <div className="button-row">
+              <button className="button subtle" type="button" onClick={processSyncQueue} disabled={!isOnline || !user}>
+                <Cloud size={17} aria-hidden="true" />
+                Sync Now
+              </button>
+              <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-sync-queue" })}>
+                Clear Queue
+              </button>
+            </div>
           </div>
         ) : null}
 

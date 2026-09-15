@@ -5,7 +5,8 @@ const KEYS = {
   lastAttempt: "reviewer_last_attempt",
   localReviewers: "reviewer_local_reviewers",
   cloudReviewerCache: "reviewer_cloud_reviewer_cache",
-  generatorDraft: "reviewer_generator_draft"
+  generatorDraft: "reviewer_generator_draft",
+  syncQueue: "reviewer_sync_queue"
 };
 
 export const REVIEWER_DATA_CHANGED_EVENT = "reviewer-data-changed";
@@ -155,6 +156,40 @@ export function clearAllDeviceData() {
   notifyReviewerDataChanged();
 }
 
+export function getSyncQueue() {
+  return readJson(KEYS.syncQueue, []);
+}
+
+export function queueReviewerForCloudSync(reviewer) {
+  if (!reviewer?.reviewerId) return getSyncQueue();
+
+  const existing = getSyncQueue().filter((item) => item.reviewer?.reviewerId !== reviewer.reviewerId);
+  const nextQueue = [
+    ...existing,
+    {
+      id: reviewer.reviewerId,
+      type: "upsert-reviewer",
+      reviewer,
+      queuedAt: new Date().toISOString()
+    }
+  ];
+  writeJson(KEYS.syncQueue, nextQueue);
+  notifyReviewerDataChanged();
+  return nextQueue;
+}
+
+export function removeReviewerFromSyncQueue(reviewerId) {
+  const nextQueue = getSyncQueue().filter((item) => item.reviewer?.reviewerId !== reviewerId);
+  writeJson(KEYS.syncQueue, nextQueue);
+  notifyReviewerDataChanged();
+  return nextQueue;
+}
+
+export function clearSyncQueue() {
+  localStorage.removeItem(KEYS.syncQueue);
+  notifyReviewerDataChanged();
+}
+
 export function restoreLocalDataSnapshot(snapshot) {
   if (!isObject(snapshot)) {
     throw new Error("Backup file must contain a local data object.");
@@ -165,6 +200,7 @@ export function restoreLocalDataSnapshot(snapshot) {
   writeJson(KEYS.lastAttempt, isObject(snapshot.lastAttempt) ? snapshot.lastAttempt : {});
   writeJson(KEYS.localReviewers, Array.isArray(snapshot.localReviewers) ? snapshot.localReviewers : []);
   writeJson(KEYS.cloudReviewerCache, Array.isArray(snapshot.cloudReviewerCache) ? snapshot.cloudReviewerCache : []);
+  writeJson(KEYS.syncQueue, Array.isArray(snapshot.syncQueue) ? snapshot.syncQueue : []);
 
   if (isObject(snapshot.generatorDraft)) {
     writeJson(KEYS.generatorDraft, snapshot.generatorDraft);
@@ -189,6 +225,7 @@ export function getLocalDataSnapshot() {
     localReviewers: getLocalReviewers(),
     cloudReviewerCache: getCloudReviewerCache(),
     generatorDraft: getGeneratorDraft(),
+    syncQueue: getSyncQueue(),
     theme: getThemePreference()
   };
 }

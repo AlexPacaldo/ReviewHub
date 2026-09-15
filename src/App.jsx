@@ -19,6 +19,8 @@ import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js
 export default function App() {
   const [theme, setTheme] = useState(getThemePreference);
   const [updateReady, setUpdateReady] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [installDismissed, setInstallDismissed] = useState(() => localStorage.getItem("reviewer_install_dismissed") === "true");
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -32,6 +34,27 @@ export default function App() {
     return () => window.removeEventListener("reviewhub:update-ready", showUpdateNotice);
   }, []);
 
+  useEffect(() => {
+    const captureInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+  }, []);
+
+  async function installApp() {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    setInstallPrompt(null);
+  }
+
+  function dismissInstallPrompt() {
+    localStorage.setItem("reviewer_install_dismissed", "true");
+    setInstallDismissed(true);
+  }
+
   return (
     <AuthProvider>
       <Navbar theme={theme} onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} />
@@ -41,6 +64,19 @@ export default function App() {
           <button className="button subtle" type="button" onClick={() => window.location.reload()}>
             Reload
           </button>
+        </div>
+      ) : null}
+      {installPrompt && !installDismissed ? (
+        <div className="install-banner" role="status">
+          <span>Install Hachi for faster offline access.</span>
+          <div className="button-row">
+            <button className="button primary" type="button" onClick={installApp}>
+              Install
+            </button>
+            <button className="button subtle" type="button" onClick={dismissInstallPrompt}>
+              Later
+            </button>
+          </div>
         </div>
       ) : null}
       <main>
