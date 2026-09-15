@@ -386,6 +386,12 @@ main {
   color: var(--accent);
 }
 
+.timer.danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
+}
+
 .reviewer-card h3 {
   margin: 22px 0 4px;
   font-size: 1.4rem;
@@ -665,6 +671,27 @@ legend {
 
 .mode-card.active strong {
   color: var(--accent);
+}
+
+.mode-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.time-limit-control {
+  display: grid;
+  gap: 8px;
+  max-width: 220px;
+  font-weight: 900;
+}
+
+.time-limit-control select {
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .account-status,
@@ -1092,6 +1119,39 @@ legend {
   font-weight: 850;
 }
 
+.flashcard-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.flashcard-answer {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  background: var(--success-soft);
+  border: 1px solid color-mix(in srgb, var(--success) 34%, var(--border));
+  border-radius: 8px;
+}
+
+.flashcard-answer span {
+  color: var(--success);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.flashcard-answer strong {
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+
+.flashcard-answer p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .answers-grid {
   display: grid;
   gap: 10px;
@@ -1329,6 +1389,74 @@ legend {
 .history-stats strong {
   color: var(--text);
   font-size: 1.2rem;
+}
+
+.results-detail-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.results-detail-panel h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.topic-progress-list {
+  display: grid;
+  gap: 10px;
+}
+
+.topic-progress-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(120px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.topic-progress-row div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.topic-progress-row span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.topic-progress-meter {
+  height: 9px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+.topic-progress-meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.weak-topic-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.weak-topic-list span {
+  padding: 7px 10px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--border));
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 900;
 }
 
 .button-grid {
@@ -1755,6 +1883,10 @@ legend {
   .generator-form-grid,
   .choice-entry-grid,
   .friend-search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .topic-progress-row {
     grid-template-columns: 1fr;
   }
 

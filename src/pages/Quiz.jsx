@@ -28,9 +28,14 @@ export default function Quiz() {
   const mode = session?.settings.mode;
   const selectedAnswer = currentQuestion ? session.answers[currentQuestion.id] : null;
   const currentQuestionIsTyped = currentQuestion ? isTypedQuestion(currentQuestion) : false;
+  const isImmediateMode = mode === "practice" || mode === "mistakes";
+  const isFlashcardMode = mode === "flashcard";
   const isPracticeSubmitted = currentQuestion ? Boolean(session.submittedQuestions[currentQuestion.id]) : false;
-  const isPracticeRevealed = mode === "practice" && (currentQuestionIsTyped ? isPracticeSubmitted : Boolean(selectedAnswer));
+  const isPracticeRevealed = isImmediateMode && (currentQuestionIsTyped ? isPracticeSubmitted : Boolean(selectedAnswer));
+  const isFlashcardRevealed = isFlashcardMode && isPracticeSubmitted;
   const isLastQuestion = session ? session.currentIndex === session.questions.length - 1 : false;
+  const timeLimit = mode === "timed" ? (session.settings.timeLimitMinutes || 15) * 60 * 1000 : null;
+  const remainingTime = timeLimit === null ? null : Math.max(0, timeLimit - elapsed);
 
   useEffect(() => {
     if (!session) return;
@@ -46,6 +51,11 @@ export default function Quiz() {
   }, [session?.startedAt, session?.elapsedBeforePause]);
 
   useEffect(() => {
+    if (!session || mode !== "timed" || remainingTime !== 0) return;
+    completeQuiz();
+  }, [session, mode, remainingTime]);
+
+  useEffect(() => {
     if (!session || !currentQuestion) return;
     const handler = (event) => {
       if (isTypingTarget(event.target)) return;
@@ -58,7 +68,11 @@ export default function Quiz() {
       }
 
       if (event.key === "Enter") {
-        if (mode === "practice") {
+        if (isFlashcardMode) {
+          if (!isFlashcardRevealed) revealFlashcard();
+          return;
+        }
+        if (isImmediateMode) {
           if (currentQuestionIsTyped && selectedAnswer && !isPracticeRevealed) {
             submitTypedPracticeAnswer();
             return;
@@ -73,8 +87,10 @@ export default function Quiz() {
 
       if (event.key === "ArrowLeft") goPrevious();
       if (event.key === "ArrowRight") {
-        if (mode === "practice") {
+        if (isImmediateMode) {
           if (isPracticeRevealed && !isLastQuestion) goNext();
+        } else if (isFlashcardMode) {
+          if (selectedAnswer && !isLastQuestion) goNext();
         } else {
           goNext();
         }
@@ -102,7 +118,7 @@ export default function Quiz() {
   }
 
   function chooseAnswer(answer) {
-    if (mode === "practice" && (isPracticeRevealed || isPracticeSubmitted)) return;
+    if (isImmediateMode && (isPracticeRevealed || isPracticeSubmitted)) return;
     if (currentQuestionIsTyped) {
       patchSession({ answers: { ...session.answers, [currentQuestion.id]: answer } });
       return;
@@ -124,6 +140,27 @@ export default function Quiz() {
     });
   }
 
+  function revealFlashcard() {
+    patchSession({
+      submittedQuestions: { ...session.submittedQuestions, [currentQuestion.id]: true }
+    });
+  }
+
+  function gradeFlashcard(answer) {
+    const nextSession = {
+      ...session,
+      answers: { ...session.answers, [currentQuestion.id]: answer },
+      submittedQuestions: { ...session.submittedQuestions, [currentQuestion.id]: true }
+    };
+
+    if (isLastQuestion) {
+      completeQuiz(nextSession);
+      return;
+    }
+
+    setSession({ ...nextSession, currentIndex: session.currentIndex + 1 });
+  }
+
   function goPrevious() {
     if (session.currentIndex > 0) patchSession({ currentIndex: session.currentIndex - 1 });
   }
@@ -132,8 +169,8 @@ export default function Quiz() {
     if (!isLastQuestion) patchSession({ currentIndex: session.currentIndex + 1 });
   }
 
-  function completeQuiz() {
-    const finalSession = { ...session, elapsedBeforePause: elapsed, completed: true };
+  function completeQuiz(sessionOverride = session) {
+    const finalSession = { ...sessionOverride, elapsedBeforePause: elapsed, completed: true };
     const attempt = createAttemptFromSession(finalSession);
     saveAttempt(attempt);
     clearQuizProgress(session.reviewerId);
@@ -155,6 +192,7 @@ export default function Quiz() {
           <h1>Question {session.currentIndex + 1} of {session.questions.length}</h1>
         </div>
         <div className="quiz-meta">
+          {mode === "timed" ? <span className={`timer ${remainingTime === 0 ? "danger" : ""}`}>{formatDuration(remainingTime)}</span> : null}
           {mode === "exam" ? <span className="timer">{formatDuration(elapsed)}</span> : null}
           <button className="button subtle" type="button" onClick={() => setNavigatorOpen(true)}>
             <Grid3X3 size={17} aria-hidden="true" />
@@ -168,13 +206,29 @@ export default function Quiz() {
 
       <ProgressBar value={session.currentIndex + 1} max={session.questions.length} label="Quiz progress" />
 
-      <QuizQuestion
-        question={currentQuestion}
-        selectedAnswer={selectedAnswer}
-        revealed={isPracticeRevealed}
-        locked={isPracticeRevealed}
-        onSelect={chooseAnswer}
-      />
+      {isFlashcardMode ? (
+        <section className="question-panel flashcard-panel">
+          <div className="question-prompt">
+            <p className="topic-label">{currentQuestion.topic}</p>
+            <h1>{currentQuestion.question}</h1>
+          </div>
+          {isFlashcardRevealed ? (
+            <div className="flashcard-answer">
+              <span>Answer</span>
+              <strong>{currentQuestion.answerText}</strong>
+              <p>{currentQuestion.explanation}</p>
+            </div>
+          ) : null}
+        </section>
+      ) : (
+        <QuizQuestion
+          question={currentQuestion}
+          selectedAnswer={selectedAnswer}
+          revealed={isPracticeRevealed}
+          locked={isPracticeRevealed}
+          onSelect={chooseAnswer}
+        />
+      )}
 
       {isPracticeRevealed ? (
         <section className={`feedback-panel ${result.isCorrect ? "success" : "danger"}`}>
@@ -193,7 +247,22 @@ export default function Quiz() {
 
         <span className="answered-count">{answeredCount} answered</span>
 
-        {mode === "practice" ? (
+        {isFlashcardMode ? (
+          isFlashcardRevealed ? (
+            <>
+              <button className="button subtle" type="button" onClick={() => gradeFlashcard("__incorrect")}>
+                Missed
+              </button>
+              <button className="button primary" type="button" onClick={() => gradeFlashcard("__correct")}>
+                Got It
+              </button>
+            </>
+          ) : (
+            <button className="button primary" type="button" onClick={revealFlashcard}>
+              Show Answer
+            </button>
+          )
+        ) : isImmediateMode ? (
           isPracticeRevealed ? (
             <button className="button primary" type="button" onClick={goNextOrFinish}>
               {isLastQuestion ? "Finish Quiz" : "Next Question"}

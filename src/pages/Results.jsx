@@ -33,11 +33,64 @@ export default function Results() {
     navigate(`/quiz/${reviewerId}`);
   }
 
+  function retryWeakTopics() {
+    if (!reviewer || !attempt.weakTopics?.length) return;
+    const weakQuestionIds = reviewer.questions
+      .filter((question) => attempt.weakTopics.includes(question.topic))
+      .map((question) => question.id);
+    const session = createQuizSession(
+      reviewer,
+      {
+        questionCount: weakQuestionIds.length,
+        questionOrder: "original",
+        choiceOrder: attempt.settings.choiceOrder || "original",
+        mode: "practice"
+      },
+      weakQuestionIds
+    );
+    saveQuizProgress(session);
+    navigate(`/quiz/${reviewerId}`);
+  }
+
   return (
     <div className="page narrow">
       <ResultsSummary attempt={attempt} />
+      {attempt.topicStats?.length ? (
+        <section className="results-detail-panel">
+          <h2>Progress by Topic</h2>
+          <div className="topic-progress-list">
+            {attempt.topicStats.map((topic) => (
+              <div className="topic-progress-row" key={topic.topic}>
+                <div>
+                  <strong>{topic.topic}</strong>
+                  <span>{topic.correct} / {topic.total} correct</span>
+                </div>
+                <div className="topic-progress-meter" aria-label={`${topic.topic} ${topic.percentage}%`}>
+                  <span style={{ width: `${topic.percentage}%` }} />
+                </div>
+                <strong>{topic.percentage}%</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {attempt.weakTopics?.length ? (
+        <section className="results-detail-panel">
+          <h2>Weak Topics</h2>
+          <div className="weak-topic-list">
+            {attempt.weakTopics.map((topic) => (
+              <span key={topic}>{topic}</span>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="button-grid">
         <Link className="button primary" to={`/review/${reviewerId}?attempt=${attempt.attemptId}`}>Review Answers</Link>
+        {attempt.weakTopics?.length ? (
+          <button className="button subtle" type="button" onClick={retryWeakTopics}>Review Weak Topics</button>
+        ) : null}
         {attempt.incorrectQuestionIds.length ? (
           <button className="button subtle" type="button" onClick={retryIncorrect}>Retry Incorrect Questions</button>
         ) : null}

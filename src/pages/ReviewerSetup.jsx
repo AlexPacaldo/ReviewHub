@@ -5,15 +5,17 @@ import { getReviewerById } from "../data/reviewerRegistry.js";
 import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { createQuizSession } from "../utils/quizUtils.js";
-import { clearQuizProgress, loadQuizProgress, saveQuizProgress } from "../utils/storageUtils.js";
+import { clearQuizProgress, getLatestAttempt, loadQuizProgress, saveQuizProgress } from "../utils/storageUtils.js";
 
 export default function ReviewerSetup() {
   const { reviewerId } = useParams();
   const navigate = useNavigate();
   const reviewer = getReviewerById(reviewerId);
   const savedProgress = reviewer ? loadQuizProgress(reviewer.reviewerId) : null;
+  const latestAttempt = reviewer ? getLatestAttempt(reviewer.reviewerId) : null;
   const [showStartOver, setShowStartOver] = useState(false);
   const isLocalReviewer = reviewer?.source === "local";
+  const mistakeIds = latestAttempt?.incorrectQuestionIds || [];
 
   const availableCounts = useMemo(() => {
     const total = reviewer?.questions?.length || 0;
@@ -24,15 +26,17 @@ export default function ReviewerSetup() {
     questionCount: availableCounts[0] || 0,
     questionOrder: "random",
     choiceOrder: "shuffle",
-    mode: "practice"
+    mode: "practice",
+    timeLimitMinutes: 15
   });
 
   if (!reviewer || !reviewer.validation.isValid) {
     return <EmptyState title="Unable to load this reviewer." message={reviewer?.validation.errors[0] || "The reviewer does not exist."} action={<Link className="button primary" to="/">Back to Reviewers</Link>} />;
   }
 
-  const startQuiz = (retryIds = null) => {
-    const session = createQuizSession(reviewer, settings, retryIds);
+  const startQuiz = (retryIds = null, overrides = {}) => {
+    const nextSettings = { ...settings, ...overrides };
+    const session = createQuizSession(reviewer, nextSettings, retryIds);
     saveQuizProgress(session);
     navigate(`/quiz/${reviewer.reviewerId}`);
   };
@@ -153,10 +157,55 @@ export default function ReviewerSetup() {
               <strong>Exam Mode</strong>
               <span>Lets you answer, go back, and change choices. Correct answers and explanations appear only after final submission.</span>
             </button>
+            <button
+              type="button"
+              className={`mode-card ${settings.mode === "timed" ? "active" : ""}`}
+              onClick={() => updateSetting("mode", "timed")}
+            >
+              <strong>Timed Mode</strong>
+              <span>Runs like exam mode with a countdown timer and submits automatically when time runs out.</span>
+            </button>
+            <button
+              type="button"
+              className={`mode-card ${settings.mode === "mistakes" ? "active" : ""}`}
+              onClick={() => updateSetting("mode", "mistakes")}
+              disabled={!mistakeIds.length}
+            >
+              <strong>Mistakes-Only Mode</strong>
+              <span>Reviews only the questions missed in your most recent completed attempt.</span>
+            </button>
+            <button
+              type="button"
+              className={`mode-card ${settings.mode === "flashcard" ? "active" : ""}`}
+              onClick={() => updateSetting("mode", "flashcard")}
+            >
+              <strong>Flashcard Mode</strong>
+              <span>Shows the prompt first, then reveals the answer so you can mark whether you remembered it.</span>
+            </button>
           </div>
         </fieldset>
 
-        <button className="button primary large" type="button" onClick={() => startQuiz()}>
+        {settings.mode === "timed" ? (
+          <label className="time-limit-control">
+            <span>Time Limit</span>
+            <select value={settings.timeLimitMinutes} onChange={(event) => updateSetting("timeLimitMinutes", Number(event.target.value))}>
+              <option value={5}>5 minutes</option>
+              <option value={10}>10 minutes</option>
+              <option value={15}>15 minutes</option>
+              <option value={30}>30 minutes</option>
+              <option value={60}>60 minutes</option>
+            </select>
+          </label>
+        ) : null}
+
+        <button
+          className="button primary large"
+          type="button"
+          onClick={() => settings.mode === "mistakes"
+            ? startQuiz(mistakeIds, { questionCount: mistakeIds.length, questionOrder: "original" })
+            : startQuiz()}
+          disabled={settings.mode === "mistakes" && !mistakeIds.length}
+        >
           <Play size={18} aria-hidden="true" />
           Start Quiz
         </button>

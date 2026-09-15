@@ -31,6 +31,9 @@ function normalizeAnswerText(value = "") {
 }
 
 export function isAnswerCorrect(question, selectedAnswer) {
+  if (selectedAnswer === "__correct") return true;
+  if (selectedAnswer === "__incorrect") return false;
+
   if (isTypedQuestion(question)) {
     return normalizeAnswerText(selectedAnswer) === normalizeAnswerText(question.answerText);
   }
@@ -100,7 +103,32 @@ export function getIncorrectQuestions(session) {
   return session.questions.filter((question) => !isAnswerCorrect(question, session.answers[question.id]));
 }
 
+export function getTopicStats(session) {
+  const stats = new Map();
+
+  session.questions.forEach((question) => {
+    const topic = question.topic || "General";
+    const current = stats.get(topic) || { topic, total: 0, correct: 0, incorrect: 0, percentage: 0 };
+    const correct = isAnswerCorrect(question, session.answers[question.id]);
+    current.total += 1;
+    current.correct += correct ? 1 : 0;
+    current.incorrect += correct ? 0 : 1;
+    current.percentage = calculatePercentage(current.correct, current.total);
+    stats.set(topic, current);
+  });
+
+  return [...stats.values()].sort((a, b) => a.percentage - b.percentage || b.total - a.total);
+}
+
 export function getQuestionResult(question, selectedAnswer) {
+  if (selectedAnswer === "__correct" || selectedAnswer === "__incorrect") {
+    return {
+      isCorrect: selectedAnswer === "__correct",
+      selectedText: selectedAnswer === "__correct" ? "Got it" : "Missed",
+      correctText: question.answerText
+    };
+  }
+
   if (isTypedQuestion(question)) {
     return {
       isCorrect: isAnswerCorrect(question, selectedAnswer),
@@ -137,6 +165,7 @@ export function createAttemptFromSession(session) {
   const score = calculateScore(session);
   const totalQuestions = session.questions.length;
   const incorrectQuestions = getIncorrectQuestions(session);
+  const topicStats = getTopicStats(session);
 
   return {
     attemptId: crypto.randomUUID(),
@@ -152,6 +181,8 @@ export function createAttemptFromSession(session) {
     timeTaken: (session.elapsedBeforePause || 0) + (Date.now() - session.startedAt),
     date: new Date().toISOString(),
     settings: session.settings,
+    topicStats,
+    weakTopics: topicStats.filter((topic) => topic.percentage < 70).map((topic) => topic.topic),
     questions: session.questions,
     answers: session.answers
   };
