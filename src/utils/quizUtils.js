@@ -8,7 +8,34 @@ export function shuffleItems(items) {
 }
 
 export function normalizeChoices(choices) {
-  return Object.entries(choices).map(([value, label]) => ({ value, label }));
+  return Object.entries(choices || {})
+    .filter(([, label]) => String(label || "").trim())
+    .map(([value, label]) => ({ value, label }));
+}
+
+export function getQuestionType(question) {
+  return question?.type || question?.questionType || "multiple_choice";
+}
+
+export function isTypedQuestion(question) {
+  return ["identification", "flashcard"].includes(getQuestionType(question));
+}
+
+function normalizeAnswerText(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function isAnswerCorrect(question, selectedAnswer) {
+  if (isTypedQuestion(question)) {
+    return normalizeAnswerText(selectedAnswer) === normalizeAnswerText(question.answerText);
+  }
+
+  return selectedAnswer === question.correctAnswer;
 }
 
 export function buildSessionQuestions(questions, settings, retryQuestionIds = null) {
@@ -21,6 +48,7 @@ export function buildSessionQuestions(questions, settings, retryQuestionIds = nu
 
   return pool.map((question) => ({
     id: question.id,
+    type: question.type || "multiple_choice",
     topic: question.topic,
     question: question.question,
     correctAnswer: question.correctAnswer,
@@ -60,7 +88,7 @@ export function createQuizSession(reviewer, settings, retryQuestionIds = null) {
 
 export function calculateScore(session) {
   return session.questions.reduce((score, question) => {
-    return score + (session.answers[question.id] === question.correctAnswer ? 1 : 0);
+    return score + (isAnswerCorrect(question, session.answers[question.id]) ? 1 : 0);
   }, 0);
 }
 
@@ -69,15 +97,23 @@ export function calculatePercentage(score, total) {
 }
 
 export function getIncorrectQuestions(session) {
-  return session.questions.filter((question) => session.answers[question.id] !== question.correctAnswer);
+  return session.questions.filter((question) => !isAnswerCorrect(question, session.answers[question.id]));
 }
 
 export function getQuestionResult(question, selectedAnswer) {
+  if (isTypedQuestion(question)) {
+    return {
+      isCorrect: isAnswerCorrect(question, selectedAnswer),
+      selectedText: selectedAnswer || "No answer",
+      correctText: question.answerText
+    };
+  }
+
   const selectedChoice = question.choices.find((choice) => choice.value === selectedAnswer);
   const correctChoice = question.choices.find((choice) => choice.value === question.correctAnswer);
 
   return {
-    isCorrect: selectedAnswer === question.correctAnswer,
+    isCorrect: isAnswerCorrect(question, selectedAnswer),
     selectedText: selectedChoice?.label || "No answer",
     correctText: correctChoice?.label || question.answerText
   };

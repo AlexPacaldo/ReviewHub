@@ -33,6 +33,12 @@ const DIFFICULTY_OPTIONS = [
   { value: "mixed", label: "Mixed" },
   { value: "hard", label: "Hard" }
 ];
+const QUESTION_TYPE_OPTIONS = [
+  { value: "multiple_choice", label: "Multiple Choice" },
+  { value: "identification", label: "Identification" },
+  { value: "true_false", label: "True / False" },
+  { value: "flashcard", label: "Flashcards" }
+];
 const MORE_QUESTION_COUNT_OPTIONS = [
   { value: "10", label: "+10" },
   { value: "20", label: "+20" },
@@ -56,6 +62,7 @@ function buildReviewer({ title, subject, instructions }, questions) {
   const safeSubject = subject.trim();
   const reviewerQuestions = questions.map((question, index) => ({
     id: index + 1,
+    type: "multiple_choice",
     topic: question.topic.trim(),
     question: question.question.trim(),
     choices: {
@@ -84,22 +91,40 @@ function buildReviewer({ title, subject, instructions }, questions) {
 
 function normalizeReviewerJson(reviewer, options = {}) {
   const questions = Array.isArray(reviewer?.questions) ? reviewer.questions : [];
+  const reviewerQuestionType = QUESTION_TYPE_OPTIONS.some((option) => option.value === reviewer?.questionType)
+    ? reviewer.questionType
+    : options.questionType || "multiple_choice";
   const normalizedQuestions = questions.map((question, index) => {
-    const correctAnswer = String(question.correctAnswer || "A").toUpperCase();
+    const type = QUESTION_TYPE_OPTIONS.some((option) => option.value === question.type)
+      ? question.type
+      : reviewerQuestionType;
+    const isTyped = type === "identification" || type === "flashcard";
+    const validAnswers = type === "true_false" ? ["A", "B"] : isTyped ? ["TEXT"] : ["A", "B", "C", "D"];
+    const rawCorrectAnswer = String(question.correctAnswer || (isTyped ? "TEXT" : "A")).toUpperCase();
+    const correctAnswer = validAnswers.includes(rawCorrectAnswer) ? rawCorrectAnswer : validAnswers[0];
     const choices = question.choices || {};
+    const normalizedChoices = type === "true_false"
+      ? {
+          A: choices.A || "True",
+          B: choices.B || "False",
+          C: "",
+          D: ""
+        }
+      : {
+          A: choices.A || "",
+          B: choices.B || "",
+          C: choices.C || "",
+          D: choices.D || ""
+        };
 
     return {
       id: question.id || index + 1,
+      type,
       topic: question.topic || "Generated Reviewer",
       question: question.question || "",
-      choices: {
-        A: choices.A || "",
-        B: choices.B || "",
-        C: choices.C || "",
-        D: choices.D || ""
-      },
+      choices: normalizedChoices,
       correctAnswer,
-      answerText: question.answerText || choices[correctAnswer] || "",
+      answerText: question.answerText || normalizedChoices[correctAnswer] || "",
       explanation: question.explanation || ""
     };
   });
@@ -118,8 +143,8 @@ function normalizeReviewerJson(reviewer, options = {}) {
     subject,
     coverage,
     questionCount: normalizedQuestions.length,
-    questionType: "multiple_choice",
-    choicesPerQuestion: 4,
+    questionType: reviewerQuestionType,
+    choicesPerQuestion: reviewerQuestionType === "multiple_choice" ? 4 : reviewerQuestionType === "true_false" ? 2 : 0,
     instructions: reviewer?.instructions || "Select the best answer for each question.",
     questions: normalizedQuestions
   };
@@ -197,6 +222,7 @@ export default function Generator() {
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
   const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "50");
   const [difficulty, setDifficulty] = useState(savedDraft?.difficulty || "mixed");
+  const [questionType, setQuestionType] = useState(savedDraft?.questionType || "multiple_choice");
   const [moreQuestionCount, setMoreQuestionCount] = useState(savedDraft?.moreQuestionCount || "20");
   const [saveOfflineCopy, setSaveOfflineCopy] = useState(savedDraft?.saveOfflineCopy || false);
   const [studyFile, setStudyFile] = useState(null);
@@ -236,12 +262,13 @@ export default function Generator() {
       sourceText,
       targetQuestionCount,
       difficulty,
+      questionType,
       moreQuestionCount,
       saveOfflineCopy,
       jsonText
     });
     setDraftMessage("Draft saved on this device.");
-  }, [details, questionDraft, questions, sourceText, targetQuestionCount, difficulty, moreQuestionCount, saveOfflineCopy, jsonText]);
+  }, [details, questionDraft, questions, sourceText, targetQuestionCount, difficulty, questionType, moreQuestionCount, saveOfflineCopy, jsonText]);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -262,7 +289,7 @@ export default function Generator() {
 
   function getCurrentReviewerFromJson({ preserveReviewerId = false } = {}) {
     if (!jsonText) return null;
-    return normalizeReviewerJson(JSON.parse(jsonText), { preserveReviewerId });
+    return normalizeReviewerJson(JSON.parse(jsonText), { preserveReviewerId, questionType });
   }
 
   function isTextFile(file) {
@@ -533,7 +560,8 @@ export default function Generator() {
           subject: details.subject,
           instructions: details.instructions,
           questionCount: targetQuestionCount,
-          difficulty
+          difficulty,
+          questionType
         })
       });
       setProgressStep("Reading Gemini response");
@@ -543,7 +571,7 @@ export default function Generator() {
         throw new Error(data?.error || "Gemini could not generate a reviewer.");
       }
 
-      const reviewer = normalizeReviewerJson(data.reviewer);
+      const reviewer = normalizeReviewerJson(data.reviewer, { questionType });
       const validation = validateReviewer(reviewer);
 
       if (!validation.isValid) {
@@ -627,6 +655,7 @@ export default function Generator() {
           subject: currentReviewer.subject || details.subject,
           instructions: currentReviewer.instructions || details.instructions,
           difficulty,
+          questionType: currentReviewer.questionType || questionType,
           additionalCount: moreQuestionCount,
           existingReviewer: currentReviewer
         })
@@ -638,7 +667,7 @@ export default function Generator() {
         throw new Error(data?.error || "Gemini could not make more questions.");
       }
 
-      const reviewer = normalizeReviewerJson(data.reviewer, { preserveReviewerId: true });
+      const reviewer = normalizeReviewerJson(data.reviewer, { preserveReviewerId: true, questionType: currentReviewer.questionType || questionType });
       const validation = validateReviewer(reviewer);
 
       if (!validation.isValid) {
@@ -681,6 +710,7 @@ export default function Generator() {
     setSourceText("");
     setTargetQuestionCount("50");
     setDifficulty("mixed");
+    setQuestionType("multiple_choice");
     setMoreQuestionCount("20");
     setSaveOfflineCopy(false);
     setStudyFile(null);
@@ -761,6 +791,22 @@ export default function Generator() {
                     type="button"
                     key={option.value}
                     onClick={() => setDifficulty(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset className="generator-option-group">
+              <legend>Question Type</legend>
+              <div className="segmented">
+                {QUESTION_TYPE_OPTIONS.map((option) => (
+                  <button
+                    className={questionType === option.value ? "active" : ""}
+                    type="button"
+                    key={option.value}
+                    onClick={() => setQuestionType(option.value)}
                   >
                     {option.label}
                   </button>

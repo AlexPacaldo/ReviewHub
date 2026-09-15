@@ -8,7 +8,7 @@ import QuestionNavigator from "../components/QuestionNavigator.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { getReviewerById } from "../data/reviewerRegistry.js";
 import { clearQuizProgress, loadQuizProgress, saveAttempt, saveQuizProgress } from "../utils/storageUtils.js";
-import { createAttemptFromSession, formatDuration, getQuestionResult } from "../utils/quizUtils.js";
+import { createAttemptFromSession, formatDuration, getQuestionResult, isTypedQuestion } from "../utils/quizUtils.js";
 
 function isTypingTarget(target) {
   return ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName) || target?.isContentEditable;
@@ -27,8 +27,9 @@ export default function Quiz() {
   const currentQuestion = session?.questions[session.currentIndex];
   const mode = session?.settings.mode;
   const selectedAnswer = currentQuestion ? session.answers[currentQuestion.id] : null;
+  const currentQuestionIsTyped = currentQuestion ? isTypedQuestion(currentQuestion) : false;
   const isPracticeSubmitted = currentQuestion ? Boolean(session.submittedQuestions[currentQuestion.id]) : false;
-  const isPracticeRevealed = mode === "practice" && Boolean(selectedAnswer);
+  const isPracticeRevealed = mode === "practice" && (currentQuestionIsTyped ? isPracticeSubmitted : Boolean(selectedAnswer));
   const isLastQuestion = session ? session.currentIndex === session.questions.length - 1 : false;
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function Quiz() {
     const handler = (event) => {
       if (isTypingTarget(event.target)) return;
 
-      if (["1", "2", "3", "4"].includes(event.key)) {
+      if (!currentQuestionIsTyped && ["1", "2", "3", "4"].includes(event.key)) {
         const choice = currentQuestion.choices[Number(event.key) - 1];
         if (choice && !(mode === "practice" && isPracticeRevealed)) {
           chooseAnswer(choice.value);
@@ -58,6 +59,10 @@ export default function Quiz() {
 
       if (event.key === "Enter") {
         if (mode === "practice") {
+          if (currentQuestionIsTyped && selectedAnswer && !isPracticeRevealed) {
+            submitTypedPracticeAnswer();
+            return;
+          }
           if (isPracticeRevealed) goNextOrFinish();
         } else if (isLastQuestion) {
           setConfirmSubmit(true);
@@ -80,7 +85,7 @@ export default function Quiz() {
     return () => window.removeEventListener("keydown", handler);
   });
 
-  const answeredCount = useMemo(() => (session ? Object.keys(session.answers).length : 0), [session]);
+  const answeredCount = useMemo(() => (session ? Object.values(session.answers).filter((answer) => String(answer || "").trim()).length : 0), [session]);
 
   if (!reviewer || !session) {
     return (
@@ -98,12 +103,23 @@ export default function Quiz() {
 
   function chooseAnswer(answer) {
     if (mode === "practice" && (isPracticeRevealed || isPracticeSubmitted)) return;
+    if (currentQuestionIsTyped) {
+      patchSession({ answers: { ...session.answers, [currentQuestion.id]: answer } });
+      return;
+    }
     if (mode === "exam") {
       patchSession({ answers: { ...session.answers, [currentQuestion.id]: answer } });
       return;
     }
     patchSession({
       answers: { ...session.answers, [currentQuestion.id]: answer },
+      submittedQuestions: { ...session.submittedQuestions, [currentQuestion.id]: true }
+    });
+  }
+
+  function submitTypedPracticeAnswer() {
+    if (!selectedAnswer?.trim()) return;
+    patchSession({
       submittedQuestions: { ...session.submittedQuestions, [currentQuestion.id]: true }
     });
   }
@@ -182,6 +198,10 @@ export default function Quiz() {
             <button className="button primary" type="button" onClick={goNextOrFinish}>
               {isLastQuestion ? "Finish Quiz" : "Next Question"}
               <ArrowRight size={17} aria-hidden="true" />
+            </button>
+          ) : currentQuestionIsTyped ? (
+            <button className="button primary" type="button" onClick={submitTypedPracticeAnswer} disabled={!selectedAnswer?.trim()}>
+              Check Answer
             </button>
           ) : (
             <span className="answered-count">Select an answer to check it</span>

@@ -8,6 +8,62 @@ const DIFFICULTY_INSTRUCTIONS = {
   mixed: "Use a balanced mix of recall, concept, scenario, and application questions.",
   hard: "Favor deeper application, scenario analysis, tricky-but-fair distinctions, and synthesis across related ideas."
 };
+const QUESTION_TYPE_INSTRUCTIONS = {
+  multiple_choice: {
+    label: "multiple-choice",
+    choicesPerQuestion: 4,
+    instructions: `MULTIPLE-CHOICE RULES:
+- Every question must have exactly 4 choices: A, B, C, and D.
+- Every question must have exactly one correct answer.
+- Wrong answers must be believable, related to the same topic, and clearly incorrect according to the material.
+- Do not use "All of the above", "None of the above", or "Both A and B" unless those exact choices already exist in an original quiz.
+- correctAnswer must be only "A", "B", "C", or "D".
+- answerText must exactly match choices[correctAnswer].
+- Include a short, source-supported explanation for every question.
+
+ANSWER POSITION RULES:
+- If you are generating new questions from study material, randomize correct answer positions.
+- Use A, B, C, and D throughout the reviewer.
+- Distribute correct answers as evenly as reasonably possible.
+- Do not make one letter the correct answer most of the time.
+- Do not create an obvious repeating pattern such as A, B, C, D, A, B, C, D.
+- Shuffle choices after deciding the correct answer, then update correctAnswer and answerText.
+- If the material is already an existing quiz, preserve original A/B/C/D positions.`
+  },
+  identification: {
+    label: "identification",
+    choicesPerQuestion: 0,
+    instructions: `IDENTIFICATION RULES:
+- Ask direct questions where the user types the answer.
+- correctAnswer must be "TEXT".
+- answerText must be the exact expected answer text.
+- choices must still be present for the schema, but set A, B, C, and D to empty strings.
+- Keep answers short enough to type, usually a term, name, date, concept, or short phrase.
+- Include a short, source-supported explanation for every question.`
+  },
+  true_false: {
+    label: "true/false",
+    choicesPerQuestion: 2,
+    instructions: `TRUE/FALSE RULES:
+- Every question must be a statement that is clearly true or false from the material.
+- choices must be A: "True", B: "False", C: "", and D: "".
+- correctAnswer must be only "A" or "B".
+- answerText must exactly match choices[correctAnswer].
+- Avoid trick wording unless the selected difficulty is hard.
+- Include a short, source-supported explanation for every question.`
+  },
+  flashcard: {
+    label: "flashcard",
+    choicesPerQuestion: 0,
+    instructions: `FLASHCARD RULES:
+- Write each question as the front of a flashcard.
+- answerText must be the back of the flashcard.
+- correctAnswer must be "TEXT".
+- choices must still be present for the schema, but set A, B, C, and D to empty strings.
+- Prefer concise answers with the key fact, term, definition, or process.
+- Include a short source-supported explanation that reinforces the answer.`
+  }
+};
 
 const reviewerSchema = {
   type: "OBJECT",
@@ -28,6 +84,7 @@ const reviewerSchema = {
         type: "OBJECT",
         properties: {
           id: { type: "INTEGER" },
+          type: { type: "STRING" },
           topic: { type: "STRING" },
           question: { type: "STRING" },
           choices: {
@@ -44,7 +101,7 @@ const reviewerSchema = {
           answerText: { type: "STRING" },
           explanation: { type: "STRING" }
         },
-        required: ["id", "topic", "question", "choices", "correctAnswer", "answerText", "explanation"]
+        required: ["id", "type", "topic", "question", "choices", "correctAnswer", "answerText", "explanation"]
       }
     }
   },
@@ -74,11 +131,16 @@ function getDifficultyInstruction(difficulty) {
   return DIFFICULTY_INSTRUCTIONS[difficulty] || DIFFICULTY_INSTRUCTIONS.mixed;
 }
 
-function buildPrompt({ sourceText, title, subject, instructions, questionCount, difficulty, fileName }) {
+function getQuestionTypeConfig(questionType) {
+  return QUESTION_TYPE_INSTRUCTIONS[questionType] || QUESTION_TYPE_INSTRUCTIONS.multiple_choice;
+}
+
+function buildPrompt({ sourceText, title, subject, instructions, questionCount, difficulty, questionType, fileName }) {
   const questionCountInstruction = getQuestionCountInstruction(questionCount);
   const difficultyInstruction = getDifficultyInstruction(difficulty);
+  const questionTypeConfig = getQuestionTypeConfig(questionType);
 
-  return `Create a complete multiple-choice reviewer from ONLY the study material below.
+  return `Create a complete ${questionTypeConfig.label} reviewer from ONLY the study material below.
 
 SOURCE RULES:
 - Use the uploaded file and pasted study material as the only source of truth.
@@ -110,23 +172,10 @@ DIFFICULTY:
 - ${difficultyInstruction}
 - Keep every question fair and answerable from the study material.
 
-MULTIPLE-CHOICE RULES:
-- Every question must have exactly 4 choices: A, B, C, and D.
-- Every question must have exactly one correct answer.
-- Wrong answers must be believable, related to the same topic, and clearly incorrect according to the material.
-- Do not use "All of the above", "None of the above", or "Both A and B" unless those exact choices already exist in an original quiz.
-- correctAnswer must be only "A", "B", "C", or "D".
-- answerText must exactly match choices[correctAnswer].
-- Include a short, source-supported explanation for every question.
-
-ANSWER POSITION RULES:
-- If you are generating new questions from study material, randomize correct answer positions.
-- Use A, B, C, and D throughout the reviewer.
-- Distribute correct answers as evenly as reasonably possible.
-- Do not make one letter the correct answer most of the time.
-- Do not create an obvious repeating pattern such as A, B, C, D, A, B, C, D.
-- Shuffle choices after deciding the correct answer, then update correctAnswer and answerText.
-- If the material is already an existing quiz, preserve original A/B/C/D positions.
+QUESTION TYPE RULES:
+- Set reviewer.questionType to "${questionType || "multiple_choice"}".
+- Set each question.type to "${questionType || "multiple_choice"}".
+${questionTypeConfig.instructions}
 
 JSON RULES:
 - Return valid JSON only.
@@ -142,9 +191,9 @@ FINAL SELF-CHECK BEFORE RETURNING JSON:
 - Valid JSON syntax.
 - questionCount matches the number of questions.
 - IDs are sequential with no duplicates.
-- Every question has choices A, B, C, and D.
-- Every correctAnswer exists in choices.
-- Every answerText exactly equals choices[correctAnswer].
+- Every question follows the selected question type rules.
+- For multiple-choice and true/false questions, every answerText exactly equals choices[correctAnswer].
+- For identification and flashcard questions, correctAnswer is "TEXT" and answerText is not empty.
 - Every question has a topic and explanation.
 - No obvious duplicate questions.
 - For generated questions, correct-answer positions are reasonably balanced and not patterned.
@@ -154,22 +203,24 @@ Reviewer details:
 - Subject: ${subject || "Generated"}
 - Instructions: ${instructions || "Select the best answer for each question."}
 - Difficulty: ${difficulty || "mixed"}
+- Question type: ${questionType || "multiple_choice"}
 ${fileName ? `- Uploaded file: ${fileName}` : ""}
 
 Study material:
 ${sourceText || "[Use the uploaded file as the study material.]"}`;
 }
 
-function buildCompletionPrompt({ sourceText, title, subject, instructions, difficulty, requestedCount, missingCount, existingQuestions, fileName }) {
+function buildCompletionPrompt({ sourceText, title, subject, instructions, difficulty, questionType, requestedCount, missingCount, existingQuestions, fileName }) {
   const existingSummary = existingQuestions
     .map((question) => `${question.id}. ${question.topic}: ${question.question}`)
     .join("\n")
     .slice(0, 16000);
   const difficultyInstruction = getDifficultyInstruction(difficulty);
+  const questionTypeConfig = getQuestionTypeConfig(questionType);
 
-  return `You are completing a multiple-choice reviewer that came back with too few questions.
+  return `You are completing a ${questionTypeConfig.label} reviewer that came back with too few questions.
 
-Create exactly ${missingCount} NEW additional multiple-choice questions so the final reviewer reaches exactly ${requestedCount} questions.
+Create exactly ${missingCount} NEW additional ${questionTypeConfig.label} questions so the final reviewer reaches exactly ${requestedCount} questions.
 
 SOURCE RULES:
 - Use ONLY the same study material below and the uploaded file if present.
@@ -182,13 +233,10 @@ DIFFICULTY:
 - ${difficultyInstruction}
 - Keep every question fair and answerable from the study material.
 
-MULTIPLE-CHOICE RULES:
-- Every question must have exactly 4 choices: A, B, C, and D.
-- Every question must have exactly one correct answer.
-- correctAnswer must be only "A", "B", "C", or "D".
-- answerText must exactly match choices[correctAnswer].
-- Include a short, source-supported explanation for every question.
-- Use varied correct-answer positions with no obvious pattern.
+QUESTION TYPE RULES:
+- Set reviewer.questionType to "${questionType || "multiple_choice"}".
+- Set each question.type to "${questionType || "multiple_choice"}".
+${questionTypeConfig.instructions}
 
 JSON RULES:
 - Return a complete reviewer JSON object using the API schema.
@@ -201,6 +249,7 @@ Reviewer details:
 - Subject: ${subject || "Generated"}
 - Instructions: ${instructions || "Select the best answer for each question."}
 - Difficulty: ${difficulty || "mixed"}
+- Question type: ${questionType || "multiple_choice"}
 ${fileName ? `- Uploaded file: ${fileName}` : ""}
 
 Existing questions to avoid:
@@ -219,24 +268,38 @@ function getNumericTarget(questionCount) {
 
 function normalizeGeneratedReviewer(reviewer, fallback = {}) {
   const questions = Array.isArray(reviewer?.questions) ? reviewer.questions : [];
+  const reviewerQuestionType = QUESTION_TYPE_INSTRUCTIONS[reviewer?.questionType]
+    ? reviewer.questionType
+    : fallback.questionType || "multiple_choice";
+  const questionTypeConfig = getQuestionTypeConfig(reviewerQuestionType);
   const normalizedQuestions = questions.map((question, index) => {
     const choices = question?.choices || {};
-    const correctAnswer = ["A", "B", "C", "D"].includes(String(question?.correctAnswer || "").toUpperCase())
-      ? String(question.correctAnswer).toUpperCase()
-      : "A";
+    const type = QUESTION_TYPE_INSTRUCTIONS[question?.type] ? question.type : reviewerQuestionType;
+    const validAnswers = type === "true_false" ? ["A", "B"] : type === "multiple_choice" ? ["A", "B", "C", "D"] : ["TEXT"];
+    const rawCorrectAnswer = String(question?.correctAnswer || (type === "identification" || type === "flashcard" ? "TEXT" : "A")).toUpperCase();
+    const correctAnswer = validAnswers.includes(rawCorrectAnswer) ? rawCorrectAnswer : validAnswers[0];
+    const normalizedChoices = type === "true_false"
+      ? {
+          A: String(choices.A || "True").trim(),
+          B: String(choices.B || "False").trim(),
+          C: "",
+          D: ""
+        }
+      : {
+          A: String(choices.A || "").trim(),
+          B: String(choices.B || "").trim(),
+          C: String(choices.C || "").trim(),
+          D: String(choices.D || "").trim()
+        };
 
     return {
       id: index + 1,
+      type,
       topic: String(question?.topic || fallback.subject || "Generated Reviewer").trim(),
       question: String(question?.question || "").trim(),
-      choices: {
-        A: String(choices.A || "").trim(),
-        B: String(choices.B || "").trim(),
-        C: String(choices.C || "").trim(),
-        D: String(choices.D || "").trim()
-      },
+      choices: normalizedChoices,
       correctAnswer,
-      answerText: String(question?.answerText || choices[correctAnswer] || "").trim(),
+      answerText: String(question?.answerText || normalizedChoices[correctAnswer] || "").trim(),
       explanation: String(question?.explanation || "").trim()
     };
   });
@@ -250,8 +313,8 @@ function normalizeGeneratedReviewer(reviewer, fallback = {}) {
     subject: reviewer?.subject || fallback.subject || "Generated",
     coverage,
     questionCount: normalizedQuestions.length,
-    questionType: "multiple_choice",
-    choicesPerQuestion: 4,
+    questionType: reviewerQuestionType,
+    choicesPerQuestion: questionTypeConfig.choicesPerQuestion,
     instructions: reviewer?.instructions || fallback.instructions || "Select the best answer for each question.",
     questions: normalizedQuestions
   };
@@ -347,6 +410,7 @@ export default async function handler(request, response) {
     instructions = "Select the best answer for each question.",
     questionCount = 50,
     difficulty = "mixed",
+    questionType = "multiple_choice",
     mode = "generate",
     existingReviewer = null,
     additionalCount = 20
@@ -356,6 +420,7 @@ export default async function handler(request, response) {
   const hasFileData = Boolean(file?.data && file?.mimeType);
   const normalizedMode = mode === "extend" ? "extend" : "generate";
   const safeDifficulty = DIFFICULTY_INSTRUCTIONS[difficulty] ? difficulty : "mixed";
+  const safeQuestionType = QUESTION_TYPE_INSTRUCTIONS[questionType] ? questionType : "multiple_choice";
   const existingQuestions = Array.isArray(existingReviewer?.questions) ? existingReviewer.questions : [];
 
   if (!hasFileData && trimmedSourceText.length < 100 && !existingQuestions.length) {
@@ -381,8 +446,10 @@ export default async function handler(request, response) {
     const baseReviewer = normalizeGeneratedReviewer(existingReviewer, {
       title: String(title).trim(),
       subject: String(subject).trim(),
-      instructions: String(instructions).trim()
+      instructions: String(instructions).trim(),
+      questionType: existingReviewer.questionType || safeQuestionType
     });
+    const extensionQuestionType = QUESTION_TYPE_INSTRUCTIONS[baseReviewer.questionType] ? baseReviewer.questionType : safeQuestionType;
     const requestedCount = Math.min(150, baseReviewer.questions.length + parsedAdditionalCount);
     const prompt = buildCompletionPrompt({
       sourceText: safeSourceText || JSON.stringify(baseReviewer.questions),
@@ -390,6 +457,7 @@ export default async function handler(request, response) {
       subject: baseReviewer.subject,
       instructions: baseReviewer.instructions,
       difficulty: safeDifficulty,
+      questionType: extensionQuestionType,
       requestedCount,
       missingCount: requestedCount - baseReviewer.questions.length,
       existingQuestions: baseReviewer.questions,
@@ -414,7 +482,8 @@ export default async function handler(request, response) {
       }), {
         title: baseReviewer.title,
         subject: baseReviewer.subject,
-        instructions: baseReviewer.instructions
+        instructions: baseReviewer.instructions,
+        questionType: extensionQuestionType
       });
       const reviewer = {
         ...mergeReviewers(baseReviewer, additionalReviewer, requestedCount),
@@ -445,6 +514,7 @@ export default async function handler(request, response) {
     instructions: String(instructions).trim(),
     questionCount: parsedQuestionCount,
     difficulty: safeDifficulty,
+    questionType: safeQuestionType,
     fileName: file?.name ? String(file.name).trim() : ""
   });
   const parts = [{ text: prompt }];
@@ -481,6 +551,7 @@ export default async function handler(request, response) {
         subject: reviewer.subject,
         instructions: reviewer.instructions,
         difficulty: safeDifficulty,
+        questionType: safeQuestionType,
         requestedCount,
         missingCount,
         existingQuestions: reviewer.questions,

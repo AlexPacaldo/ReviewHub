@@ -1,6 +1,9 @@
 import AnswerChoice from "./AnswerChoice.jsx";
+import { isTypedQuestion } from "../utils/quizUtils.js";
 
 export default function QuizQuestion({ question, selectedAnswer, revealed, locked, onSelect }) {
+  const typed = isTypedQuestion(question);
+
   return (
     <section className="question-panel">
       <div className="question-prompt">
@@ -8,19 +11,31 @@ export default function QuizQuestion({ question, selectedAnswer, revealed, locke
         <h1>{question.question}</h1>
       </div>
 
-      <div className="answers-grid">
-        {question.choices.map((choice) => (
-          <AnswerChoice
-            key={choice.value}
-            choice={choice}
-            selected={selectedAnswer === choice.value}
-            revealed={revealed}
-            correct={question.correctAnswer === choice.value}
+      {typed ? (
+        <label className="typed-answer-box">
+          <span>Your Answer</span>
+          <textarea
+            value={selectedAnswer || ""}
+            onChange={(event) => onSelect(event.target.value)}
             disabled={locked}
-            onSelect={() => onSelect(choice.value)}
+            placeholder={question.type === "flashcard" ? "Type what you remember from the back of the card." : "Type your answer."}
           />
-        ))}
-      </div>
+        </label>
+      ) : (
+        <div className="answers-grid">
+          {question.choices.map((choice) => (
+            <AnswerChoice
+              key={choice.value}
+              choice={choice}
+              selected={selectedAnswer === choice.value}
+              revealed={revealed}
+              correct={question.correctAnswer === choice.value}
+              disabled={locked}
+              onSelect={() => onSelect(choice.value)}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

@@ -1098,6 +1098,33 @@ legend {
   margin-top: 22px;
 }
 
+.typed-answer-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.typed-answer-box span {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.typed-answer-box textarea {
+  min-height: 132px;
+  padding: 16px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.typed-answer-box textarea:disabled {
+  opacity: 0.8;
+}
+
 .answer-choice {
   display: grid;
   grid-template-columns: 1fr auto;

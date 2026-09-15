@@ -3,6 +3,12 @@ import technoPrelimReviewerFromMaam from "./reviewers/technopreneurship_quiz_50_
 import { getCloudReviewerCache, getLocalReviewers } from "../utils/storageUtils.js";
 
 const REQUIRED_CHOICE_KEYS = ["A", "B", "C", "D"];
+const QUESTION_TYPES = ["multiple_choice", "identification", "true_false", "flashcard"];
+
+function getQuestionType(reviewer, question) {
+  const type = question?.type || reviewer?.questionType || "multiple_choice";
+  return QUESTION_TYPES.includes(type) ? type : "multiple_choice";
+}
 
 export function validateReviewer(reviewer) {
   const errors = [];
@@ -17,23 +23,29 @@ export function validateReviewer(reviewer) {
 
   reviewer?.questions?.forEach((question, index) => {
     const label = `Question ${index + 1}`;
-    ["id", "topic", "question", "choices", "correctAnswer", "explanation"].forEach((field) => {
+    const questionType = getQuestionType(reviewer, question);
+    ["id", "topic", "question", "correctAnswer", "answerText", "explanation"].forEach((field) => {
       if (question[field] === undefined || question[field] === "") {
         errors.push(`${label} is missing ${field}.`);
       }
     });
 
-    const choiceKeys = Object.keys(question.choices || {});
-    if (choiceKeys.length !== 4 || !REQUIRED_CHOICE_KEYS.every((key) => choiceKeys.includes(key))) {
-      errors.push(`${label} must contain choices A, B, C, and D.`);
-    }
+    if (questionType === "multiple_choice" || questionType === "true_false") {
+      const choiceKeys = Object.keys(question.choices || {});
+      const requiredKeys = questionType === "true_false" ? ["A", "B"] : REQUIRED_CHOICE_KEYS;
+      if (!requiredKeys.every((key) => choiceKeys.includes(key) && question.choices[key])) {
+        errors.push(`${label} must contain valid choices.`);
+      }
 
-    if (question.correctAnswer && !REQUIRED_CHOICE_KEYS.includes(question.correctAnswer)) {
-      errors.push(`${label} has an invalid correctAnswer.`);
-    }
+      if (question.correctAnswer && !requiredKeys.includes(question.correctAnswer)) {
+        errors.push(`${label} has an invalid correctAnswer.`);
+      }
 
-    if (question.answerText !== undefined && question.choices?.[question.correctAnswer] !== question.answerText) {
-      errors.push(`${label} answerText must match choices[correctAnswer].`);
+      if (question.answerText !== undefined && question.choices?.[question.correctAnswer] !== question.answerText) {
+        errors.push(`${label} answerText must match choices[correctAnswer].`);
+      }
+    } else if (question.correctAnswer !== "TEXT") {
+      errors.push(`${label} typed-answer questions must use correctAnswer TEXT.`);
     }
   });
 
