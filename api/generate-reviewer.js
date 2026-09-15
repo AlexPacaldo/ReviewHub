@@ -3,6 +3,11 @@ const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const MAX_SOURCE_LENGTH = 45000;
 const MAX_FILE_BASE64_LENGTH = 4200000;
 const MAX_COMPLETION_ATTEMPTS = 3;
+const DIFFICULTY_INSTRUCTIONS = {
+  easy: "Favor direct recall, simple definitions, and straightforward concept checks.",
+  mixed: "Use a balanced mix of recall, concept, scenario, and application questions.",
+  hard: "Favor deeper application, scenario analysis, tricky-but-fair distinctions, and synthesis across related ideas."
+};
 
 const reviewerSchema = {
   type: "OBJECT",
@@ -65,8 +70,13 @@ function getQuestionCountInstruction(questionCount) {
   return `Create exactly ${questionCount} questions. Returning fewer than ${questionCount} questions is only acceptable when the source is an existing quiz with fewer readable questions. If the material is a handout, module, slide deck, PDF, or lecture file, generate the full ${questionCount} questions by covering different facts, concepts, examples, and applications from across the material.`;
 }
 
-function buildPrompt({ sourceText, title, subject, instructions, questionCount, fileName }) {
+function getDifficultyInstruction(difficulty) {
+  return DIFFICULTY_INSTRUCTIONS[difficulty] || DIFFICULTY_INSTRUCTIONS.mixed;
+}
+
+function buildPrompt({ sourceText, title, subject, instructions, questionCount, difficulty, fileName }) {
   const questionCountInstruction = getQuestionCountInstruction(questionCount);
+  const difficultyInstruction = getDifficultyInstruction(difficulty);
 
   return `Create a complete multiple-choice reviewer from ONLY the study material below.
 
@@ -95,6 +105,10 @@ IF THE MATERIAL IS A HANDOUT, MODULE, OR STUDY MATERIAL:
 - Do not stop after a short sample. Produce the complete questions array requested by the selected question count whenever the material supports it.
 - If the selected question count is a number, treat that number as the required final size of the questions array.
 - Only create fewer questions when the source is truly too short or unreadable, and never invent facts.
+
+DIFFICULTY:
+- ${difficultyInstruction}
+- Keep every question fair and answerable from the study material.
 
 MULTIPLE-CHOICE RULES:
 - Every question must have exactly 4 choices: A, B, C, and D.
@@ -139,17 +153,19 @@ Reviewer details:
 - Title: ${title || "Generated Reviewer"}
 - Subject: ${subject || "Generated"}
 - Instructions: ${instructions || "Select the best answer for each question."}
+- Difficulty: ${difficulty || "mixed"}
 ${fileName ? `- Uploaded file: ${fileName}` : ""}
 
 Study material:
 ${sourceText || "[Use the uploaded file as the study material.]"}`;
 }
 
-function buildCompletionPrompt({ sourceText, title, subject, instructions, requestedCount, missingCount, existingQuestions, fileName }) {
+function buildCompletionPrompt({ sourceText, title, subject, instructions, difficulty, requestedCount, missingCount, existingQuestions, fileName }) {
   const existingSummary = existingQuestions
     .map((question) => `${question.id}. ${question.topic}: ${question.question}`)
     .join("\n")
     .slice(0, 16000);
+  const difficultyInstruction = getDifficultyInstruction(difficulty);
 
   return `You are completing a multiple-choice reviewer that came back with too few questions.
 
@@ -161,6 +177,10 @@ SOURCE RULES:
 - Cover parts of the material that are not already represented.
 - Do not duplicate or rephrase the existing questions listed below.
 - Every new question must be source-supported.
+
+DIFFICULTY:
+- ${difficultyInstruction}
+- Keep every question fair and answerable from the study material.
 
 MULTIPLE-CHOICE RULES:
 - Every question must have exactly 4 choices: A, B, C, and D.
@@ -180,6 +200,7 @@ Reviewer details:
 - Title: ${title || "Generated Reviewer"}
 - Subject: ${subject || "Generated"}
 - Instructions: ${instructions || "Select the best answer for each question."}
+- Difficulty: ${difficulty || "mixed"}
 ${fileName ? `- Uploaded file: ${fileName}` : ""}
 
 Existing questions to avoid:
@@ -324,13 +345,20 @@ export default async function handler(request, response) {
     title = "",
     subject = "",
     instructions = "Select the best answer for each question.",
-    questionCount = 50
+    questionCount = 50,
+    difficulty = "mixed",
+    mode = "generate",
+    existingReviewer = null,
+    additionalCount = 20
   } = request.body || {};
 
   const trimmedSourceText = String(sourceText).trim();
   const hasFileData = Boolean(file?.data && file?.mimeType);
+  const normalizedMode = mode === "extend" ? "extend" : "generate";
+  const safeDifficulty = DIFFICULTY_INSTRUCTIONS[difficulty] ? difficulty : "mixed";
+  const existingQuestions = Array.isArray(existingReviewer?.questions) ? existingReviewer.questions : [];
 
-  if (!hasFileData && trimmedSourceText.length < 100) {
+  if (!hasFileData && trimmedSourceText.length < 100 && !existingQuestions.length) {
     return sendJson(response, 400, { error: "Add more study material before generating a reviewer." });
   }
 
@@ -340,15 +368,83 @@ export default async function handler(request, response) {
 
   const safeSourceText = trimmedSourceText.slice(0, MAX_SOURCE_LENGTH);
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const parsedAdditionalCount = Math.max(1, Math.min(75, Number(additionalCount) || 20));
   const parsedQuestionCount = questionCount === "comprehensive"
     ? "comprehensive"
     : Math.max(1, Math.min(150, Number(questionCount) || 50));
+
+  if (normalizedMode === "extend") {
+    if (!existingQuestions.length) {
+      return sendJson(response, 400, { error: "Choose a generated reviewer before making more questions." });
+    }
+
+    const baseReviewer = normalizeGeneratedReviewer(existingReviewer, {
+      title: String(title).trim(),
+      subject: String(subject).trim(),
+      instructions: String(instructions).trim()
+    });
+    const requestedCount = Math.min(150, baseReviewer.questions.length + parsedAdditionalCount);
+    const prompt = buildCompletionPrompt({
+      sourceText: safeSourceText || JSON.stringify(baseReviewer.questions),
+      title: baseReviewer.title,
+      subject: baseReviewer.subject,
+      instructions: baseReviewer.instructions,
+      difficulty: safeDifficulty,
+      requestedCount,
+      missingCount: requestedCount - baseReviewer.questions.length,
+      existingQuestions: baseReviewer.questions,
+      fileName: file?.name ? String(file.name).trim() : ""
+    });
+    const parts = [{ text: prompt }];
+
+    if (hasFileData) {
+      parts.push({
+        inline_data: {
+          mime_type: String(file.mimeType),
+          data: String(file.data)
+        }
+      });
+    }
+
+    try {
+      const additionalReviewer = normalizeGeneratedReviewer(await requestReviewerFromGemini({
+        apiKey,
+        model,
+        parts
+      }), {
+        title: baseReviewer.title,
+        subject: baseReviewer.subject,
+        instructions: baseReviewer.instructions
+      });
+      const reviewer = {
+        ...mergeReviewers(baseReviewer, additionalReviewer, requestedCount),
+        reviewerId: existingReviewer.reviewerId || baseReviewer.reviewerId
+      };
+
+      return sendJson(response, 200, {
+        reviewer,
+        requestedQuestionCount: requestedCount,
+        generatedQuestionCount: reviewer.questions.length,
+        addedQuestionCount: Math.max(0, reviewer.questions.length - baseReviewer.questions.length),
+        warning: reviewer.questions.length < requestedCount
+          ? `Gemini added ${Math.max(0, reviewer.questions.length - baseReviewer.questions.length)} of ${requestedCount - baseReviewer.questions.length} requested new questions.`
+          : null
+      });
+    } catch (error) {
+      return sendJson(response, error?.statusCode || 500, {
+        error: error?.message || "Could not reach Gemini.",
+        rawText: error?.rawText
+      });
+    }
+  }
+
   const prompt = buildPrompt({
     sourceText: safeSourceText,
     title: String(title).trim(),
     subject: String(subject).trim(),
     instructions: String(instructions).trim(),
     questionCount: parsedQuestionCount,
+    difficulty: safeDifficulty,
     fileName: file?.name ? String(file.name).trim() : ""
   });
   const parts = [{ text: prompt }];
@@ -384,6 +480,7 @@ export default async function handler(request, response) {
         title: reviewer.title,
         subject: reviewer.subject,
         instructions: reviewer.instructions,
+        difficulty: safeDifficulty,
         requestedCount,
         missingCount,
         existingQuestions: reviewer.questions,

@@ -28,6 +28,16 @@ const QUESTION_COUNT_OPTIONS = [
   { value: "100", label: "100" },
   { value: "comprehensive", label: "Comprehensive" }
 ];
+const DIFFICULTY_OPTIONS = [
+  { value: "easy", label: "Easy" },
+  { value: "mixed", label: "Mixed" },
+  { value: "hard", label: "Hard" }
+];
+const MORE_QUESTION_COUNT_OPTIONS = [
+  { value: "10", label: "+10" },
+  { value: "20", label: "+20" },
+  { value: "50", label: "+50" }
+];
 
 function isPdfFile(file) {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -72,7 +82,7 @@ function buildReviewer({ title, subject, instructions }, questions) {
   };
 }
 
-function normalizeReviewerJson(reviewer) {
+function normalizeReviewerJson(reviewer, options = {}) {
   const questions = Array.isArray(reviewer?.questions) ? reviewer.questions : [];
   const normalizedQuestions = questions.map((question, index) => {
     const correctAnswer = String(question.correctAnswer || "A").toUpperCase();
@@ -101,7 +111,9 @@ function normalizeReviewerJson(reviewer) {
 
   return {
     ...reviewer,
-    reviewerId: `${slugify(reviewer?.reviewerId || title || subject || "generated-reviewer")}-${Date.now()}`,
+    reviewerId: options.preserveReviewerId && reviewer?.reviewerId
+      ? reviewer.reviewerId
+      : `${slugify(reviewer?.reviewerId || title || subject || "generated-reviewer")}-${Date.now()}`,
     title,
     subject,
     coverage,
@@ -184,6 +196,8 @@ export default function Generator() {
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
   const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "50");
+  const [difficulty, setDifficulty] = useState(savedDraft?.difficulty || "mixed");
+  const [moreQuestionCount, setMoreQuestionCount] = useState(savedDraft?.moreQuestionCount || "20");
   const [saveOfflineCopy, setSaveOfflineCopy] = useState(savedDraft?.saveOfflineCopy || false);
   const [studyFile, setStudyFile] = useState(null);
   const [jsonText, setJsonText] = useState(savedDraft?.jsonText || "");
@@ -192,7 +206,9 @@ export default function Generator() {
   const [savedReviewer, setSavedReviewer] = useState(null);
   const [generationStats, setGenerationStats] = useState(null);
   const [generationMessage, setGenerationMessage] = useState("");
+  const [generationSteps, setGenerationSteps] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isAddingQuestions, setIsAddingQuestions] = useState(false);
   const [isSavingReviewer, setIsSavingReviewer] = useState(false);
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
 
@@ -219,11 +235,13 @@ export default function Generator() {
       questions,
       sourceText,
       targetQuestionCount,
+      difficulty,
+      moreQuestionCount,
       saveOfflineCopy,
       jsonText
     });
     setDraftMessage("Draft saved on this device.");
-  }, [details, questionDraft, questions, sourceText, targetQuestionCount, saveOfflineCopy, jsonText]);
+  }, [details, questionDraft, questions, sourceText, targetQuestionCount, difficulty, moreQuestionCount, saveOfflineCopy, jsonText]);
 
   function updateDetails(key, value) {
     setDetails((current) => ({ ...current, [key]: value }));
@@ -236,6 +254,15 @@ export default function Generator() {
   function updateJsonText(value) {
     setJsonText(value);
     setJsonCheck(null);
+  }
+
+  function setProgressStep(step) {
+    setGenerationSteps((current) => current.includes(step) ? current : [...current, step]);
+  }
+
+  function getCurrentReviewerFromJson({ preserveReviewerId = false } = {}) {
+    if (!jsonText) return null;
+    return normalizeReviewerJson(JSON.parse(jsonText), { preserveReviewerId });
   }
 
   function isTextFile(file) {
@@ -273,6 +300,7 @@ export default function Generator() {
     }
 
     setErrors([]);
+    setGenerationSteps([]);
     setGenerationMessage(isPdfFile(file) && file.size > MAX_AI_FILE_UPLOAD_SIZE ? "Large PDF detected. Extracting text in your browser..." : "");
 
     try {
@@ -296,6 +324,7 @@ export default function Generator() {
           return;
         }
 
+        setProgressStep("Extracting PDF text");
         const extractedText = await extractPdfText(file);
 
         if (extractedText.length < 100) {
@@ -313,6 +342,7 @@ export default function Generator() {
           data: null
         });
         setGenerationMessage(`Extracted text from ${file.name}. Gemini will use the text instead of uploading the large PDF.`);
+        setProgressStep("PDF text ready");
         return;
       }
 
@@ -461,7 +491,7 @@ export default function Generator() {
     }
   }
 
-  async function generateReviewerWithAi() {
+  async function generateReviewerWithAi({ regenerate = false } = {}) {
     const trimmedSourceText = sourceText.trim().slice(0, MAX_AI_SOURCE_TEXT_LENGTH);
     const hasUploadedFile = Boolean(studyFile?.data);
 
@@ -480,9 +510,11 @@ export default function Generator() {
     setJsonCheck(null);
     setSavedReviewer(null);
     setGenerationStats(null);
-    setGenerationMessage("Generating reviewer with Gemini...");
+    setGenerationSteps(["Preparing study material"]);
+    setGenerationMessage(regenerate ? "Regenerating reviewer with Gemini..." : "Generating reviewer with Gemini...");
 
     try {
+      setProgressStep("Sending material to Gemini");
       const response = await fetch("/api/generate-reviewer", {
         method: "POST",
         headers: {
@@ -500,9 +532,11 @@ export default function Generator() {
           title: details.title,
           subject: details.subject,
           instructions: details.instructions,
-          questionCount: targetQuestionCount
+          questionCount: targetQuestionCount,
+          difficulty
         })
       });
+      setProgressStep("Reading Gemini response");
       const data = await response.json();
 
       if (!response.ok) {
@@ -516,6 +550,7 @@ export default function Generator() {
         throw new Error(validation.errors[0] || "Gemini generated an invalid reviewer.");
       }
 
+      setProgressStep("Saving reviewer");
       const saveMode = await persistReviewer(reviewer, { saveOffline: saveOfflineCopy });
       const nextJsonText = JSON.stringify(reviewer, null, 2);
       updateJsonText(nextJsonText);
@@ -531,11 +566,105 @@ export default function Generator() {
       setGenerationMessage(data.warning
         ? `${data.warning} ${getSaveMessage(saveMode)}`
         : `Reviewer generated with ${reviewer.questions.length} questions. ${getSaveMessage(saveMode)}`);
+      setProgressStep("Done");
     } catch (error) {
       setGenerationMessage("");
       setErrors([getFriendlyGenerationError(error)]);
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function makeMoreQuestions() {
+    const trimmedSourceText = sourceText.trim().slice(0, MAX_AI_SOURCE_TEXT_LENGTH);
+    const hasUploadedFile = Boolean(studyFile?.data);
+
+    if (!isOnline) {
+      setErrors(["Connect to the internet before asking Gemini for more questions."]);
+      return;
+    }
+
+    let currentReviewer;
+    try {
+      currentReviewer = getCurrentReviewerFromJson({ preserveReviewerId: true });
+    } catch {
+      setErrors(["Generate a valid reviewer before making more questions."]);
+      return;
+    }
+
+    if (!currentReviewer?.questions?.length) {
+      setErrors(["Generate a reviewer before making more questions."]);
+      return;
+    }
+
+    if (currentReviewer.questions.length >= 150) {
+      setErrors(["This reviewer already has 150 questions, which is the current maximum."]);
+      return;
+    }
+
+    setIsAddingQuestions(true);
+    setErrors([]);
+    setGenerationSteps(["Preparing existing reviewer", "Sending request for more questions"]);
+    setGenerationMessage(`Making ${moreQuestionCount} more questions with Gemini...`);
+
+    try {
+      const response = await fetch("/api/generate-reviewer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mode: "extend",
+          sourceText: trimmedSourceText,
+          file: hasUploadedFile
+            ? {
+                name: studyFile.name,
+                mimeType: studyFile.mimeType,
+                data: studyFile.data
+              }
+            : null,
+          title: currentReviewer.title || details.title,
+          subject: currentReviewer.subject || details.subject,
+          instructions: currentReviewer.instructions || details.instructions,
+          difficulty,
+          additionalCount: moreQuestionCount,
+          existingReviewer: currentReviewer
+        })
+      });
+      setProgressStep("Checking new questions");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Gemini could not make more questions.");
+      }
+
+      const reviewer = normalizeReviewerJson(data.reviewer, { preserveReviewerId: true });
+      const validation = validateReviewer(reviewer);
+
+      if (!validation.isValid) {
+        throw new Error(validation.errors[0] || "Gemini generated invalid additional questions.");
+      }
+
+      setProgressStep("Saving expanded reviewer");
+      const saveMode = await persistReviewer(reviewer, { saveOffline: saveOfflineCopy });
+      const nextJsonText = JSON.stringify(reviewer, null, 2);
+      updateJsonText(nextJsonText);
+      checkReviewerJson(nextJsonText);
+      setSavedReviewer({ reviewerId: reviewer.reviewerId, saveMode });
+      setGenerationStats({
+        requested: data.requestedQuestionCount || reviewer.questions.length,
+        generated: data.generatedQuestionCount || reviewer.questions.length,
+        warning: data.warning || ""
+      });
+      setGenerationMessage(data.warning
+        ? `${data.warning} ${getSaveMessage(saveMode)}`
+        : `Added ${data.addedQuestionCount || moreQuestionCount} questions. ${getSaveMessage(saveMode)}`);
+      setProgressStep("Done");
+    } catch (error) {
+      setGenerationMessage("");
+      setErrors([getFriendlyGenerationError(error)]);
+    } finally {
+      setIsAddingQuestions(false);
     }
   }
 
@@ -551,6 +680,8 @@ export default function Generator() {
     setQuestions([]);
     setSourceText("");
     setTargetQuestionCount("50");
+    setDifficulty("mixed");
+    setMoreQuestionCount("20");
     setSaveOfflineCopy(false);
     setStudyFile(null);
     setJsonText("");
@@ -558,6 +689,7 @@ export default function Generator() {
     setJsonCheck(null);
     setSavedReviewer(null);
     setGenerationStats(null);
+    setGenerationSteps([]);
     setDraftMessage("Draft cleared.");
   }
 
@@ -620,6 +752,22 @@ export default function Generator() {
               </div>
             </fieldset>
 
+            <fieldset className="generator-option-group">
+              <legend>Difficulty</legend>
+              <div className="segmented compact">
+                {DIFFICULTY_OPTIONS.map((option) => (
+                  <button
+                    className={difficulty === option.value ? "active" : ""}
+                    type="button"
+                    key={option.value}
+                    onClick={() => setDifficulty(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
             <label className="upload-zone ai-upload-zone">
               <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />
               <Upload size={30} aria-hidden="true" />
@@ -650,12 +798,20 @@ export default function Generator() {
               </label>
             ) : null}
             <div className="button-row">
-              <button className="button primary" type="button" onClick={generateReviewerWithAi} disabled={isGenerating || !isOnline}>
+              <button className="button primary" type="button" onClick={generateReviewerWithAi} disabled={isGenerating || isAddingQuestions || !isOnline}>
                 {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}
                 {isGenerating ? "Generating..." : "Generate with Gemini"}
               </button>
               {generationMessage ? <span className="template-message">{generationMessage}</span> : null}
             </div>
+
+            {generationSteps.length ? (
+              <ol className="generation-progress" aria-label="Generation progress">
+                {generationSteps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            ) : null}
           </div>
 
           {jsonText ? (
@@ -679,7 +835,42 @@ export default function Generator() {
                   ) : null}
                 </div>
               ) : null}
+              <div className="more-question-tools">
+                <fieldset className="generator-option-group">
+                  <legend>Make More Questions</legend>
+                  <div className="segmented compact">
+                    {MORE_QUESTION_COUNT_OPTIONS.map((option) => (
+                      <button
+                        className={moreQuestionCount === option.value ? "active" : ""}
+                        type="button"
+                        key={option.value}
+                        onClick={() => setMoreQuestionCount(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <button
+                  className="button subtle"
+                  type="button"
+                  onClick={makeMoreQuestions}
+                  disabled={isGenerating || isAddingQuestions || !isOnline}
+                >
+                  {isAddingQuestions ? <Loader2 size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+                  {isAddingQuestions ? "Adding..." : "Add Questions"}
+                </button>
+              </div>
               <div className="button-row">
+                <button
+                  className="button subtle"
+                  type="button"
+                  onClick={() => generateReviewerWithAi({ regenerate: true })}
+                  disabled={isGenerating || isAddingQuestions || !isOnline}
+                >
+                  {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <RotateCcw size={17} aria-hidden="true" />}
+                  Regenerate
+                </button>
                 {savedReviewer ? (
                   <button className="button primary" type="button" onClick={() => navigate(`/reviewer/${savedReviewer.reviewerId}`)}>
                     Open Reviewer
