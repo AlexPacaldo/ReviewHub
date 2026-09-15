@@ -32,6 +32,42 @@ export async function ensureMyProfile(user) {
   return { data, error };
 }
 
+export async function updateMyProfile(user, updates) {
+  if (!supabase || !user?.id || !user?.email) return { data: null, error: new Error("Supabase is not configured.") };
+
+  const payload = {
+    id: user.id,
+    email: user.email.toLowerCase(),
+    display_name: String(updates.displayName || "").trim() || null,
+    avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+    updated_at: new Date().toISOString()
+  };
+
+  const { data, error } = await supabase
+    .from(PROFILES_TABLE)
+    .upsert(payload, { onConflict: "id" })
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+export async function deleteMyCloudAppData(userId) {
+  if (!supabase || !userId) return { error: new Error("Supabase is not configured.") };
+
+  const operations = [
+    supabase.from(SHARES_TABLE).delete().or(`owner_id.eq.${userId},recipient_id.eq.${userId}`),
+    supabase.from(FRIENDSHIPS_TABLE).delete().or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+    supabase.from("reviewers").delete().eq("owner_id", userId),
+    supabase.from(PROFILES_TABLE).delete().eq("id", userId)
+  ];
+
+  const results = await Promise.all(operations);
+  const error = results.find((result) => result.error)?.error || null;
+
+  return { error };
+}
+
 export async function searchProfiles(query, currentUserId) {
   if (!supabase || !currentUserId) return { data: [], error: null };
 

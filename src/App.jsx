@@ -11,6 +11,8 @@ import Library from "./pages/Library.jsx";
 import Generator from "./pages/Generator.jsx";
 import Account from "./pages/Account.jsx";
 import Friends from "./pages/Friends.jsx";
+import Privacy from "./pages/Privacy.jsx";
+import Terms from "./pages/Terms.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js";
 
@@ -53,6 +55,8 @@ export default function App() {
           <Route path="/friends" element={<Friends />} />
           <Route path="/generator" element={<Generator />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

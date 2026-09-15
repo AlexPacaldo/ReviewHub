@@ -150,6 +150,11 @@ export function clearGeneratorDraft() {
   localStorage.removeItem(KEYS.generatorDraft);
 }
 
+export function clearAllDeviceData() {
+  Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
+  notifyReviewerDataChanged();
+}
+
 export function restoreLocalDataSnapshot(snapshot) {
   if (!isObject(snapshot)) {
     throw new Error("Backup file must contain a local data object.");

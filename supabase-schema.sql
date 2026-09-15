@@ -56,7 +56,7 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
-grant select, insert, update on public.profiles to authenticated;
+grant select, insert, update, delete on public.profiles to authenticated;
 
 drop policy if exists "Users can read profiles" on public.profiles;
 create policy "Users can read profiles"
@@ -79,6 +79,13 @@ for update
 to authenticated
 using (auth.uid() = id)
 with check (auth.uid() = id);
+
+drop policy if exists "Users can delete own profile" on public.profiles;
+create policy "Users can delete own profile"
+on public.profiles
+for delete
+to authenticated
+using (auth.uid() = id);
 
 create index if not exists profiles_email_idx
 on public.profiles(lower(email));

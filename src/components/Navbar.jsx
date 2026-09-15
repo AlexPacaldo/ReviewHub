@@ -4,6 +4,14 @@ import { History, Library, Moon, Sparkles, Sun, UserRound, Users, WifiOff } from
 import appLogo from "../assets/Icon.png";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
+function getUserName(user) {
+  return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Account";
+}
+
+function getUserAvatar(user) {
+  return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
+}
+
 export default function Navbar({ theme, onToggleTheme }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const { user } = useAuth();
@@ -47,8 +55,12 @@ export default function Navbar({ theme, onToggleTheme }) {
           Friends
         </NavLink>
         <NavLink to="/account">
-          <UserRound size={17} aria-hidden="true" />
-          {user ? "Account" : "Sign In"}
+          {user && getUserAvatar(user) ? (
+            <img className="nav-avatar" src={getUserAvatar(user)} alt="" />
+          ) : (
+            <UserRound size={17} aria-hidden="true" />
+          )}
+          {user ? getUserName(user) : "Sign In"}
         </NavLink>
       </nav>
 

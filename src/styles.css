@@ -143,6 +143,13 @@ main {
   background: var(--surface-2);
 }
 
+.nav-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
 .offline-pill {
   display: inline-flex;
   align-items: center;
@@ -695,7 +702,8 @@ legend {
 }
 
 .account-status,
-.account-card {
+.account-card,
+.account-profile-card {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -707,17 +715,39 @@ legend {
 }
 
 .account-status svg,
-.account-card svg {
+.account-card svg,
+.account-profile-card svg {
   color: var(--accent);
 }
 
-.account-card {
+.account-card,
+.account-profile-card {
   justify-content: space-between;
+}
+
+.account-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 999px;
+}
+
+.account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .account-form {
   display: grid;
   gap: 14px;
+  margin-top: 18px;
 }
 
 .account-form label {
@@ -745,6 +775,63 @@ legend {
   display: grid;
   gap: 14px;
   margin-top: 18px;
+}
+
+.account-danger-zone {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.account-danger-zone h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.account-data-actions,
+.account-legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.account-legal-links {
+  margin-top: 18px;
+}
+
+.account-legal-links a {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.legal-panel {
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.legal-panel h1,
+.legal-panel h2,
+.legal-panel p {
+  margin: 0;
+}
+
+.legal-panel h2 {
+  margin-top: 8px;
+  font-size: 1.05rem;
+}
+
+.legal-panel p {
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .button-row,
@@ -1928,7 +2015,8 @@ legend {
   .local-data-row,
   .sync-all-panel,
   .account-card,
-  .account-status {
+  .account-status,
+  .account-profile-card {
     align-items: stretch;
     flex-direction: column;
   }
