@@ -599,7 +599,7 @@ export default function Library() {
           <h1>Library & Settings</h1>
           <p className="muted">Manage offline reviewers, cloud reviewers, backups, and device storage.</p>
         </div>
-        <button className="button primary" type="button" onClick={() => downloadJson("review_hub_local_backup.json", getLocalDataSnapshot())}>
+        <button className="button primary" type="button" onClick={() => downloadJson("hachi_local_backup.json", getLocalDataSnapshot())}>
           <Download size={17} aria-hidden="true" />
           Export Backup
         </button>
@@ -658,7 +658,7 @@ export default function Library() {
       <section className="library-panel install-panel">
         <div>
           <h2>Offline App Access</h2>
-          <p className="muted">Open Review Hub once while online, then this device can reopen the app shell without internet.</p>
+          <p className="muted">Open Hachi once while online, then this device can reopen the app shell without internet.</p>
         </div>
         <div className="install-steps" aria-label="Offline app readiness">
           <span className={offlineReady ? "complete" : ""}>App shell cached</span>
@@ -669,7 +669,7 @@ export default function Library() {
           <div className="button-row">
             {installPrompt ? (
               <button className="button primary" type="button" onClick={installApp}>
-                Install Review Hub
+                Install Hachi
               </button>
             ) : (
               <p className="muted install-note">Use your browser menu and choose Install app or Add to Home Screen.</p>
@@ -928,7 +928,7 @@ export default function Library() {
           </article>
         </div>
         <div className="library-actions">
-          <button className="button subtle" type="button" onClick={() => downloadJson("review_hub_local_backup.json", getLocalDataSnapshot())}>
+          <button className="button subtle" type="button" onClick={() => downloadJson("hachi_local_backup.json", getLocalDataSnapshot())}>
             <Download size={17} aria-hidden="true" />
             Export Local Backup
           </button>

@@ -7,6 +7,8 @@ import { supabase } from "../lib/supabaseClient.js";
 import { deleteMyCloudAppData, updateMyProfile } from "../services/social.js";
 import { clearAllDeviceData } from "../utils/storageUtils.js";
 
+const authRedirectUrl = import.meta.env.VITE_AUTH_REDIRECT_URL || window.location.origin;
+
 function getUserName(user) {
   return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Hachi User";
 }
@@ -37,7 +39,7 @@ export default function Account() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin
+        redirectTo: authRedirectUrl
       }
     });
 
@@ -106,7 +108,7 @@ export default function Account() {
       <section className="setup-panel">
         <p className="eyebrow">Account</p>
         <h1>Account Settings</h1>
-        <p className="muted">Sign in for cloud reviewers, database sync, friends, and sharing. Review Hub stays website-first for now, with offline study still available without an account.</p>
+        <p className="muted">Sign in for cloud reviewers, database sync, friends, and sharing. Hachi stays website-first for now, with offline study still available without an account.</p>
 
         <div className="account-status">
           <Cloud size={22} aria-hidden="true" />

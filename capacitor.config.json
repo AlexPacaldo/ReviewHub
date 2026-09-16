@@ -1,0 +1,18 @@
+{
+  "appId": "app.hachi.review",
+  "appName": "Hachi",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "backgroundColor": "#f6f7f9"
+    }
+  }
+}

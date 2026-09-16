@@ -29,9 +29,9 @@ export default function Navbar({ theme, onToggleTheme }) {
 
   return (
     <header className="navbar">
-      <Link to="/" className="brand" aria-label="Review Hub home">
+      <Link to="/" className="brand" aria-label="Hachi home">
         <span className="brand-icon-wrap">
-          <img src={appLogo} alt="Review Hub logo" width={28} height={28} />
+          <img src={appLogo} alt="Hachi logo" width={28} height={28} />
         </span>
         <span>Hachi</span>
       </Link>

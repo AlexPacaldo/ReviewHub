@@ -3,7 +3,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ios:add": "npm install @capacitor/core @capacitor/cli @capacitor/ios && npx cap add ios",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

@@ -70,7 +70,7 @@ export default function ReviewerSetup() {
             <p className="muted">
               {isLocalReviewer
                 ? "This reviewer is stored locally and remains available without signing in."
-                : "This reviewer is bundled with Review Hub, so it is already available for offline study."}
+                : "This reviewer is bundled with Hachi, so it is already available for offline study."}
             </p>
           </div>
           <Link className="button subtle" to="/library">
