@@ -170,14 +170,15 @@ function getFriendlyGenerationError(error) {
   return message || "Could not generate a reviewer.";
 }
 
-function checkAiRateLimit() {
+function checkAiRateLimit(userId = "") {
   const now = Date.now();
+  const key = `${AI_RATE_LIMIT_KEY}:${userId || "guest"}`;
 
   try {
-    const current = JSON.parse(localStorage.getItem(AI_RATE_LIMIT_KEY) || "null");
+    const current = JSON.parse(localStorage.getItem(key) || "null");
 
     if (!current || now - current.windowStart >= AI_RATE_LIMIT_WINDOW_MS) {
-      localStorage.setItem(AI_RATE_LIMIT_KEY, JSON.stringify({ windowStart: now, count: 1 }));
+      localStorage.setItem(key, JSON.stringify({ windowStart: now, count: 1 }));
       return null;
     }
 
@@ -186,7 +187,7 @@ function checkAiRateLimit() {
       return `AI generation is limited to ${AI_RATE_LIMIT_MAX_REQUESTS} requests every 10 minutes. Try again in about ${retryMinutes} minute${retryMinutes === 1 ? "" : "s"}.`;
     }
 
-    localStorage.setItem(AI_RATE_LIMIT_KEY, JSON.stringify({ ...current, count: current.count + 1 }));
+    localStorage.setItem(key, JSON.stringify({ ...current, count: current.count + 1 }));
     return null;
   } catch {
     return null;
@@ -235,7 +236,7 @@ async function extractPdfText(file) {
 
 export default function Generator() {
   const navigate = useNavigate();
-  const { configured, user } = useAuth();
+  const { configured, session, user } = useAuth();
   const savedDraft = getGeneratorDraft();
   const skipNextAutosave = useRef(false);
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
@@ -312,6 +313,13 @@ export default function Generator() {
 
   function setProgressStep(step) {
     setGenerationSteps((current) => current.includes(step) ? current : [...current, step]);
+  }
+
+  function getAiRequestHeaders() {
+    return {
+      "Content-Type": "application/json",
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {})
+    };
   }
 
   function getCurrentReviewerFromJson({ preserveReviewerId = false } = {}) {
@@ -559,7 +567,7 @@ export default function Generator() {
       return;
     }
 
-    const rateLimitError = checkAiRateLimit();
+    const rateLimitError = checkAiRateLimit(user?.id);
     if (rateLimitError) {
       setErrors([rateLimitError]);
       return;
@@ -577,9 +585,7 @@ export default function Generator() {
       setProgressStep("Sending material to Gemini");
       const response = await fetch("/api/generate-reviewer", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: getAiRequestHeaders(),
         body: JSON.stringify({
           sourceText: trimmedSourceText,
           file: hasUploadedFile
@@ -670,7 +676,7 @@ export default function Generator() {
       return;
     }
 
-    const rateLimitError = checkAiRateLimit();
+    const rateLimitError = checkAiRateLimit(user?.id);
     if (rateLimitError) {
       setErrors([rateLimitError]);
       return;
@@ -684,9 +690,7 @@ export default function Generator() {
     try {
       const response = await fetch("/api/generate-reviewer", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: getAiRequestHeaders(),
         body: JSON.stringify({
           mode: "extend",
           sourceText: trimmedSourceText,
@@ -808,7 +812,7 @@ export default function Generator() {
 
           <div className="production-note" role="note">
             <strong>AI limits</strong>
-            <span>PDF upload under 3 MB direct, up to 12 MB for browser text extraction, 45,000 characters of notes, 150 questions max, and 8 AI requests every 10 minutes.</span>
+            <span>PDF upload under 3 MB direct, up to 12 MB for browser text extraction, 45,000 characters of notes, 150 questions max, and 8 AI requests every 10 minutes per signed-in account. Guests are limited by connection.</span>
           </div>
 
           <div className="ai-prompt-panel">

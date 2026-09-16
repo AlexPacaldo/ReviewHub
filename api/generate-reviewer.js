@@ -1,3 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
+
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const MAX_SOURCE_LENGTH = 45000;
@@ -121,10 +123,44 @@ function getRequestId() {
   return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function getClientKey(request) {
+function getClientIpKey(request) {
   const forwardedFor = request.headers["x-forwarded-for"];
   const firstForwardedIp = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor?.split(",")[0];
-  return firstForwardedIp?.trim() || request.socket?.remoteAddress || "unknown";
+  return `ip:${firstForwardedIp?.trim() || request.socket?.remoteAddress || "unknown"}`;
+}
+
+function getBearerToken(request) {
+  const authorization = request.headers.authorization || request.headers.Authorization || "";
+  const match = String(authorization).match(/^Bearer\s+(.+)$/i);
+  return match?.[1] || "";
+}
+
+async function getRateLimitKey(request, requestId) {
+  const token = getBearerToken(request);
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!token || !supabaseUrl || !supabaseAnonKey) {
+    return getClientIpKey(request);
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (!error && data?.user?.id) {
+      return `user:${data.user.id}`;
+    }
+  } catch (error) {
+    console.warn(`[${requestId}] Could not verify Supabase user for rate limit. Falling back to IP.`, error?.message || error);
+  }
+
+  return getClientIpKey(request);
 }
 
 function pruneRateLimitStore(now) {
@@ -135,9 +171,8 @@ function pruneRateLimitStore(now) {
   }
 }
 
-function checkRateLimit(request) {
+function checkRateLimit(key) {
   const now = Date.now();
-  const key = getClientKey(request);
   const current = rateLimitStore.get(key);
 
   pruneRateLimitStore(now);
@@ -451,10 +486,12 @@ export default async function handler(request, response) {
     return sendJson(response, 405, { error: "Method not allowed." });
   }
 
-  const rateLimit = checkRateLimit(request);
+  const rateLimitKey = await getRateLimitKey(request, requestId);
+  const rateLimit = checkRateLimit(rateLimitKey);
   response.setHeader("X-RateLimit-Limit", String(RATE_LIMIT_MAX_REQUESTS));
   response.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
   response.setHeader("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetMs / 1000)));
+  response.setHeader("X-RateLimit-Scope", rateLimitKey.startsWith("user:") ? "user" : "ip");
 
   if (!rateLimit.allowed) {
     response.setHeader("Retry-After", String(Math.ceil(rateLimit.resetMs / 1000)));
