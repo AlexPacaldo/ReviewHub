@@ -40,11 +40,15 @@ Typography hierarchy:
 - Hero headings: `font-weight: 900`
 - Page titles: `font-weight: 800`
 - Card titles: `font-weight: 800`
-- Navigation: `font-weight: 700`
-- Buttons: `font-weight: 700`
-- Labels, tags, badges: `font-weight: 700`
-- Body text: `font-weight: 400`
-- Muted text: `font-weight: 400`
+- Navigation: `font-weight: 800`
+- Buttons: `font-weight: 800`
+- Labels, tags, badges: `font-weight: 800`
+- Strong text: `font-weight: 800`
+- Body text: `font-weight: 600`
+- Paragraph text: `font-weight: 600`
+- Muted text: `font-weight: 600`
+
+The typography should feel noticeably substantial and rounded, not thin or delicate. Keep Nunito's soft friendliness, but give most readable interface text more weight than standard defaults.
 
 Keep letter spacing at `0` unless there is a strong reason to change it.
 

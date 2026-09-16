@@ -2503,7 +2503,7 @@ body {
   color: var(--text);
   font-family: var(--font-primary);
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -2527,7 +2527,7 @@ strong {
 }
 
 p {
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.5;
 }
 
@@ -3314,7 +3314,7 @@ p,
 .answer-box strong,
 .explanation-box p,
 .flashcard-answer p {
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .hero h1 {
@@ -3353,7 +3353,7 @@ p,
 .icon-button,
 .segmented button,
 .question-dot {
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .eyebrow,
@@ -3378,7 +3378,7 @@ legend,
 .choice-entry-grid span,
 .typed-answer-box span,
 .status-text {
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .score-percent,
@@ -3391,7 +3391,7 @@ legend,
 }
 
 strong {
-  font-weight: 700;
+  font-weight: 800;
 }
 
 @media (min-width: 900px) {
