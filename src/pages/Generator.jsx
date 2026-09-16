@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { validateReviewer } from "../data/reviewerRegistry.js";
 import { upsertCloudReviewer } from "../services/cloudReviewers.js";
 import { clearGeneratorDraft, getCloudReviewerCache, getGeneratorDraft, saveCloudReviewerCache, saveGeneratorDraft, saveLocalReviewer } from "../utils/storageUtils.js";
+import { logClientError } from "../utils/errorLogger.js";
 
 const emptyQuestion = {
   topic: "",
@@ -21,6 +22,9 @@ const TEXT_FILE_EXTENSIONS = [".txt", ".md", ".csv", ".json"];
 const MAX_UPLOAD_SIZE = 12 * 1024 * 1024;
 const MAX_AI_FILE_UPLOAD_SIZE = 3 * 1024 * 1024;
 const MAX_AI_SOURCE_TEXT_LENGTH = 45000;
+const AI_RATE_LIMIT_KEY = "reviewer_ai_request_window";
+const AI_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const AI_RATE_LIMIT_MAX_REQUESTS = 8;
 const QUESTION_COUNT_OPTIONS = [
   { value: "20", label: "20" },
   { value: "50", label: "50" },
@@ -164,6 +168,29 @@ function getFriendlyGenerationError(error) {
   }
 
   return message || "Could not generate a reviewer.";
+}
+
+function checkAiRateLimit() {
+  const now = Date.now();
+
+  try {
+    const current = JSON.parse(localStorage.getItem(AI_RATE_LIMIT_KEY) || "null");
+
+    if (!current || now - current.windowStart >= AI_RATE_LIMIT_WINDOW_MS) {
+      localStorage.setItem(AI_RATE_LIMIT_KEY, JSON.stringify({ windowStart: now, count: 1 }));
+      return null;
+    }
+
+    if (current.count >= AI_RATE_LIMIT_MAX_REQUESTS) {
+      const retryMinutes = Math.max(1, Math.ceil((AI_RATE_LIMIT_WINDOW_MS - (now - current.windowStart)) / 60000));
+      return `AI generation is limited to ${AI_RATE_LIMIT_MAX_REQUESTS} requests every 10 minutes. Try again in about ${retryMinutes} minute${retryMinutes === 1 ? "" : "s"}.`;
+    }
+
+    localStorage.setItem(AI_RATE_LIMIT_KEY, JSON.stringify({ ...current, count: current.count + 1 }));
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 async function extractPdfText(file) {
@@ -532,6 +559,12 @@ export default function Generator() {
       return;
     }
 
+    const rateLimitError = checkAiRateLimit();
+    if (rateLimitError) {
+      setErrors([rateLimitError]);
+      return;
+    }
+
     setIsGenerating(true);
     setErrors([]);
     setJsonCheck(null);
@@ -568,7 +601,7 @@ export default function Generator() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || "Gemini could not generate a reviewer.");
+        throw new Error(data?.requestId ? `${data?.error || "Gemini could not generate a reviewer."} Request ID: ${data.requestId}` : data?.error || "Gemini could not generate a reviewer.");
       }
 
       const reviewer = normalizeReviewerJson(data.reviewer, { questionType });
@@ -596,6 +629,13 @@ export default function Generator() {
         : `Reviewer generated with ${reviewer.questions.length} questions. ${getSaveMessage(saveMode)}`);
       setProgressStep("Done");
     } catch (error) {
+      logClientError("generate-reviewer", error, {
+        targetQuestionCount,
+        difficulty,
+        questionType,
+        hasUploadedFile,
+        sourceLength: trimmedSourceText.length
+      });
       setGenerationMessage("");
       setErrors([getFriendlyGenerationError(error)]);
     } finally {
@@ -627,6 +667,12 @@ export default function Generator() {
 
     if (currentReviewer.questions.length >= 150) {
       setErrors(["This reviewer already has 150 questions, which is the current maximum."]);
+      return;
+    }
+
+    const rateLimitError = checkAiRateLimit();
+    if (rateLimitError) {
+      setErrors([rateLimitError]);
       return;
     }
 
@@ -664,7 +710,7 @@ export default function Generator() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || "Gemini could not make more questions.");
+        throw new Error(data?.requestId ? `${data?.error || "Gemini could not make more questions."} Request ID: ${data.requestId}` : data?.error || "Gemini could not make more questions.");
       }
 
       const reviewer = normalizeReviewerJson(data.reviewer, { preserveReviewerId: true, questionType: currentReviewer.questionType || questionType });
@@ -690,6 +736,12 @@ export default function Generator() {
         : `Added ${data.addedQuestionCount || moreQuestionCount} questions. ${getSaveMessage(saveMode)}`);
       setProgressStep("Done");
     } catch (error) {
+      logClientError("extend-reviewer", error, {
+        moreQuestionCount,
+        difficulty,
+        questionType: currentReviewer?.questionType || questionType,
+        sourceLength: trimmedSourceText.length
+      });
       setGenerationMessage("");
       setErrors([getFriendlyGenerationError(error)]);
     } finally {
@@ -752,6 +804,11 @@ export default function Generator() {
               <h2>Generate Reviewer</h2>
               <p className="muted">Upload a PDF or text file. You can also paste notes if that is faster.</p>
             </div>
+          </div>
+
+          <div className="production-note" role="note">
+            <strong>AI limits</strong>
+            <span>PDF upload under 3 MB direct, up to 12 MB for browser text extraction, 45,000 characters of notes, 150 questions max, and 8 AI requests every 10 minutes.</span>
           </div>
 
           <div className="ai-prompt-panel">

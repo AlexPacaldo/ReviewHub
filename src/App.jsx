@@ -15,6 +15,7 @@ import Privacy from "./pages/Privacy.jsx";
 import Terms from "./pages/Terms.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js";
+import { logClientError } from "./utils/errorLogger.js";
 
 export default function App() {
   const [theme, setTheme] = useState(getThemePreference);
@@ -42,6 +43,26 @@ export default function App() {
 
     window.addEventListener("beforeinstallprompt", captureInstallPrompt);
     return () => window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+  }, []);
+
+  useEffect(() => {
+    const handleError = (event) => {
+      logClientError("window-error", event.error || event.message, {
+        filename: event.filename,
+        line: event.lineno,
+        column: event.colno
+      });
+    };
+    const handleUnhandledRejection = (event) => {
+      logClientError("unhandled-rejection", event.reason);
+    };
+
+    window.addEventListener("error", handleError);
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    return () => {
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
   }, []);
 
   async function installApp() {

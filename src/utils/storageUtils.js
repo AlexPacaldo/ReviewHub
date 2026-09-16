@@ -6,7 +6,8 @@ const KEYS = {
   localReviewers: "reviewer_local_reviewers",
   cloudReviewerCache: "reviewer_cloud_reviewer_cache",
   generatorDraft: "reviewer_generator_draft",
-  syncQueue: "reviewer_sync_queue"
+  syncQueue: "reviewer_sync_queue",
+  errorLog: "reviewer_error_log"
 };
 
 export const REVIEWER_DATA_CHANGED_EVENT = "reviewer-data-changed";
@@ -32,6 +33,56 @@ function notifyReviewerDataChanged() {
 
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isReviewerLike(value) {
+  return isObject(value) &&
+    typeof value.reviewerId === "string" &&
+    typeof value.title === "string" &&
+    typeof value.subject === "string" &&
+    Array.isArray(value.questions);
+}
+
+function assertBackupArray(name, value, { maxItems = 1000, itemCheck = null } = {}) {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    throw new Error(`Backup ${name} must be a list.`);
+  }
+  if (value.length > maxItems) {
+    throw new Error(`Backup ${name} has too many items.`);
+  }
+  if (itemCheck && value.some((item) => !itemCheck(item))) {
+    throw new Error(`Backup ${name} contains invalid data.`);
+  }
+}
+
+function validateLocalDataSnapshot(snapshot) {
+  if (!isObject(snapshot)) {
+    throw new Error("Backup file must contain a local data object.");
+  }
+
+  const knownKeys = ["progress", "history", "lastAttempt", "localReviewers", "cloudReviewerCache", "generatorDraft", "syncQueue", "errorLog", "theme", "exportedAt"];
+  const hasKnownKey = knownKeys.some((key) => Object.prototype.hasOwnProperty.call(snapshot, key));
+
+  if (!hasKnownKey) {
+    throw new Error("Backup file does not look like a Hachi backup.");
+  }
+
+  assertBackupArray("history", snapshot.history, { maxItems: 2500 });
+  assertBackupArray("localReviewers", snapshot.localReviewers, { maxItems: 250, itemCheck: isReviewerLike });
+  assertBackupArray("cloudReviewerCache", snapshot.cloudReviewerCache, { maxItems: 250, itemCheck: isReviewerLike });
+  assertBackupArray("syncQueue", snapshot.syncQueue, { maxItems: 250 });
+  assertBackupArray("errorLog", snapshot.errorLog, { maxItems: 25 });
+
+  if (snapshot.progress !== undefined && !isObject(snapshot.progress)) {
+    throw new Error("Backup progress must be an object.");
+  }
+  if (snapshot.lastAttempt !== undefined && !isObject(snapshot.lastAttempt)) {
+    throw new Error("Backup last attempt data must be an object.");
+  }
+  if (snapshot.generatorDraft !== undefined && snapshot.generatorDraft !== null && !isObject(snapshot.generatorDraft)) {
+    throw new Error("Backup generator draft must be an object.");
+  }
 }
 
 export function getThemePreference() {
@@ -191,9 +242,7 @@ export function clearSyncQueue() {
 }
 
 export function restoreLocalDataSnapshot(snapshot) {
-  if (!isObject(snapshot)) {
-    throw new Error("Backup file must contain a local data object.");
-  }
+  validateLocalDataSnapshot(snapshot);
 
   writeJson(KEYS.progress, isObject(snapshot.progress) ? snapshot.progress : {});
   writeJson(KEYS.history, Array.isArray(snapshot.history) ? snapshot.history : []);
@@ -201,6 +250,7 @@ export function restoreLocalDataSnapshot(snapshot) {
   writeJson(KEYS.localReviewers, Array.isArray(snapshot.localReviewers) ? snapshot.localReviewers : []);
   writeJson(KEYS.cloudReviewerCache, Array.isArray(snapshot.cloudReviewerCache) ? snapshot.cloudReviewerCache : []);
   writeJson(KEYS.syncQueue, Array.isArray(snapshot.syncQueue) ? snapshot.syncQueue : []);
+  writeJson(KEYS.errorLog, Array.isArray(snapshot.errorLog) ? snapshot.errorLog.slice(0, 25) : []);
 
   if (isObject(snapshot.generatorDraft)) {
     writeJson(KEYS.generatorDraft, snapshot.generatorDraft);
@@ -226,6 +276,7 @@ export function getLocalDataSnapshot() {
     cloudReviewerCache: getCloudReviewerCache(),
     generatorDraft: getGeneratorDraft(),
     syncQueue: getSyncQueue(),
+    errorLog: readJson(KEYS.errorLog, []),
     theme: getThemePreference()
   };
 }

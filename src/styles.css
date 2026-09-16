@@ -1094,6 +1094,21 @@ legend {
   accent-color: var(--accent);
 }
 
+.production-note {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  color: var(--warning);
+  background: var(--warning-soft);
+  border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--border));
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.production-note strong {
+  color: var(--text);
+}
+
 .json-import-panel {
   display: grid;
   gap: 14px;
@@ -1894,6 +1909,29 @@ legend {
   color: var(--success);
   font-size: 0.9rem;
   font-weight: 900;
+}
+
+.error-log-list {
+  display: grid;
+  gap: 10px;
+}
+
+.error-log-row {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.error-log-row span {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.error-log-row small {
+  color: var(--muted);
 }
 
 .sync-message {

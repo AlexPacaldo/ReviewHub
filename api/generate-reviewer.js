@@ -3,6 +3,11 @@ const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const MAX_SOURCE_LENGTH = 45000;
 const MAX_FILE_BASE64_LENGTH = 4200000;
 const MAX_COMPLETION_ATTEMPTS = 3;
+const MAX_REQUEST_BODY_LENGTH = 5200000;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 8;
+const rateLimitStore = globalThis.__hachiRateLimitStore || new Map();
+globalThis.__hachiRateLimitStore = rateLimitStore;
 const DIFFICULTY_INSTRUCTIONS = {
   easy: "Favor direct recall, simple definitions, and straightforward concept checks.",
   mixed: "Use a balanced mix of recall, concept, scenario, and application questions.",
@@ -110,6 +115,52 @@ const reviewerSchema = {
 
 function sendJson(response, statusCode, payload) {
   response.status(statusCode).json(payload);
+}
+
+function getRequestId() {
+  return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function getClientKey(request) {
+  const forwardedFor = request.headers["x-forwarded-for"];
+  const firstForwardedIp = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor?.split(",")[0];
+  return firstForwardedIp?.trim() || request.socket?.remoteAddress || "unknown";
+}
+
+function pruneRateLimitStore(now) {
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
+      rateLimitStore.delete(key);
+    }
+  }
+}
+
+function checkRateLimit(request) {
+  const now = Date.now();
+  const key = getClientKey(request);
+  const current = rateLimitStore.get(key);
+
+  pruneRateLimitStore(now);
+
+  if (!current || now - current.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    rateLimitStore.set(key, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetMs: RATE_LIMIT_WINDOW_MS };
+  }
+
+  if (current.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetMs: RATE_LIMIT_WINDOW_MS - (now - current.windowStart)
+    };
+  }
+
+  current.count += 1;
+  return {
+    allowed: true,
+    remaining: RATE_LIMIT_MAX_REQUESTS - current.count,
+    resetMs: RATE_LIMIT_WINDOW_MS - (now - current.windowStart)
+  };
 }
 
 function getCandidateText(data) {
@@ -392,14 +443,39 @@ async function requestReviewerFromGemini({ apiKey, model, parts }) {
 }
 
 export default async function handler(request, response) {
+  const requestId = getRequestId();
+  response.setHeader("X-Request-Id", requestId);
+
   if (request.method !== "POST") {
     response.setHeader("Allow", "POST");
     return sendJson(response, 405, { error: "Method not allowed." });
   }
 
+  const rateLimit = checkRateLimit(request);
+  response.setHeader("X-RateLimit-Limit", String(RATE_LIMIT_MAX_REQUESTS));
+  response.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
+  response.setHeader("X-RateLimit-Reset", String(Math.ceil(rateLimit.resetMs / 1000)));
+
+  if (!rateLimit.allowed) {
+    response.setHeader("Retry-After", String(Math.ceil(rateLimit.resetMs / 1000)));
+    return sendJson(response, 429, {
+      error: `Too many AI requests. Try again in ${Math.ceil(rateLimit.resetMs / 60000)} minute${rateLimit.resetMs > 60000 ? "s" : ""}.`,
+      requestId
+    });
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return sendJson(response, 500, { error: "GEMINI_API_KEY is not configured." });
+    console.error(`[${requestId}] GEMINI_API_KEY is not configured.`);
+    return sendJson(response, 500, { error: "GEMINI_API_KEY is not configured.", requestId });
+  }
+
+  const approximateBodyLength = JSON.stringify(request.body || {}).length;
+  if (approximateBodyLength > MAX_REQUEST_BODY_LENGTH) {
+    return sendJson(response, 413, {
+      error: "That request is too large for AI generation. Use a smaller file, extract text, or paste the most important notes.",
+      requestId
+    });
   }
 
   const {
@@ -424,11 +500,11 @@ export default async function handler(request, response) {
   const existingQuestions = Array.isArray(existingReviewer?.questions) ? existingReviewer.questions : [];
 
   if (!hasFileData && trimmedSourceText.length < 100 && !existingQuestions.length) {
-    return sendJson(response, 400, { error: "Add more study material before generating a reviewer." });
+    return sendJson(response, 400, { error: "Add more study material before generating a reviewer.", requestId });
   }
 
   if (hasFileData && String(file.data).length > MAX_FILE_BASE64_LENGTH) {
-    return sendJson(response, 413, { error: "That file is too large to send to the AI after browser encoding. Compress or split the PDF, or paste the important notes." });
+    return sendJson(response, 413, { error: "That file is too large to send to the AI after browser encoding. Compress or split the PDF, or paste the important notes.", requestId });
   }
 
   const safeSourceText = trimmedSourceText.slice(0, MAX_SOURCE_LENGTH);
@@ -440,7 +516,7 @@ export default async function handler(request, response) {
 
   if (normalizedMode === "extend") {
     if (!existingQuestions.length) {
-      return sendJson(response, 400, { error: "Choose a generated reviewer before making more questions." });
+      return sendJson(response, 400, { error: "Choose a generated reviewer before making more questions.", requestId });
     }
 
     const baseReviewer = normalizeGeneratedReviewer(existingReviewer, {
@@ -500,8 +576,13 @@ export default async function handler(request, response) {
           : null
       });
     } catch (error) {
+      console.error(`[${requestId}] Gemini extension failed:`, {
+        statusCode: error?.statusCode || 500,
+        message: error?.message || "Unknown error"
+      });
       return sendJson(response, error?.statusCode || 500, {
         error: error?.message || "Could not reach Gemini.",
+        requestId,
         rawText: error?.rawText
       });
     }
@@ -593,8 +674,13 @@ export default async function handler(request, response) {
       warning
     });
   } catch (error) {
+    console.error(`[${requestId}] Gemini generation failed:`, {
+      statusCode: error?.statusCode || 500,
+      message: error?.message || "Unknown error"
+    });
     return sendJson(response, error?.statusCode || 500, {
       error: error?.message || "Could not reach Gemini.",
+      requestId,
       rawText: error?.rawText
     });
   }

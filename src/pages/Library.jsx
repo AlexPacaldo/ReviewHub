@@ -26,6 +26,9 @@ import {
   saveCloudReviewerCache,
   saveLocalReviewer
 } from "../utils/storageUtils.js";
+import { clearClientErrorLogs, getClientErrorLogs, logClientError } from "../utils/errorLogger.js";
+
+const MAX_BACKUP_RESTORE_SIZE = 8 * 1024 * 1024;
 
 function downloadJson(filename, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -69,6 +72,7 @@ export default function Library() {
   const [syncAllLoading, setSyncAllLoading] = useState(false);
   const [offlineSaveStatus, setOfflineSaveStatus] = useState({});
   const [syncQueue, setSyncQueue] = useState(getSyncQueue);
+  const [errorLogs, setErrorLogs] = useState(getClientErrorLogs);
   const [storageInfo, setStorageInfo] = useState({
     supported: false,
     persisted: false,
@@ -136,9 +140,10 @@ export default function Library() {
       history: history.length,
       progressSessions,
       generatorDrafts: generatorDraft ? 1 : 0,
-      queuedSyncs: syncQueue.length
+      queuedSyncs: syncQueue.length,
+      errorLogs: errorLogs.length
     };
-  }, [cloudReviewers.length, generatorDraft, history.length, localReviewers.length, progress, syncQueue.length]);
+  }, [cloudReviewers.length, errorLogs.length, generatorDraft, history.length, localReviewers.length, progress, syncQueue.length]);
 
   function refreshLocalData() {
     setLocalReviewers(getLocalReviewers());
@@ -146,6 +151,7 @@ export default function Library() {
     setHistory(getAttemptHistory());
     setGeneratorDraft(getGeneratorDraft());
     setSyncQueue(getSyncQueue());
+    setErrorLogs(getClientErrorLogs());
   }
 
   async function refreshStorageInfo() {
@@ -347,6 +353,12 @@ export default function Library() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (file.size > MAX_BACKUP_RESTORE_SIZE) {
+      setBackupMessage("That backup file is too large. Restore a Hachi backup under 8 MB.");
+      event.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -355,6 +367,7 @@ export default function Library() {
         refreshLocalData();
         setBackupMessage("Backup restored on this device.");
       } catch (error) {
+        logClientError("restore-backup", error, { fileName: file.name, fileSize: file.size });
         setBackupMessage(error?.message || "Could not restore that backup file.");
       }
     };
@@ -569,6 +582,11 @@ export default function Library() {
       setCloudMessage({ type: "success", message: "Queued sync actions cleared." });
     }
 
+    if (confirmAction?.type === "clear-error-logs") {
+      clearClientErrorLogs();
+      setBackupMessage("Production error log cleared on this device.");
+    }
+
     setConfirmAction(null);
     refreshLocalData();
   }
@@ -630,6 +648,10 @@ export default function Library() {
         <article className="library-status-card">
           <span>Queued Syncs</span>
           <strong>{stats.queuedSyncs}</strong>
+        </article>
+        <article className="library-status-card">
+          <span>Error Logs</span>
+          <strong>{stats.errorLogs}</strong>
         </article>
       </section>
 
@@ -923,6 +945,33 @@ export default function Library() {
           </button>
         </div>
         {backupMessage ? <p className="backup-message">{backupMessage}</p> : null}
+      </section>
+
+      <section className="library-panel">
+        <div className="library-panel-head">
+          <div>
+            <h2>Production Diagnostics</h2>
+            <p className="muted">Recent app errors saved on this device. These help debug production issues without exposing API keys.</p>
+          </div>
+          {errorLogs.length ? (
+            <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-error-logs" })}>
+              Clear Logs
+            </button>
+          ) : null}
+        </div>
+        {errorLogs.length ? (
+          <div className="error-log-list">
+            {errorLogs.slice(0, 5).map((entry) => (
+              <article className="error-log-row" key={entry.id}>
+                <strong>{entry.source}</strong>
+                <span>{entry.error?.message || "Unknown error"}</span>
+                <small>{new Date(entry.createdAt).toLocaleString()}</small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="No production errors logged" message="If the app hits a runtime error, the latest details will appear here on this device." />
+        )}
       </section>
 
       <ConfirmModal

@@ -1,7 +1,7 @@
 {
-  "name": "Review Hub",
-  "short_name": "Review Hub",
-  "description": "An offline-first reviewer and quiz app.",
+  "name": "Hachi - Your Study Companion",
+  "short_name": "Hachi",
+  "description": "An offline-first reviewer, AI generator, sharing, and quiz app.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
