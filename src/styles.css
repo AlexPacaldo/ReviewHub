@@ -130,6 +130,12 @@ main {
   gap: 6px;
 }
 
+.navbar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .nav-links a {
   min-height: 40px;
   padding: 0 12px;
@@ -184,6 +190,11 @@ main {
   display: none;
 }
 
+.sidebar-actions,
+.sidebar-decks {
+  display: none;
+}
+
 .button {
   justify-content: center;
   padding: 0 15px;
@@ -223,6 +234,175 @@ main {
 
 .button.subtle {
   background: var(--surface-2);
+}
+
+@media (min-width: 900px) {
+  main {
+    min-height: 100vh;
+    margin-left: 300px;
+  }
+
+  .navbar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: 300px;
+    min-height: 100vh;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex-direction: column;
+    gap: 18px;
+    padding: 28px 16px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    border-bottom: 0;
+    backdrop-filter: none;
+  }
+
+  .brand {
+    min-height: 46px;
+    padding: 0 2px;
+    color: var(--text);
+    font-size: 1.9rem;
+    font-weight: 950;
+    letter-spacing: 0;
+  }
+
+  .brand-icon-wrap {
+    width: 42px;
+    height: 42px;
+  }
+
+  .brand-icon-wrap img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav-links {
+    display: grid;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .nav-links a {
+    min-height: 52px;
+    justify-content: flex-start;
+    padding: 0 14px;
+    color: var(--muted);
+    border-radius: 12px;
+    font-weight: 900;
+  }
+
+  .nav-links a.active,
+  .nav-links a:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .nav-links a svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-avatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sidebar-actions {
+    display: grid;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .sidebar-study-button,
+  .sidebar-add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-weight: 950;
+  }
+
+  .sidebar-study-button {
+    color: #fff;
+    background: #111827;
+    border-color: #111827;
+  }
+
+  :root[data-theme="dark"] .sidebar-study-button {
+    color: #111827;
+    background: #f8fafc;
+    border-color: #f8fafc;
+  }
+
+  .sidebar-add-button {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .sidebar-decks {
+    display: grid;
+    gap: 10px;
+    margin: 8px -16px 0;
+    padding: 18px 20px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .sidebar-decks-head,
+  .sidebar-decks a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .sidebar-decks a {
+    justify-content: flex-start;
+    min-height: 30px;
+    color: var(--muted);
+    font-weight: 850;
+  }
+
+  .sidebar-decks a:hover {
+    color: var(--text);
+  }
+
+  .deck-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
+
+  .deck-dot.pink {
+    background: #ec4899;
+  }
+
+  .deck-dot.green {
+    background: #2dd4bf;
+  }
+
+  .deck-dot.black {
+    background: #111827;
+  }
+
+  .navbar-controls {
+    margin-top: auto;
+    justify-content: space-between;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .update-banner,
+  .install-banner {
+    top: 0;
+    margin-left: 300px;
+  }
 }
 
 .update-banner {
@@ -2157,5 +2337,13 @@ legend {
   .account-profile-card {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+@media (min-width: 900px) {
+  .update-banner,
+  .install-banner {
+    top: 0;
+    margin-left: 300px;
   }
 }
