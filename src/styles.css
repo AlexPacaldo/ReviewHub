@@ -3394,6 +3394,16 @@ strong {
   font-weight: 800;
 }
 
+.reviewer-source-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  line-height: 1;
+}
+
 @media (min-width: 900px) {
   main {
     margin-left: 292px;
