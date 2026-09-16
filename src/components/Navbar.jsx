@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { History, Library, Moon, Sparkles, Sun, UserRound, Users, WifiOff } from "lucide-react";
+import { History, Library, Menu, Moon, Sparkles, Sun, UserRound, Users, WifiOff, X } from "lucide-react";
 import appLogo from "../assets/Icon.png";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -14,6 +14,7 @@ function getUserAvatar(user) {
 
 export default function Navbar({ theme, onToggleTheme }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -27,8 +28,19 @@ export default function Navbar({ theme, onToggleTheme }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const closeOnResize = () => {
+      if (window.innerWidth > 760) setMenuOpen(false);
+    };
+
+    window.addEventListener("resize", closeOnResize);
+    return () => window.removeEventListener("resize", closeOnResize);
+  }, [menuOpen]);
+
   return (
-    <header className="navbar">
+    <header className={`navbar ${menuOpen ? "menu-open" : ""}`}>
       <Link to="/" className="brand" aria-label="Hachi home">
         <span className="brand-icon-wrap">
           <img src={appLogo} alt="Hachi logo" width={28} height={28} />
@@ -36,25 +48,25 @@ export default function Navbar({ theme, onToggleTheme }) {
         <span>Hachi</span>
       </Link>
 
-      <nav className="nav-links" aria-label="Main navigation">
-        <NavLink to="/">Reviewers</NavLink>
-        <NavLink to="/generator">
+      <nav className="nav-links" aria-label="Main navigation" id="main-navigation">
+        <NavLink to="/" onClick={() => setMenuOpen(false)}>Reviewers</NavLink>
+        <NavLink to="/generator" onClick={() => setMenuOpen(false)}>
           <Sparkles size={17} aria-hidden="true" />
           Generator
         </NavLink>
-        <NavLink to="/history">
+        <NavLink to="/history" onClick={() => setMenuOpen(false)}>
           <History size={17} aria-hidden="true" />
           History
         </NavLink>
-        <NavLink to="/library">
+        <NavLink to="/library" onClick={() => setMenuOpen(false)}>
           <Library size={17} aria-hidden="true" />
           Library
         </NavLink>
-        <NavLink to="/friends">
+        <NavLink to="/friends" onClick={() => setMenuOpen(false)}>
           <Users size={17} aria-hidden="true" />
           Friends
         </NavLink>
-        <NavLink to="/account">
+        <NavLink to="/account" onClick={() => setMenuOpen(false)}>
           {user && getUserAvatar(user) ? (
             <img className="nav-avatar" src={getUserAvatar(user)} alt="" />
           ) : (
@@ -70,6 +82,17 @@ export default function Navbar({ theme, onToggleTheme }) {
           Offline
         </span>
       ) : null}
+
+      <button
+        className="icon-button menu-toggle"
+        type="button"
+        onClick={() => setMenuOpen((current) => !current)}
+        aria-label={menuOpen ? "Close menu" : "Open menu"}
+        aria-expanded={menuOpen}
+        aria-controls="main-navigation"
+      >
+        {menuOpen ? <X size={19} aria-hidden="true" /> : <Menu size={19} aria-hidden="true" />}
+      </button>
 
       <button className="icon-button" type="button" onClick={onToggleTheme} aria-label="Toggle theme">
         {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}

@@ -180,6 +180,10 @@ main {
   color: var(--text);
 }
 
+.menu-toggle {
+  display: none;
+}
+
 .button {
   justify-content: center;
   padding: 0 15px;
@@ -1965,7 +1969,7 @@ legend {
 @media (max-width: 760px) {
   .navbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     min-height: auto;
     padding: 12px 16px;
     gap: 10px;
@@ -1974,14 +1978,26 @@ legend {
   .nav-links {
     order: 3;
     grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: none;
     width: 100%;
-    gap: 6px;
+    gap: 8px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .navbar.menu-open .nav-links {
+    display: grid;
   }
 
   .offline-pill {
     margin-left: auto;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
   }
 
   .update-banner,
@@ -1991,11 +2007,11 @@ legend {
   }
 
   .nav-links a {
-    justify-content: center;
+    justify-content: flex-start;
     min-width: 0;
-    min-height: 38px;
-    padding: 0 8px;
-    font-size: 0.88rem;
+    min-height: 42px;
+    padding: 0 12px;
+    font-size: 0.94rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2100,12 +2116,12 @@ legend {
   }
 
   .nav-links {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px;
   }
 
   .nav-links a {
-    font-size: 0.84rem;
-    padding: 0 6px;
+    font-size: 0.9rem;
+    padding: 0 10px;
   }
 
   .offline-pill {
