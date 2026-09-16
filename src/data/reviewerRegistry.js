@@ -1,5 +1,3 @@
-import technoPrelim from "./reviewers/bm2506_technopreneurship_prelim_reviewer.json";
-import technoPrelimReviewerFromMaam from "./reviewers/technopreneurship_quiz_50_questions_verified.json";
 import { getCloudReviewerCache, getLocalReviewers } from "../utils/storageUtils.js";
 
 const REQUIRED_CHOICE_KEYS = ["A", "B", "C", "D"];
@@ -52,7 +50,7 @@ export function validateReviewer(reviewer) {
   return { isValid: errors.length === 0, errors };
 }
 
-export const reviewers = [technoPrelim, technoPrelimReviewerFromMaam].map((reviewer) => ({
+export const reviewers = [].map((reviewer) => ({
   ...reviewer,
   source: "built-in",
   storageStatus: "built-in",

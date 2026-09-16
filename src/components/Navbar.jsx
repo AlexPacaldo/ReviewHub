@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { History, Home, Library, Menu, Moon, Plus, Sparkles, Sun, UserRound, Users, WifiOff, X } from "lucide-react";
+import { History, Home, Library, Menu, Moon, Sparkles, Sun, UserRound, Users, WifiOff, X } from "lucide-react";
 import appLogo from "../assets/Icon.png";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -79,21 +79,9 @@ export default function Navbar({ theme, onToggleTheme }) {
         </NavLink>
       </nav>
 
-      <div className="sidebar-actions" aria-label="Quick actions">
-        <Link className="sidebar-study-button" to="/generator">
-          <Sparkles size={17} aria-hidden="true" />
-          Study
-        </Link>
-        <Link className="sidebar-add-button" to="/generator">
-          <Plus size={17} aria-hidden="true" />
-          Add
-        </Link>
-      </div>
-
-      <div className="sidebar-decks" aria-label="Library shortcuts">
+      <div className="sidebar-decks" aria-label="Reviewer shortcuts">
         <div className="sidebar-decks-head">
-          <strong>My decks</strong>
-          <Plus size={17} aria-hidden="true" />
+          <strong>Reviewers</strong>
         </div>
         <Link to="/library">
           <span className="deck-dot pink" aria-hidden="true" />
