@@ -1,22 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { History, Home, Library, Menu, Moon, Sparkles, Sun, UserRound, Users, WifiOff, X } from "lucide-react";
+import { Cloud, History, Home, Library, Menu, Moon, Share2, Sparkles, Sun, Users, WifiOff, Download } from "lucide-react";
 import appLogo from "../assets/Icon.png";
-import { NotificationCenter } from "./NotificationCenter.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
-
-function getUserName(user) {
-  return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Account";
-}
-
-function getUserAvatar(user) {
-  return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
-}
 
 export default function Navbar({ theme, onToggleTheme }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const [menuClosing, setMenuClosing] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 24);
+  const menuCloseTimer = useRef(null);
+  const touchStart = useRef(null);
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -33,96 +26,160 @@ export default function Navbar({ theme, onToggleTheme }) {
     if (!menuOpen) return;
 
     const closeOnResize = () => {
-      if (window.innerWidth > 760) setMenuOpen(false);
+      if (window.innerWidth > 760) {
+        setMenuOpen(false);
+        setMenuClosing(false);
+      }
     };
 
     window.addEventListener("resize", closeOnResize);
     return () => window.removeEventListener("resize", closeOnResize);
   }, [menuOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (menuCloseTimer.current) window.clearTimeout(menuCloseTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateScrolled = () => setIsScrolled(window.scrollY > 24);
+
+    updateScrolled();
+    window.addEventListener("scroll", updateScrolled, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolled);
+  }, []);
+
+  function openMenu() {
+    if (menuCloseTimer.current) window.clearTimeout(menuCloseTimer.current);
+    setMenuClosing(false);
+    setMenuOpen(true);
+  }
+
+  function closeMenu() {
+    if (!menuOpen || menuClosing) return;
+    setMenuClosing(true);
+    if (menuCloseTimer.current) window.clearTimeout(menuCloseTimer.current);
+    menuCloseTimer.current = window.setTimeout(() => {
+      setMenuOpen(false);
+      setMenuClosing(false);
+    }, 260);
+  }
+
+  function handleTouchStart(event) {
+    if (!menuOpen) return;
+    const touch = event.touches[0];
+    touchStart.current = {
+      x: touch.clientX,
+      y: touch.clientY
+    };
+  }
+
+  function handleTouchEnd(event) {
+    if (!menuOpen || !touchStart.current) return;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.current.x;
+    const deltaY = touch.clientY - touchStart.current.y;
+    touchStart.current = null;
+
+    if (deltaX < -48 && Math.abs(deltaY) < 80) {
+      closeMenu();
+    }
+  }
+
+  const drawerVisible = menuOpen || menuClosing;
+  const swipeHandlers = {
+    onTouchStart: handleTouchStart,
+    onTouchEnd: handleTouchEnd
+  };
+
   return (
-    <header className={`navbar ${menuOpen ? "menu-open" : ""}`}>
-      <Link to="/" className="brand" aria-label="Hachi home">
-        <span className="brand-icon-wrap">
-          <img src={appLogo} alt="Hachi logo" width={28} height={28} />
-        </span>
-        <span>Hachi</span>
-      </Link>
-
-      <nav className="nav-links" aria-label="Main navigation" id="main-navigation">
-        <NavLink to="/" onClick={() => setMenuOpen(false)}>
-          <Home size={17} aria-hidden="true" />
-          Home
-        </NavLink>
-        <NavLink to="/generator" onClick={() => setMenuOpen(false)}>
-          <Sparkles size={17} aria-hidden="true" />
-          Generator
-        </NavLink>
-        <NavLink to="/history" onClick={() => setMenuOpen(false)}>
-          <History size={17} aria-hidden="true" />
-          History
-        </NavLink>
-        <NavLink to="/library" onClick={() => setMenuOpen(false)}>
-          <Library size={17} aria-hidden="true" />
-          Library
-        </NavLink>
-        <NavLink to="/friends" onClick={() => setMenuOpen(false)}>
-          <Users size={17} aria-hidden="true" />
-          Friends
-        </NavLink>
-        <NavLink to="/account" onClick={() => setMenuOpen(false)}>
-          {user && getUserAvatar(user) ? (
-            <img className="nav-avatar" src={getUserAvatar(user)} alt="" />
-          ) : (
-            <UserRound size={17} aria-hidden="true" />
-          )}
-          {user ? getUserName(user) : "Sign In"}
-        </NavLink>
-      </nav>
-
-      <div className="sidebar-decks" aria-label="Reviewer shortcuts">
-        <div className="sidebar-decks-head">
-          <strong>Reviewers</strong>
-        </div>
-        <Link to="/library">
-          <span className="deck-dot pink" aria-hidden="true" />
-          Saved offline
-        </Link>
-        <Link to="/library">
-          <span className="deck-dot green" aria-hidden="true" />
-          Cloud library
-        </Link>
-        <Link to="/friends">
-          <span className="deck-dot black" aria-hidden="true" />
-          Shared
-        </Link>
-      </div>
-
-      <div className="navbar-controls">
-        <NotificationCenter />
-
-        {!isOnline ? (
-          <span className="offline-pill" role="status">
-            <WifiOff size={16} aria-hidden="true" />
-            Offline
-          </span>
-        ) : null}
-
+    <>
+      {drawerVisible ? (
         <button
-          className="icon-button menu-toggle"
+          className={`nav-backdrop ${menuClosing ? "closing" : ""}`}
           type="button"
-          onClick={() => setMenuOpen((current) => !current)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          aria-controls="main-navigation"
-        >
-          {menuOpen ? <X size={19} aria-hidden="true" /> : <Menu size={19} aria-hidden="true" />}
-        </button>
+          aria-label="Close menu"
+          onClick={closeMenu}
+          {...swipeHandlers}
+        />
+      ) : null}
+      <header
+        className={`navbar ${menuOpen ? "menu-open" : ""} ${menuClosing ? "menu-closing" : ""} ${isScrolled ? "scrolled" : ""}`}
+        {...swipeHandlers}
+      >
+        <Link to="/" className="brand" aria-label="Hachi home" onClick={closeMenu}>
+          <span className="brand-icon-wrap">
+            <img src={appLogo} alt="Hachi logo" width={28} height={28} />
+          </span>
+          <span>Hachi</span>
+        </Link>
 
-        <button className="icon-button" type="button" onClick={onToggleTheme} aria-label="Toggle theme">
-          {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
-        </button>
-      </div>
-    </header>
+        <nav className="nav-links" aria-label="Main navigation" id="main-navigation">
+          <NavLink to="/" onClick={closeMenu}>
+            <Home size={17} aria-hidden="true" />
+            Home
+          </NavLink>
+          <NavLink to="/generator" onClick={closeMenu}>
+            <Sparkles size={17} aria-hidden="true" />
+            Generator
+          </NavLink>
+          <NavLink to="/history" onClick={closeMenu}>
+            <History size={17} aria-hidden="true" />
+            History
+          </NavLink>
+          <NavLink to="/library" onClick={closeMenu}>
+            <Library size={17} aria-hidden="true" />
+            Library
+          </NavLink>
+          <NavLink to="/friends" onClick={closeMenu}>
+            <Users size={17} aria-hidden="true" />
+            Friends
+          </NavLink>
+        </nav>
+
+        <div className="sidebar-decks" aria-label="Reviewer shortcuts">
+          <div className="sidebar-decks-head">
+            <strong>Reviewers</strong>
+          </div>
+          <Link to="/library" onClick={closeMenu}>
+            <Download size={17} aria-hidden="true" />
+            Saved offline
+          </Link>
+          <Link to="/library" onClick={closeMenu}>
+            <Cloud size={17} aria-hidden="true" />
+            Cloud library
+          </Link>
+          <Link to="/friends" onClick={closeMenu}>
+            <Share2 size={17} aria-hidden="true" />
+            Shared
+          </Link>
+        </div>
+
+        <div className="navbar-controls">
+          {!isOnline ? (
+            <span className="offline-pill" role="status">
+              <WifiOff size={16} aria-hidden="true" />
+              Offline
+            </span>
+          ) : null}
+
+          <button
+            className="icon-button menu-toggle"
+            type="button"
+            onClick={openMenu}
+            aria-label="Open menu"
+            aria-expanded={menuOpen}
+            aria-controls="main-navigation"
+          >
+            <Menu size={19} aria-hidden="true" />
+          </button>
+
+          <button className="icon-button theme-toggle" type="button" onClick={onToggleTheme} aria-label="Toggle theme">
+            {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+          </button>
+        </div>
+      </header>
+    </>
   );
 }
