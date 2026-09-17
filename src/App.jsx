@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
+import { NotificationToasts } from "./components/NotificationCenter.jsx";
 import Home from "./pages/Home.jsx";
 import ReviewerSetup from "./pages/ReviewerSetup.jsx";
 import Quiz from "./pages/Quiz.jsx";
@@ -14,14 +15,16 @@ import Friends from "./pages/Friends.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Terms from "./pages/Terms.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { NotificationProvider, useNotifications } from "./contexts/NotificationContext.jsx";
 import { getThemePreference, saveThemePreference } from "./utils/storageUtils.js";
 import { logClientError } from "./utils/errorLogger.js";
 
-export default function App() {
+function AppShell() {
   const [theme, setTheme] = useState(getThemePreference);
   const [updateReady, setUpdateReady] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [installDismissed, setInstallDismissed] = useState(() => localStorage.getItem("reviewer_install_dismissed") === "true");
+  const { notify } = useNotifications();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -29,11 +32,18 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
-    const showUpdateNotice = () => setUpdateReady(true);
+    const showUpdateNotice = () => {
+      setUpdateReady(true);
+      notify({
+        type: "info",
+        title: "Offline update ready",
+        message: "A fresh version of Hachi is ready to load."
+      });
+    };
 
     window.addEventListener("reviewhub:update-ready", showUpdateNotice);
     return () => window.removeEventListener("reviewhub:update-ready", showUpdateNotice);
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     const captureInstallPrompt = (event) => {
@@ -44,6 +54,30 @@ export default function App() {
     window.addEventListener("beforeinstallprompt", captureInstallPrompt);
     return () => window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
   }, []);
+
+  useEffect(() => {
+    const showOnlineNotice = () => {
+      notify({
+        type: "success",
+        title: "Back online",
+        message: "Cloud sync and Gemini generation are available again."
+      });
+    };
+    const showOfflineNotice = () => {
+      notify({
+        type: "warning",
+        title: "You are offline",
+        message: "Hachi will keep local features available on this device."
+      });
+    };
+
+    window.addEventListener("online", showOnlineNotice);
+    window.addEventListener("offline", showOfflineNotice);
+    return () => {
+      window.removeEventListener("online", showOnlineNotice);
+      window.removeEventListener("offline", showOfflineNotice);
+    };
+  }, [notify]);
 
   useEffect(() => {
     const handleError = (event) => {
@@ -79,6 +113,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Navbar theme={theme} onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} />
+      <NotificationToasts />
       {updateReady ? (
         <div className="update-banner" role="status">
           <span>New offline version ready.</span>
@@ -118,5 +153,13 @@ export default function App() {
         </Routes>
       </main>
     </AuthProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <NotificationProvider>
+      <AppShell />
+    </NotificationProvider>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { History, Home, Library, Menu, Moon, Sparkles, Sun, UserRound, Users, WifiOff, X } from "lucide-react";
 import appLogo from "../assets/Icon.png";
+import { NotificationCenter } from "./NotificationCenter.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 function getUserName(user) {
@@ -98,6 +99,8 @@ export default function Navbar({ theme, onToggleTheme }) {
       </div>
 
       <div className="navbar-controls">
+        <NotificationCenter />
+
         {!isOnline ? (
           <span className="offline-pill" role="status">
             <WifiOff size={16} aria-hidden="true" />
