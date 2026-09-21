@@ -99,6 +99,7 @@ export function getAllProgress() {
 
 export function clearAllQuizProgress() {
   writeJson(KEYS.progress, {});
+  notifyReviewerDataChanged();
 }
 
 export function loadQuizProgress(reviewerId) {
@@ -109,12 +110,14 @@ export function saveQuizProgress(session) {
   const progress = getAllProgress();
   progress[session.reviewerId] = session;
   writeJson(KEYS.progress, progress);
+  notifyReviewerDataChanged();
 }
 
 export function clearQuizProgress(reviewerId) {
   const progress = getAllProgress();
   delete progress[reviewerId];
   writeJson(KEYS.progress, progress);
+  notifyReviewerDataChanged();
 }
 
 export function getAttemptHistory() {
@@ -125,11 +128,13 @@ export function saveAttempt(attempt) {
   const history = [attempt, ...getAttemptHistory()];
   writeJson(KEYS.history, history);
   writeJson(KEYS.lastAttempt, { [attempt.reviewerId]: attempt });
+  notifyReviewerDataChanged();
   return history;
 }
 
 export function clearAttemptHistory() {
   writeJson(KEYS.history, []);
+  notifyReviewerDataChanged();
 }
 
 export function getAttemptById(attemptId) {

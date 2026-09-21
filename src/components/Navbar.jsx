@@ -1,15 +1,70 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Cloud, History, Home, Library, Menu, Moon, Share2, Sparkles, Sun, Users, WifiOff, Download } from "lucide-react";
+import { History, Home, Hourglass, Library, Menu, Moon, PlayCircle, Sparkles, Sun, Users, WifiOff } from "lucide-react";
 import appLogo from "../assets/Icon.png";
+import { REVIEWER_DATA_CHANGED_EVENT, getAllProgress, getAttemptHistory } from "../utils/storageUtils.js";
+
+const MAX_RECENT_ITEMS = 4;
+
+function getRecentReviewerLinks() {
+  const items = [];
+  const seen = new Set();
+
+  const progressSessions = Object.values(getAllProgress())
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+
+  for (const session of progressSessions) {
+    if (!session?.reviewerId || seen.has(session.reviewerId)) continue;
+    seen.add(session.reviewerId);
+    items.push({
+      key: `progress-${session.reviewerId}`,
+      to: `/quiz/${session.reviewerId}`,
+      kind: "progress",
+      title: session.reviewerTitle || "In-progress quiz",
+      meta: session.subject || "Keep studying",
+      badge: "In progress"
+    });
+    if (items.length >= MAX_RECENT_ITEMS) break;
+  }
+
+  if (items.length < MAX_RECENT_ITEMS) {
+    for (const attempt of getAttemptHistory()) {
+      if (!attempt?.reviewerId || seen.has(attempt.reviewerId)) continue;
+      seen.add(attempt.reviewerId);
+      items.push({
+        key: `attempt-${attempt.attemptId}`,
+        to: `/reviewer/${attempt.reviewerId}`,
+        kind: "attempt",
+        title: attempt.reviewerTitle || "Completed quiz",
+        meta: attempt.subject || "Completed",
+        badge: attempt.percentage != null ? `${attempt.percentage}%` : "Done"
+      });
+      if (items.length >= MAX_RECENT_ITEMS) break;
+    }
+  }
+
+  return items;
+}
 
 export default function Navbar({ theme, onToggleTheme }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
   const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 24);
+  const [recentItems, setRecentItems] = useState(getRecentReviewerLinks);
   const menuCloseTimer = useRef(null);
   const touchStart = useRef(null);
+
+  useEffect(() => {
+    const refreshRecentItems = () => setRecentItems(getRecentReviewerLinks());
+
+    window.addEventListener(REVIEWER_DATA_CHANGED_EVENT, refreshRecentItems);
+    window.addEventListener("storage", refreshRecentItems);
+    return () => {
+      window.removeEventListener(REVIEWER_DATA_CHANGED_EVENT, refreshRecentItems);
+      window.removeEventListener("storage", refreshRecentItems);
+    };
+  }, []);
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
@@ -138,21 +193,32 @@ export default function Navbar({ theme, onToggleTheme }) {
           </NavLink>
         </nav>
 
-        <div className="sidebar-decks" aria-label="Reviewer shortcuts">
+        <div className="sidebar-decks" aria-label="Recently studied">
           <div className="sidebar-decks-head">
-            <strong>Reviewers</strong>
+            <strong>Recently studied</strong>
           </div>
-          <Link to="/library" onClick={closeMenu}>
-            <Download size={17} aria-hidden="true" />
-            Saved offline
-          </Link>
-          <Link to="/library" onClick={closeMenu}>
-            <Cloud size={17} aria-hidden="true" />
-            Cloud library
-          </Link>
-          <Link to="/friends" onClick={closeMenu}>
-            <Share2 size={17} aria-hidden="true" />
-            Shared
+          {recentItems.length ? (
+            recentItems.map((item) => (
+              <Link className="recent-link" key={item.key} to={item.to} onClick={closeMenu}>
+                <span className="recent-icon">
+                  {item.kind === "progress" ? <Hourglass size={17} aria-hidden="true" /> : <History size={17} aria-hidden="true" />}
+                </span>
+                <span className="recent-label">
+                  <strong>{item.title}</strong>
+                  <small>{item.meta}</small>
+                </span>
+                <span className="recent-badge">{item.badge}</span>
+              </Link>
+            ))
+          ) : (
+            <Link to="/" onClick={closeMenu}>
+              <PlayCircle size={17} aria-hidden="true" />
+              Start studying
+            </Link>
+          )}
+          <Link to="/history" onClick={closeMenu}>
+            <History size={17} aria-hidden="true" />
+            View history
           </Link>
         </div>
 
