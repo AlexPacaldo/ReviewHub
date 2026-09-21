@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, BookOpen, Cloud, HardDrive, Play, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Cloud, Eye, EyeOff, HardDrive, Play, Users } from "lucide-react";
 import { getReviewerById } from "../data/reviewerRegistry.js";
 import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
@@ -29,6 +29,7 @@ export default function ReviewerSetup() {
   const latestAttempt = reviewer ? getLatestAttempt(reviewer.reviewerId) : null;
   const [showStartOver, setShowStartOver] = useState(false);
   const [flashcardLimit, setFlashcardLimit] = useState(20);
+  const [flashcardsVisible, setFlashcardsVisible] = useState(false);
   const storageStatus = reviewer?.storageStatus || reviewer?.source || "built-in";
   const hasLocal = storageStatus === "both" || reviewer?.source === "local";
   const hasCloud = storageStatus === "both" || reviewer?.source === "cloud";
@@ -351,6 +352,12 @@ export default function ReviewerSetup() {
         </button>
       </section>
 
+      <button className="button subtle flashcard-toggle" type="button" onClick={() => setFlashcardsVisible((current) => !current)} aria-expanded={flashcardsVisible}>
+        {flashcardsVisible ? <EyeOff size={17} aria-hidden="true" /> : <Eye size={17} aria-hidden="true" />}
+        {flashcardsVisible ? "Hide Flashcards" : "View Flashcards"}
+      </button>
+
+      {flashcardsVisible ? (
       <section className="setup-panel flashcard-review-panel">
         <div className="reviewer-head-row">
           <div className="reviewer-head-copy">
@@ -398,6 +405,7 @@ export default function ReviewerSetup() {
           </p>
         ) : null}
       </section>
+      ) : null}
 
       <ConfirmModal
         open={showStartOver}

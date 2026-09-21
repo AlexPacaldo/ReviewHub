@@ -1579,6 +1579,10 @@ legend {
   margin-top: 18px;
 }
 
+.flashcard-toggle {
+  margin-top: 18px;
+}
+
 .flashcard-limit-control {
   display: grid;
   gap: 6px;
