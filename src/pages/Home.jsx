@@ -11,6 +11,7 @@ import { clearCloudReviewerCache, deleteLocalReviewer, getAllProgress, getAttemp
 export default function Home() {
   const { configured, loading, user } = useAuth();
   const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [reviewerList, setReviewerList] = useState(getAllReviewers);
   const [cloudLoadMessage, setCloudLoadMessage] = useState("");
   const progress = getAllProgress();
@@ -84,6 +85,45 @@ export default function Home() {
     });
   }, [reviewerList, search]);
 
+  const isSharedReviewer = useMemo(() => (reviewer) => {
+    if (!user) return false;
+    if (reviewer.ownerId) return reviewer.ownerId !== user.id;
+    return Boolean(reviewer.ownerName);
+  }, [user]);
+
+  const ownReviewers = useMemo(() => filteredReviewers.filter((reviewer) => !isSharedReviewer(reviewer)), [filteredReviewers, isSharedReviewer]);
+  const friendsReviewers = useMemo(() => filteredReviewers.filter((reviewer) => isSharedReviewer(reviewer)), [filteredReviewers, isSharedReviewer]);
+
+  const renderReviewerGrid = (reviewers) => (
+    <div className="reviewer-grid">
+      {reviewers.map((reviewer) =>
+        reviewer.validation.isValid ? (
+          <ReviewerCard
+            key={`${reviewer.source}-${reviewer.reviewerId}`}
+            reviewer={reviewer}
+            progress={progress[reviewer.reviewerId]}
+            onDelete={removeLocalReviewer}
+          />
+        ) : (
+          <article className="reviewer-card error-card" key={reviewer.reviewerId || reviewer.title}>
+            <h3>Unable to load this reviewer.</h3>
+            <p>{reviewer.title || "Untitled reviewer"}</p>
+            <p className="muted">{reviewer.validation.errors[0]}</p>
+          </article>
+        )
+      )}
+    </div>
+  );
+
+  const hasSearch = search.trim().length > 0;
+  const emptyState = hasSearch
+    ? { title: "No reviewers found", message: "Try another search term." }
+    : sourceFilter === "friends"
+      ? { title: "No friends reviewers yet", message: "Reviewers your friends share with you will appear here." }
+      : sourceFilter === "mine"
+        ? { title: "No reviewers here", message: "Add or sync a reviewer from Library to see it here." }
+        : { title: "No reviewers yet", message: "Explore Library to save reviewers for your study sessions." };
+
   function removeLocalReviewer(reviewer) {
     const confirmed = window.confirm(`Remove "${reviewer.title}" from this device?`);
     if (!confirmed) return;
@@ -108,27 +148,71 @@ export default function Home() {
         <ReviewerSearch value={search} onChange={setSearch} />
       </section>
 
-      {filteredReviewers.length ? (
-        <div className="reviewer-grid">
-          {filteredReviewers.map((reviewer) =>
-            reviewer.validation.isValid ? (
-              <ReviewerCard
-                key={`${reviewer.source}-${reviewer.reviewerId}`}
-                reviewer={reviewer}
-                progress={progress[reviewer.reviewerId]}
-                onDelete={removeLocalReviewer}
-              />
-            ) : (
-              <article className="reviewer-card error-card" key={reviewer.reviewerId || reviewer.title}>
-                <h3>Unable to load this reviewer.</h3>
-                <p>{reviewer.title || "Untitled reviewer"}</p>
-                <p className="muted">{reviewer.validation.errors[0]}</p>
-              </article>
-            )
-          )}
+      {user ? (
+        <div className="filter-pills" role="tablist" aria-label="Filter reviewers">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={sourceFilter === "all"}
+            className={sourceFilter === "all" ? "active" : ""}
+            onClick={() => setSourceFilter("all")}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={sourceFilter === "mine"}
+            className={sourceFilter === "mine" ? "active" : ""}
+            onClick={() => setSourceFilter("mine")}
+          >
+            Mine
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={sourceFilter === "friends"}
+            className={sourceFilter === "friends" ? "active" : ""}
+            onClick={() => setSourceFilter("friends")}
+          >
+            Friends
+          </button>
         </div>
+      ) : null}
+
+      {sourceFilter === "all" && user ? (
+        <>
+          {ownReviewers.length ? (
+            <section className="reviewer-group">
+              <div className="reviewer-group-head">
+                <h3>Your Reviewers</h3>
+                <span className="muted">{ownReviewers.length}</span>
+              </div>
+              {renderReviewerGrid(ownReviewers)}
+            </section>
+          ) : null}
+
+          {friendsReviewers.length ? (
+            <section className="reviewer-group">
+              <div className="reviewer-group-head">
+                <h3>Shared with You</h3>
+                <span className="muted">{friendsReviewers.length}</span>
+              </div>
+              {renderReviewerGrid(friendsReviewers)}
+            </section>
+          ) : null}
+
+          {!ownReviewers.length && !friendsReviewers.length ? (
+            <EmptyState title={emptyState.title} message={emptyState.message} />
+          ) : null}
+        </>
       ) : (
-        <EmptyState title="No reviewers found" message="Try another search term." />
+        <>
+          {renderReviewerGrid(sourceFilter === "friends" && user ? friendsReviewers : ownReviewers)}
+          {(sourceFilter === "friends" && user ? friendsReviewers : ownReviewers).length ? null : (
+            <EmptyState title={emptyState.title} message={emptyState.message} />
+          )}
+        </>
       )}
       {cloudLoadMessage ? <p className="sync-message error">{cloudLoadMessage}</p> : null}
 

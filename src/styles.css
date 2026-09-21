@@ -1374,6 +1374,64 @@ legend {
   padding-inline: 12px;
 }
 
+.filter-pills {
+  display: inline-flex;
+  gap: 2px;
+  margin: 14px 0 18px;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.filter-pills button {
+  min-height: 34px;
+  padding: 0 18px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.filter-pills button:hover {
+  color: var(--text);
+}
+
+.filter-pills button.active {
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.reviewer-group {
+  display: grid;
+  gap: 0;
+}
+
+.reviewer-group + .reviewer-group {
+  margin-top: 30px;
+}
+
+.reviewer-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.reviewer-group-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.reviewer-group-head span {
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
 .mode-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
