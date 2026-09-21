@@ -266,6 +266,51 @@ main {
   display: none;
 }
 
+.recent-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.recent-label {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.recent-label strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 850;
+}
+
+.recent-label small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.recent-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 3px 9px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
 .button {
   justify-content: center;
   padding: 0 15px;
@@ -3179,49 +3224,6 @@ legend {
 
   .navbar:is(.menu-open, .menu-closing) .sidebar-decks .recent-link {
     min-height: 0;
-  }
-
-  .recent-icon {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
-    color: var(--muted);
-  }
-
-  .recent-label {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-    flex: 1;
-  }
-
-  .recent-label strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text);
-    font-weight: 850;
-  }
-
-  .recent-label small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--muted);
-    font-size: 0.72rem;
-    font-weight: 700;
-  }
-
-  .recent-badge {
-    flex-shrink: 0;
-    margin-left: auto;
-    padding: 3px 9px;
-    color: var(--muted);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    font-size: 0.7rem;
-    font-weight: 800;
   }
 
   .navbar:is(.menu-open, .menu-closing) .deck-dot {
