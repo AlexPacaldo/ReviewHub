@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Cloud, Database, HardDrive, LogOut, UserRound } from "lucide-react";
+import { Database, HardDrive, LogOut, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -109,18 +109,6 @@ export default function Account() {
         <p className="eyebrow">Account</p>
         <h1>Account Settings</h1>
         <p className="muted">Sign in for cloud reviewers, database sync, friends, and sharing. Hachi stays website-first for now, with offline study still available without an account.</p>
-
-        <div className="account-status">
-          <Cloud size={22} aria-hidden="true" />
-          <div>
-            <strong>{configured ? "Supabase connected" : "Supabase not configured"}</strong>
-            <p className="muted">
-              {configured
-                ? "This device can use Supabase auth when online."
-                : "Create .env.local with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY."}
-            </p>
-          </div>
-        </div>
 
         {loading ? (
           <p className="muted">Checking session...</p>
