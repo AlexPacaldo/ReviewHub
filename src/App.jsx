@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { Download, RefreshCw } from "lucide-react";
 import Navbar from "./components/Navbar.jsx";
 import { NotificationToasts } from "./components/NotificationCenter.jsx";
 import SocialNotificationWatcher from "./components/SocialNotificationWatcher.jsx";
@@ -120,6 +121,7 @@ function AppShell() {
       <NotificationToasts />
       {updateReady ? (
         <div className="update-banner" role="status">
+          <span className="banner-icon" aria-hidden="true"><RefreshCw size={15} /></span>
           <span>New offline version ready.</span>
           <button className="button subtle" type="button" onClick={() => window.location.reload()}>
             Reload
@@ -128,6 +130,7 @@ function AppShell() {
       ) : null}
       {installPrompt && !installDismissed ? (
         <div className="install-banner" role="status">
+          <span className="banner-icon" aria-hidden="true"><Download size={15} /></span>
           <span>Install Hachi for faster offline access.</span>
           <div className="button-row">
             <button className="button primary" type="button" onClick={installApp}>

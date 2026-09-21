@@ -60,7 +60,7 @@ export default function Library() {
   const [history, setHistory] = useState(getAttemptHistory);
   const [generatorDraft, setGeneratorDraft] = useState(getGeneratorDraft);
   const [confirmAction, setConfirmAction] = useState(null);
-  const [backupMessage, setBackupMessage] = useState("");
+  const [backupMessage, setBackupMessage] = useState(null);
   const [syncStatus, setSyncStatus] = useState({});
   const [cloudReviewers, setCloudReviewers] = useState([]);
   const [cloudLoading, setCloudLoading] = useState(false);
@@ -137,15 +137,15 @@ export default function Library() {
 
   async function requestPersistentStorage() {
     if (!navigator.storage?.persist) {
-      setBackupMessage("Your browser doesn't let apps ask for this protection.");
+      setBackupMessage({ type: "warning", text: "Your browser doesn't let apps ask for this protection." });
       return;
     }
 
     const persisted = await navigator.storage.persist();
     await refreshStorageInfo();
     setBackupMessage(persisted
-      ? "Your reviews are now safe from automatic cleanup."
-      : "Your browser didn't grant protection yet. You can try again later.");
+      ? { type: "success", text: "Your reviews are now safe from automatic cleanup." }
+      : { type: "warning", text: "Your browser didn't grant protection yet. You can try again later." });
   }
 
   async function loadCloudReviewers() {
@@ -305,7 +305,7 @@ export default function Library() {
     if (!file) return;
 
     if (file.size > MAX_BACKUP_RESTORE_SIZE) {
-      setBackupMessage("That backup file is too large. Restore a Hachi backup under 8 MB.");
+      setBackupMessage({ type: "error", text: "That backup file is too large. Restore a Hachi backup under 8 MB." });
       event.target.value = "";
       return;
     }
@@ -316,13 +316,13 @@ export default function Library() {
         const snapshot = JSON.parse(String(reader.result || ""));
         restoreLocalDataSnapshot(snapshot);
         refreshLocalData();
-        setBackupMessage("Backup restored on this device.");
+        setBackupMessage({ type: "success", text: "Backup restored on this device." });
       } catch (error) {
         logClientError("restore-backup", error, { fileName: file.name, fileSize: file.size });
-        setBackupMessage(error?.message || "Could not restore that backup file.");
+        setBackupMessage({ type: "error", text: error?.message || "Could not restore that backup file." });
       }
     };
-    reader.onerror = () => setBackupMessage("Could not read that backup file.");
+    reader.onerror = () => setBackupMessage({ type: "error", text: "Could not read that backup file." });
     reader.readAsText(file);
     event.target.value = "";
   }
@@ -815,7 +815,7 @@ export default function Library() {
             Clear Quiz History
           </button>
         </div>
-        {backupMessage ? <p className="backup-message">{backupMessage}</p> : null}
+        {backupMessage ? <p className={`sync-message ${backupMessage.type}`}>{backupMessage.text}</p> : null}
       </section>
 
       <ConfirmModal

@@ -19,7 +19,7 @@ function getUserAvatar(user) {
 
 export default function Account() {
   const { configured, loading, session, user } = useAuth();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(null);
   const [profileName, setProfileName] = useState(() => getUserName(user));
   const [savingProfile, setSavingProfile] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -29,10 +29,10 @@ export default function Account() {
   }, [user?.id]);
 
   async function signInWithGoogle() {
-    setMessage("");
+    setMessage(null);
 
     if (!configured) {
-      setMessage("Add your Supabase URL and anon key in .env.local first.");
+      setMessage({ type: "warning", text: "Add your Supabase URL and anon key in .env.local first." });
       return;
     }
 
@@ -44,19 +44,19 @@ export default function Account() {
     });
 
     if (error) {
-      setMessage(error.message);
+      setMessage({ type: "error", text: error.message });
     }
   }
 
   async function signOut() {
     await supabase.auth.signOut();
-    setMessage("Signed out.");
+    setMessage({ type: "success", text: "Signed out." });
   }
 
   async function saveProfile() {
     if (!user) return;
     setSavingProfile(true);
-    setMessage("");
+    setMessage(null);
 
     const { error: metadataError } = await supabase.auth.updateUser({
       data: { full_name: profileName.trim() || getUserName(user) }
@@ -65,23 +65,26 @@ export default function Account() {
     const { error: profileError } = await updateMyProfile(user, { displayName: profileName });
 
     setSavingProfile(false);
-    setMessage(metadataError?.message || profileError?.message || "Profile saved.");
+    const failed = metadataError?.message || profileError?.message;
+    setMessage(failed
+      ? { type: "error", text: failed }
+      : { type: "success", text: "Profile saved." });
   }
 
   async function deleteCloudData() {
     if (!user) return;
-    setMessage("");
+    setMessage(null);
     const { error } = await deleteMyCloudAppData(user.id);
     if (error) {
-      setMessage(error.message || "Could not delete cloud app data.");
+      setMessage({ type: "error", text: error.message || "Could not delete cloud app data." });
       return;
     }
-    setMessage("Cloud app data deleted. Your sign-in account still exists.");
+    setMessage({ type: "success", text: "Cloud app data deleted. Your sign-in account still exists." });
   }
 
   function deleteDeviceData() {
     clearAllDeviceData();
-    setMessage("Device data deleted.");
+    setMessage({ type: "success", text: "Device data deleted." });
   }
 
   async function handleConfirm() {
@@ -163,7 +166,7 @@ export default function Account() {
           </div>
         )}
 
-        {message ? <p className="account-message">{message}</p> : null}
+        {message ? <p className={`account-message ${message.type}`}>{message.text}</p> : null}
 
         <div className="account-legal-links">
           <Link to="/privacy">Privacy Policy</Link>
