@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import { NotificationToasts } from "./components/NotificationCenter.jsx";
+import SocialNotificationWatcher from "./components/SocialNotificationWatcher.jsx";
 import TopActions from "./components/TopActions.jsx";
 import Home from "./pages/Home.jsx";
 import ReviewerSetup from "./pages/ReviewerSetup.jsx";
@@ -113,6 +114,7 @@ function AppShell() {
 
   return (
     <AuthProvider>
+      <SocialNotificationWatcher />
       <Navbar theme={theme} onToggleTheme={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} />
       <TopActions />
       <NotificationToasts />
