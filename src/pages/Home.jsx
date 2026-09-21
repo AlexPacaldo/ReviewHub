@@ -77,13 +77,21 @@ export default function Home() {
     const term = search.trim().toLowerCase();
     if (!term) return reviewerList;
 
+    const myName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "";
+
     return reviewerList.filter((reviewer) => {
-      const haystack = [reviewer.title, reviewer.subject, reviewer.reviewerId, ...(reviewer.coverage || [])]
+      const haystack = [
+        reviewer.title,
+        reviewer.subject,
+        reviewer.reviewerId,
+        reviewer.ownerName || (user ? myName : ""),
+        ...(reviewer.coverage || [])
+      ]
         .join(" ")
         .toLowerCase();
       return haystack.includes(term);
     });
-  }, [reviewerList, search]);
+  }, [reviewerList, search, user?.id]);
 
   const isSharedReviewer = useMemo(() => (reviewer) => {
     if (!user) return false;
@@ -143,7 +151,7 @@ export default function Home() {
       <section className="section-heading">
         <div>
           <h2>Choose a Reviewer</h2>
-          <p className="muted">Search by subject, title, course code, or coverage topic.</p>
+          <p className="muted">Search by subject, title, course code, coverage topic, or creator.</p>
         </div>
         <ReviewerSearch value={search} onChange={setSearch} />
       </section>
