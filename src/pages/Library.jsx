@@ -28,6 +28,7 @@ import {
 import { logClientError } from "../utils/errorLogger.js";
 
 const MAX_BACKUP_RESTORE_SIZE = 8 * 1024 * 1024;
+const CLOUD_POLL_INTERVAL_MS = 60000;
 
 function downloadJson(filename, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -96,6 +97,25 @@ export default function Library() {
     loadCloudReviewers();
   }, [configured, user?.id]);
 
+  useEffect(() => {
+    if (!configured || !user) return undefined;
+
+    const pollRefresh = () => {
+      if (document.visibilityState === "visible") loadCloudReviewers(true);
+    };
+
+    const interval = window.setInterval(pollRefresh, CLOUD_POLL_INTERVAL_MS);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") loadCloudReviewers(true);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [configured, user?.id]);
+
   const cloudReviewerIds = useMemo(() => {
     return new Set(cloudReviewers.map((item) => {
       const reviewer = getCloudReviewerData(item);
@@ -148,20 +168,24 @@ export default function Library() {
       : { type: "warning", text: "Your browser didn't grant protection yet. You can try again later." });
   }
 
-  async function loadCloudReviewers() {
+  async function loadCloudReviewers(quiet = false) {
     if (!configured || !user) {
       setCloudReviewers([]);
       setCloudMessage(null);
       return;
     }
 
-    setCloudLoading(true);
-    setCloudMessage(null);
+    if (!quiet) {
+      setCloudLoading(true);
+      setCloudMessage(null);
+    }
     const { data, error } = await listVisibleCloudReviewers(user.id);
-    setCloudLoading(false);
+    if (!quiet) setCloudLoading(false);
 
     if (error) {
-      setCloudMessage({ type: "error", message: error.message || "Could not load cloud reviewers." });
+      if (!quiet) {
+        setCloudMessage({ type: "error", message: error.message || "Could not load cloud reviewers." });
+      }
       return;
     }
 
@@ -554,7 +578,7 @@ export default function Library() {
             <p className="muted">Reviewers synced to your account. Save one offline to keep it available on this device.</p>
           </div>
           {user ? (
-            <button className="button subtle" type="button" onClick={loadCloudReviewers} disabled={cloudLoading}>
+            <button className="button subtle" type="button" onClick={() => loadCloudReviewers()} disabled={cloudLoading}>
               <RefreshCw size={17} aria-hidden="true" />
               Refresh
             </button>

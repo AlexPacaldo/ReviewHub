@@ -13,6 +13,8 @@ import {
   sendFriendRequest
 } from "../services/social.js";
 
+const POLL_INTERVAL_MS = 30000;
+
 function getProfileName(profile) {
   return profile?.display_name || profile?.email || "Hachi user";
 }
@@ -43,22 +45,46 @@ export default function Friends() {
     refreshSocialData();
   }, [configured, user?.id]);
 
-  async function refreshSocialData() {
+  useEffect(() => {
+    if (!configured || !user) return undefined;
+
+    const pollRefresh = () => {
+      if (document.visibilityState === "visible") refreshSocialData(true);
+    };
+
+    const interval = window.setInterval(pollRefresh, POLL_INTERVAL_MS);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") refreshSocialData(true);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [configured, user?.id]);
+
+  async function refreshSocialData(quiet = false) {
     if (!user) return;
 
-    setLoadingSocial(true);
-    setMessage(null);
+    if (!quiet) {
+      setLoadingSocial(true);
+      setMessage(null);
+    }
+
     await ensureMyProfile(user);
 
     const friendsResult = await listFriendships(user.id);
 
     if (friendsResult.error) {
-      setMessage({ type: "error", text: friendsResult.error.message || "Could not load friends." });
+      if (!quiet) {
+        setMessage({ type: "error", text: friendsResult.error.message || "Could not load friends." });
+      }
     } else {
       setFriendships(friendsResult.data || []);
     }
 
-    setLoadingSocial(false);
+    if (!quiet) setLoadingSocial(false);
   }
 
   async function searchForFriends(event) {
