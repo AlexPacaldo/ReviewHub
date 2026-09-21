@@ -37,21 +37,22 @@ export default function ReviewerSetup() {
   const isSharedWithMe = Boolean(reviewer?.ownerName) && !isOwnerReviewer;
   const mistakeIds = latestAttempt?.incorrectQuestionIds || [];
 
-  const availableCounts = useMemo(() => {
-    const total = reviewer?.questions?.length || 0;
-    return [10, 20, 30, 50].filter((count) => count < total).concat(total ? [total] : []);
-  }, [reviewer]);
+  const totalQuestions = reviewer?.questions?.length || 0;
+  const questionCountMin = Math.min(10, totalQuestions);
+  const questionCountMax = Math.max(questionCountMin, Math.min(100, totalQuestions));
+  const defaultQuestionCount = Math.min(Math.max(questionCountMin, totalQuestions <= 10 ? totalQuestions : 10), questionCountMax);
 
   const questionTypeOptions = useMemo(() => (reviewer ? getQuestionTypeOptions(reviewer) : []), [reviewer]);
   const defaultQuestionTypes = useMemo(() => (reviewer ? getStoredQuestionTypes(reviewer) : []), [reviewer]);
 
   const [settings, setSettings] = useState({
-    questionCount: availableCounts[0] || 0,
+    questionCount: defaultQuestionCount,
     questionOrder: "random",
     choiceOrder: "shuffle",
     mode: "practice",
     timeLimitMinutes: 15,
-    questionTypes: defaultQuestionTypes.length ? defaultQuestionTypes : ["multiple_choice"]
+    questionTypes: defaultQuestionTypes.length ? defaultQuestionTypes : ["multiple_choice"],
+    difficulty: "all"
   });
 
   if (!reviewer || !reviewer.validation.isValid) {
@@ -185,17 +186,33 @@ export default function ReviewerSetup() {
 
         <fieldset>
           <legend>Number of Questions</legend>
+          <label className="question-count-control">
+            <span className="question-count-value">
+              <strong>{settings.questionCount}</strong>
+              <small>out of {totalQuestions} questions</small>
+            </span>
+            <input
+              type="range"
+              min={questionCountMin}
+              max={questionCountMax}
+              step={1}
+              value={settings.questionCount}
+              onChange={(event) => updateSetting("questionCount", Number(event.target.value))}
+            />
+            <span className="question-count-range">
+              <small>{questionCountMin}</small>
+              <small>{questionCountMax}</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Difficulty</legend>
           <div className="segmented">
-            {availableCounts.map((count) => (
-              <button
-                key={count}
-                type="button"
-                className={settings.questionCount === count ? "active" : ""}
-                onClick={() => updateSetting("questionCount", count)}
-              >
-                {count === reviewer.questions.length ? "All Questions" : count}
-              </button>
-            ))}
+            <button type="button" className={settings.difficulty === "all" ? "active" : ""} onClick={() => updateSetting("difficulty", "all")}>All</button>
+            <button type="button" className={settings.difficulty === "easy" ? "active" : ""} onClick={() => updateSetting("difficulty", "easy")}>Easy</button>
+            <button type="button" className={settings.difficulty === "medium" ? "active" : ""} onClick={() => updateSetting("difficulty", "medium")}>Medium</button>
+            <button type="button" className={settings.difficulty === "hard" ? "active" : ""} onClick={() => updateSetting("difficulty", "hard")}>Hard</button>
           </div>
         </fieldset>
 

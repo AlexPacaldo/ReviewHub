@@ -17,6 +17,18 @@ export function getQuestionType(question) {
   return question?.type || question?.questionType || "multiple_choice";
 }
 
+export function getQuestionDifficulty(question) {
+  return ["easy", "medium", "hard"].includes(question?.difficulty) ? question.difficulty : "medium";
+}
+
+function resolveDifficultyForSession(questions, difficulty) {
+  if (!difficulty || difficulty === "all") return questions;
+  const filtered = questions.filter(
+    (question) => !question?.difficulty || getQuestionDifficulty(question) === difficulty
+  );
+  return filtered.length ? filtered : questions;
+}
+
 export function isTypedQuestion(question) {
   return ["identification", "flashcard"].includes(getQuestionType(question));
 }
@@ -82,6 +94,7 @@ export function buildSessionQuestions(questions, settings, retryQuestionIds = nu
     ? questions.filter((question) => retryQuestionIds.includes(question.id))
     : [...questions];
 
+  pool = resolveDifficultyForSession(pool, settings.difficulty);
   pool = resolveQuestionTypesForSession(pool, settings.questionTypes);
 
   if (settings.questionOrder === "random") pool = shuffleItems(pool);

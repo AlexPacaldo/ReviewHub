@@ -1524,6 +1524,57 @@ legend {
   color: var(--accent);
 }
 
+.question-count-control {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.question-count-value {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.question-count-value strong {
+  color: var(--accent);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.question-count-value small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.question-count-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.question-count-range {
+  display: flex;
+  justify-content: space-between;
+}
+
+.question-count-range small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.generator-note {
+  margin: 2px 0 0;
+  padding: 12px 14px;
+  color: var(--muted);
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .time-limit-control {
   display: grid;
   gap: 8px;

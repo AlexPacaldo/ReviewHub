@@ -25,18 +25,6 @@ const MAX_AI_SOURCE_TEXT_LENGTH = 45000;
 const AI_RATE_LIMIT_KEY = "reviewer_ai_request_window";
 const AI_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const AI_RATE_LIMIT_MAX_REQUESTS = 8;
-const QUESTION_COUNT_OPTIONS = [
-  { value: "20", label: "20" },
-  { value: "50", label: "50" },
-  { value: "75", label: "75" },
-  { value: "100", label: "100" },
-  { value: "comprehensive", label: "Comprehensive" }
-];
-const DIFFICULTY_OPTIONS = [
-  { value: "easy", label: "Easy" },
-  { value: "mixed", label: "Mixed" },
-  { value: "hard", label: "Hard" }
-];
 const QUESTION_TYPE_OPTIONS = [
   { value: "multiple_choice", label: "Multiple Choice" },
   { value: "identification", label: "Identification" },
@@ -124,6 +112,7 @@ function normalizeReviewerJson(reviewer, options = {}) {
     return {
       id: question.id || index + 1,
       type,
+      difficulty: ["easy", "medium", "hard"].includes(question.difficulty) ? question.difficulty : "medium",
       topic: question.topic || "Generated Reviewer",
       question: question.question || "",
       choices: normalizedChoices,
@@ -248,7 +237,7 @@ export default function Generator() {
   const [questionDraft, setQuestionDraft] = useState(savedDraft?.questionDraft || emptyQuestion);
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
-  const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "50");
+  const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "100");
   const [difficulty, setDifficulty] = useState(savedDraft?.difficulty || "mixed");
   const [questionType, setQuestionType] = useState(savedDraft?.questionType || "multiple_choice");
   const [moreQuestionCount, setMoreQuestionCount] = useState(savedDraft?.moreQuestionCount || "20");
@@ -764,7 +753,7 @@ export default function Generator() {
     setQuestionDraft(emptyQuestion);
     setQuestions([]);
     setSourceText("");
-    setTargetQuestionCount("50");
+    setTargetQuestionCount("100");
     setDifficulty("mixed");
     setQuestionType("multiple_choice");
     setMoreQuestionCount("20");
@@ -827,37 +816,9 @@ export default function Generator() {
               </label>
             </div>
 
-            <fieldset className="generator-option-group">
-              <legend>Number of Questions</legend>
-              <div className="segmented">
-                {QUESTION_COUNT_OPTIONS.map((option) => (
-                  <button
-                    className={targetQuestionCount === option.value ? "active" : ""}
-                    type="button"
-                    key={option.value}
-                    onClick={() => setTargetQuestionCount(option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <fieldset className="generator-option-group">
-              <legend>Difficulty</legend>
-              <div className="segmented compact">
-                {DIFFICULTY_OPTIONS.map((option) => (
-                  <button
-                    className={difficulty === option.value ? "active" : ""}
-                    type="button"
-                    key={option.value}
-                    onClick={() => setDifficulty(option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <p className="generator-note">
+              Generates 100 multiple-choice questions at mixed difficulty. After saving, choose the question count and difficulty from the reviewer's quiz setup.
+            </p>
 
             <label className="upload-zone ai-upload-zone">
               <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />

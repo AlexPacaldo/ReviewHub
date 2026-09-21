@@ -92,6 +92,7 @@ const reviewerSchema = {
         properties: {
           id: { type: "INTEGER" },
           type: { type: "STRING" },
+          difficulty: { type: "STRING" },
           topic: { type: "STRING" },
           question: { type: "STRING" },
           choices: {
@@ -108,7 +109,7 @@ const reviewerSchema = {
           answerText: { type: "STRING" },
           explanation: { type: "STRING" }
         },
-        required: ["id", "type", "topic", "question", "choices", "correctAnswer", "answerText", "explanation"]
+        required: ["id", "type", "difficulty", "topic", "question", "choices", "correctAnswer", "answerText", "explanation"]
       }
     }
   },
@@ -256,6 +257,8 @@ IF THE MATERIAL IS A HANDOUT, MODULE, OR STUDY MATERIAL:
 
 DIFFICULTY:
 - ${difficultyInstruction}
+- Tag every question with a difficulty value from exactly "easy", "medium", or "hard".
+- For a mixed reviewer, aim for roughly 50% easy, 30% medium, and 20% hard questions spread across the whole reviewer.
 - Keep every question fair and answerable from the study material.
 
 QUESTION TYPE RULES:
@@ -277,6 +280,7 @@ FINAL SELF-CHECK BEFORE RETURNING JSON:
 - Valid JSON syntax.
 - questionCount matches the number of questions.
 - IDs are sequential with no duplicates.
+- Every question includes a valid difficulty value ("easy", "medium", or "hard").
 - Every question follows the selected question type rules.
 - For multiple-choice and true/false questions, every answerText exactly equals choices[correctAnswer].
 - For identification and flashcard questions, correctAnswer is "TEXT" and answerText is not empty.
@@ -317,6 +321,8 @@ SOURCE RULES:
 
 DIFFICULTY:
 - ${difficultyInstruction}
+- Tag every question with a difficulty value from exactly "easy", "medium", or "hard".
+- For a mixed reviewer, aim for roughly 50% easy, 30% medium, and 20% hard questions spread across the whole reviewer.
 - Keep every question fair and answerable from the study material.
 
 QUESTION TYPE RULES:
@@ -381,6 +387,7 @@ function normalizeGeneratedReviewer(reviewer, fallback = {}) {
     return {
       id: index + 1,
       type,
+      difficulty: ["easy", "medium", "hard"].includes(question?.difficulty) ? String(question.difficulty).trim() : "medium",
       topic: String(question?.topic || fallback.subject || "Generated Reviewer").trim(),
       question: String(question?.question || "").trim(),
       choices: normalizedChoices,
