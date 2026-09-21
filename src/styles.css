@@ -681,6 +681,54 @@ main {
   font-weight: 900;
 }
 
+.notification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.notification-action-button {
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 800;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.notification-action-button.primary {
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+:root[data-theme="dark"] .notification-action-button.primary {
+  color: var(--surface);
+}
+
+.notification-action-button.primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.notification-action-button.subtle {
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.notification-action-button.subtle:hover {
+  background: color-mix(in srgb, var(--surface-2) 82%, var(--accent-soft));
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+}
+
+.notification-action-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .notification-remove {
   display: inline-flex;
   align-items: center;

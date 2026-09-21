@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const NotificationContext = createContext(null);
 const NOTIFICATION_KEY = "hachi_notifications";
@@ -23,17 +23,32 @@ function createNotification(notification) {
     createdAt: notification.createdAt || new Date().toISOString(),
     read: Boolean(notification.read),
     actionLabel: notification.actionLabel || "",
-    actionHref: notification.actionHref || ""
+    actionHref: notification.actionHref || "",
+    actions: Array.isArray(notification.actions) ? notification.actions : []
   };
 }
 
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState(readNotifications);
   const [toastIds, setToastIds] = useState([]);
+  const actionHandlers = useRef(new Map());
 
   useEffect(() => {
     localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notifications.slice(0, MAX_NOTIFICATIONS)));
   }, [notifications]);
+
+  const registerAction = useCallback((kind, handler) => {
+    actionHandlers.current.set(kind, handler);
+    return () => {
+      actionHandlers.current.delete(kind);
+    };
+  }, []);
+
+  const executeAction = useCallback(async (kind, payload) => {
+    const handler = actionHandlers.current.get(kind);
+    if (!handler) throw new Error(`No action handler registered for "${kind}".`);
+    await handler(payload);
+  }, []);
 
   const dismissToast = useCallback((id) => {
     setToastIds((current) => current.filter((toastId) => toastId !== id));
@@ -85,13 +100,15 @@ export function NotificationProvider({ children }) {
       toastNotifications: toastIds.map((id) => notifications.find((notification) => notification.id === id)).filter(Boolean),
       unreadCount: notifications.filter((notification) => !notification.read).length,
       notify,
+      registerAction,
+      executeAction,
       markAllRead,
       markRead,
       removeNotification,
       clearNotifications,
       dismissToast
     }),
-    [clearNotifications, dismissToast, markAllRead, markRead, notifications, notify, removeNotification, toastIds]
+    [clearNotifications, dismissToast, executeAction, markAllRead, markRead, notify, registerAction, removeNotification, toastIds]
   );
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;

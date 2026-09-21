@@ -19,7 +19,27 @@ function formatNotificationTime(value) {
   }).format(date);
 }
 
-function NotificationItem({ notification, onRead, onRemove }) {
+function NotificationActions({ notification, onAction, disabled }) {
+  if (!notification.actions?.length) return null;
+
+  return (
+    <div className="notification-actions">
+      {notification.actions.map((action) => (
+        <button
+          key={action.label}
+          className={`notification-action-button ${action.variant === "primary" ? "primary" : "subtle"}`}
+          type="button"
+          onClick={() => onAction(action)}
+          disabled={disabled}
+        >
+          {action.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function NotificationItem({ notification, onRead, onAction, onRemove, disabled }) {
   return (
     <article className={`notification-item ${notification.type}${notification.read ? "" : " unread"}`}>
       <div className="notification-icon">{getNotificationIcon(notification.type)}</div>
@@ -29,7 +49,9 @@ function NotificationItem({ notification, onRead, onRemove }) {
           <time dateTime={notification.createdAt}>{formatNotificationTime(notification.createdAt)}</time>
         </div>
         {notification.message ? <p>{notification.message}</p> : null}
-        {notification.actionHref && notification.actionLabel ? (
+        {notification.actions?.length ? (
+          <NotificationActions notification={notification} onAction={onAction} disabled={disabled} />
+        ) : notification.actionHref && notification.actionLabel ? (
           <Link className="notification-action" to={notification.actionHref} onClick={onRead}>
             {notification.actionLabel}
           </Link>
@@ -44,8 +66,26 @@ function NotificationItem({ notification, onRead, onRemove }) {
 
 export function NotificationCenter() {
   const [open, setOpen] = useState(false);
+  const [busyId, setBusyId] = useState(null);
   const popoverRef = useRef(null);
-  const { notifications, unreadCount, markAllRead, markRead, removeNotification, clearNotifications } = useNotifications();
+  const { notifications, unreadCount, markAllRead, markRead, removeNotification, clearNotifications, notify, executeAction } = useNotifications();
+
+  const handleAction = async (notification, action) => {
+    if (busyId) return;
+    setBusyId(notification.id);
+    try {
+      await executeAction(action.kind, action.payload);
+      removeNotification(notification.id);
+    } catch {
+      notify({
+        type: "warning",
+        title: "Couldn't complete that action",
+        message: "It may have already been resolved on the Friends page."
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -105,7 +145,9 @@ export function NotificationCenter() {
                   key={notification.id}
                   notification={notification}
                   onRead={() => markRead(notification.id)}
+                  onAction={(action) => handleAction(notification, action)}
                   onRemove={() => removeNotification(notification.id)}
+                  disabled={busyId === notification.id}
                 />
               ))
             ) : (
@@ -122,9 +164,27 @@ export function NotificationCenter() {
 }
 
 export function NotificationToasts() {
-  const { toastNotifications, dismissToast, markRead } = useNotifications();
+  const [busyId, setBusyId] = useState(null);
+  const { toastNotifications, dismissToast, markRead, notify, executeAction, removeNotification } = useNotifications();
 
   if (!toastNotifications.length) return null;
+
+  const handleAction = async (notification, action) => {
+    if (busyId) return;
+    setBusyId(notification.id);
+    try {
+      await executeAction(action.kind, action.payload);
+      removeNotification(notification.id);
+    } catch {
+      notify({
+        type: "warning",
+        title: "Couldn't complete that action",
+        message: "It may have already been resolved on the Friends page."
+      });
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   return (
     <div className="notification-toasts" role="status" aria-live="polite">
@@ -134,7 +194,9 @@ export function NotificationToasts() {
           <div className="notification-copy">
             <strong>{notification.title}</strong>
             {notification.message ? <p>{notification.message}</p> : null}
-            {notification.actionHref && notification.actionLabel ? (
+            {notification.actions?.length ? (
+              <NotificationActions notification={notification} onAction={(action) => handleAction(notification, action)} disabled={busyId === notification.id} />
+            ) : notification.actionHref && notification.actionLabel ? (
               <Link className="notification-action" to={notification.actionHref} onClick={() => markRead(notification.id)}>
                 {notification.actionLabel}
               </Link>
