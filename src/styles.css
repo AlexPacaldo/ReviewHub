@@ -3028,8 +3028,7 @@ legend {
 /* Unified inline alert design */
 .sync-message,
 .account-message,
-.template-message,
-.draft-save-note {
+.template-message {
   position: relative;
   margin: 8px 0 0;
   padding: 12px 14px 12px 30px;
@@ -3051,10 +3050,16 @@ legend {
   margin-top: 14px;
 }
 
+.draft-save-note {
+  margin: 10px 0 0;
+  color: var(--success);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .sync-message::before,
 .account-message::before,
-.template-message::before,
-.draft-save-note::before {
+.template-message::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -3074,7 +3079,6 @@ legend {
   border-color: color-mix(in srgb, var(--success) 30%, var(--border));
 }
 
-.draft-save-note,
 .sync-message.pending {
   color: var(--info);
   background: var(--info-soft);
@@ -3908,6 +3912,20 @@ summary {
 .button.primary:hover {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
+  box-shadow: none;
+}
+
+.button.danger-primary {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+  box-shadow: none;
+}
+
+.button.danger-primary:hover {
+  background: color-mix(in srgb, var(--danger) 86%, var(--accent-strong));
+  border-color: color-mix(in srgb, var(--danger) 86%, var(--accent-strong));
+  color: #fff;
   box-shadow: none;
 }
 

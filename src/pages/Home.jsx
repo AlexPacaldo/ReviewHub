@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import ReviewerCard from "../components/ReviewerCard.jsx";
 import ReviewerSearch from "../components/ReviewerSearch.jsx";
 import EmptyState from "../components/EmptyState.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { getAllReviewers } from "../data/reviewerRegistry.js";
 import { listVisibleCloudReviewers } from "../services/cloudReviewers.js";
@@ -13,6 +14,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [reviewerList, setReviewerList] = useState(getAllReviewers);
+  const [pendingRemove, setPendingRemove] = useState(null);
   const [cloudLoadMessage, setCloudLoadMessage] = useState("");
   const progress = getAllProgress();
   const recentAttempts = getAttemptHistory().slice(0, 5);
@@ -110,7 +112,7 @@ export default function Home() {
             key={`${reviewer.source}-${reviewer.reviewerId}`}
             reviewer={reviewer}
             progress={progress[reviewer.reviewerId]}
-            onDelete={removeLocalReviewer}
+            onDelete={requestRemoveLocal}
           />
         ) : (
           <article className="reviewer-card error-card" key={reviewer.reviewerId || reviewer.title}>
@@ -132,11 +134,14 @@ export default function Home() {
         ? { title: "No reviewers here", message: "Add or sync a reviewer from Library to see it here." }
         : { title: "No reviewers yet", message: "Explore Library to save reviewers for your study sessions." };
 
-  function removeLocalReviewer(reviewer) {
-    const confirmed = window.confirm(`Remove "${reviewer.title}" from this device?`);
-    if (!confirmed) return;
+  function requestRemoveLocal(reviewer) {
+    setPendingRemove(reviewer);
+  }
 
-    deleteLocalReviewer(reviewer.reviewerId);
+  function confirmRemoveLocal() {
+    if (!pendingRemove) return;
+    deleteLocalReviewer(pendingRemove.reviewerId);
+    setPendingRemove(null);
     setReviewerList(getAllReviewers());
   }
 
@@ -252,6 +257,16 @@ export default function Home() {
           <EmptyState title="No attempts yet" message="Complete a quiz and your score will appear here." />
         )}
       </section>
+
+      <ConfirmModal
+        open={Boolean(pendingRemove)}
+        title="Remove from this device?"
+        message={pendingRemove ? `Remove "${pendingRemove.title}" from this device? Your saved answers for it will also be cleared.` : ""}
+        confirmLabel="Remove"
+        danger
+        onCancel={() => setPendingRemove(null)}
+        onConfirm={confirmRemoveLocal}
+      />
     </div>
   );
 }

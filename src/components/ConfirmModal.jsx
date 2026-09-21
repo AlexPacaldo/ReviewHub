@@ -1,4 +1,4 @@
-export default function ConfirmModal({ open, title, message, confirmLabel, cancelLabel = "Cancel", onConfirm, onCancel }) {
+export default function ConfirmModal({ open, title, message, confirmLabel, cancelLabel = "Cancel", danger = false, onConfirm, onCancel }) {
   if (!open) return null;
 
   return (
@@ -10,7 +10,7 @@ export default function ConfirmModal({ open, title, message, confirmLabel, cance
           <button className="button subtle" type="button" onClick={onCancel}>
             {cancelLabel}
           </button>
-          <button className="button primary" type="button" onClick={onConfirm}>
+          <button className={`button ${danger ? "danger-primary" : "primary"}`} type="button" onClick={onConfirm}>
             {confirmLabel}
           </button>
         </div>

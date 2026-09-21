@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Search, Trash2, UserPlus, Users } from "lucide-react";
 import EmptyState from "../components/EmptyState.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import {
   acceptFriendRequest,
@@ -23,6 +24,7 @@ export default function Friends() {
   const [searchResults, setSearchResults] = useState([]);
   const [friendships, setFriendships] = useState([]);
   const [message, setMessage] = useState(null);
+  const [pendingRemove, setPendingRemove] = useState(null);
   const [loadingSocial, setLoadingSocial] = useState(false);
 
   const acceptedFriends = friendships.filter((friendship) => friendship.status === "accepted");
@@ -100,11 +102,11 @@ export default function Friends() {
     refreshSocialData();
   }
 
-  async function removeConnection(friendship) {
-    const confirmed = window.confirm("Remove this friend or request?");
-    if (!confirmed) return;
+  async function confirmRemoveConnection() {
+    if (!pendingRemove) return;
 
-    const { error } = await removeFriendship(friendship.id);
+    const { error } = await removeFriendship(pendingRemove.id);
+    setPendingRemove(null);
 
     if (error) {
       setMessage({ type: "error", text: error.message || "Could not remove connection." });
@@ -206,7 +208,7 @@ export default function Friends() {
                       <Check size={17} aria-hidden="true" />
                       Accept
                     </button>
-                    <button className="button subtle danger-text" type="button" onClick={() => removeConnection(friendship)}>
+                    <button className="button subtle danger-text" type="button" onClick={() => setPendingRemove(friendship)}>
                       <Trash2 size={17} aria-hidden="true" />
                       Remove
                     </button>
@@ -219,7 +221,7 @@ export default function Friends() {
                     <h3>{getProfileName(friendship.otherProfile)}</h3>
                     <p className="muted">Request sent</p>
                   </div>
-                  <button className="button subtle danger-text" type="button" onClick={() => removeConnection(friendship)}>
+                  <button className="button subtle danger-text" type="button" onClick={() => setPendingRemove(friendship)}>
                     <Trash2 size={17} aria-hidden="true" />
                     Cancel
                   </button>
@@ -252,7 +254,7 @@ export default function Friends() {
                       <h3>{getProfileName(friendship.otherProfile)}</h3>
                       <p className="muted">{friendship.otherProfile?.email || "No email"}</p>
                     </div>
-                    <button className="button subtle danger-text" type="button" onClick={() => removeConnection(friendship)}>
+                    <button className="button subtle danger-text" type="button" onClick={() => setPendingRemove(friendship)}>
                       <Trash2 size={17} aria-hidden="true" />
                       Remove Friend
                     </button>
@@ -267,6 +269,16 @@ export default function Friends() {
           <EmptyState title="No friends yet" message="Accept a request or search for a friend to start sharing." />
         )}
       </section>
+
+      <ConfirmModal
+        open={Boolean(pendingRemove)}
+        title="Remove this connection?"
+        message={pendingRemove ? `Remove ${getProfileName(pendingRemove.otherProfile)} from your friends?` : ""}
+        confirmLabel="Remove"
+        danger
+        onCancel={() => setPendingRemove(null)}
+        onConfirm={confirmRemoveConnection}
+      />
     </div>
   );
 }

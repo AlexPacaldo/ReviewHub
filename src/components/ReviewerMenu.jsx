@@ -17,6 +17,7 @@ import {
   getMyCloudReviewer,
   updateCloudReviewerVisibility
 } from "../services/cloudReviewers.js";
+import ConfirmModal from "./ConfirmModal.jsx";
 import { deleteReviewerSharesForOwner, listFriendships } from "../services/social.js";
 import {
   deleteLocalReviewer,
@@ -40,6 +41,7 @@ export default function ReviewerMenu({ reviewer, user, configured, onMessage, on
   const [visibilitySaving, setVisibilitySaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [pickOpen, setPickOpen] = useState(false);
   const [friends, setFriends] = useState([]);
   const [friendLoading, setFriendLoading] = useState(false);
@@ -431,10 +433,7 @@ export default function ReviewerMenu({ reviewer, user, configured, onMessage, on
                     className="button subtle danger-text"
                     type="button"
                     disabled={deleteBusy}
-                    onClick={() => {
-                      const confirmed = window.confirm(`Delete "${reviewer.title}" from ${option.title.toLowerCase()}?`);
-                      if (confirmed) runDelete(option.target);
-                    }}
+                    onClick={() => setPendingDelete(option)}
                   >
                     Delete
                   </button>
@@ -514,6 +513,20 @@ export default function ReviewerMenu({ reviewer, user, configured, onMessage, on
           </section>
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={Boolean(pendingDelete)}
+        title="Delete Reviewer"
+        message={pendingDelete ? `Delete "${reviewer.title}" from ${pendingDelete.title.toLowerCase()}? This cannot be undone.` : ""}
+        confirmLabel="Delete"
+        danger
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          const target = pendingDelete?.target;
+          setPendingDelete(null);
+          if (target) runDelete(target);
+        }}
+      />
     </div>
   );
 }
