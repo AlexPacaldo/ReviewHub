@@ -2006,6 +2006,13 @@ legend {
   min-height: 48px;
 }
 
+.manual-difficulty-note {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
 .prompt-box textarea {
   min-height: 118px;
   resize: vertical;

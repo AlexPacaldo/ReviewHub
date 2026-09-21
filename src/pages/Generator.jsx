@@ -9,6 +9,7 @@ import { logClientError } from "../utils/errorLogger.js";
 
 const emptyQuestion = {
   topic: "",
+  difficulty: "easy",
   question: "",
   A: "",
   B: "",
@@ -55,6 +56,7 @@ function buildReviewer({ title, subject, instructions }, questions) {
   const reviewerQuestions = questions.map((question, index) => ({
     id: index + 1,
     type: "multiple_choice",
+    difficulty: ["easy", "medium", "hard"].includes(question.difficulty) ? question.difficulty : "easy",
     topic: question.topic.trim(),
     question: question.question.trim(),
     choices: {
@@ -947,13 +949,13 @@ export default function Generator() {
 
           <details className="advanced-panel">
             <summary>Manual Builder</summary>
-            <div className="generator-panel-head compact">
-              <FileText size={20} aria-hidden="true" />
-              <div>
-                <h2>Manual Builder</h2>
-                <p className="muted">Fallback for creating or testing a reviewer without AI.</p>
+<div className="generator-panel-head compact">
+                <FileText size={20} aria-hidden="true" />
+                <div>
+                  <h2>Manual Builder</h2>
+                  <p className="muted">Fallback for creating or testing a reviewer without AI. Reviewer options like question count, difficulty, and question types are chosen in the reviewer view.</p>
+                </div>
               </div>
-            </div>
 
             <div className="generator-form-grid">
               <label>
@@ -994,6 +996,17 @@ export default function Generator() {
                     <option value="D">D</option>
                   </select>
                 </label>
+                <label>
+                  <span>Difficulty</span>
+                  <select value={questionDraft.difficulty} onChange={(event) => updateQuestion("difficulty", event.target.value)}>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </label>
+                <span className="generator-note manual-difficulty-note">
+                  Difficulty tags each question, just like AI-generated reviewers, so the quiz setup can filter by level.
+                </span>
               </div>
 
               <label className="prompt-box">
