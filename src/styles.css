@@ -2013,6 +2013,20 @@ legend {
   margin: 0;
 }
 
+.builder-fixed-choices {
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.builder-fixed-choices strong {
+  color: var(--text);
+}
+
 .prompt-box textarea {
   min-height: 118px;
   resize: vertical;

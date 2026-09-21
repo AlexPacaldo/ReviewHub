@@ -8,6 +8,7 @@ import { clearGeneratorDraft, getCloudReviewerCache, getGeneratorDraft, saveClou
 import { logClientError } from "../utils/errorLogger.js";
 
 const emptyQuestion = {
+  type: "multiple_choice",
   topic: "",
   difficulty: "easy",
   question: "",
@@ -16,6 +17,7 @@ const emptyQuestion = {
   C: "",
   D: "",
   correctAnswer: "A",
+  answer: "",
   explanation: ""
 };
 
@@ -53,22 +55,54 @@ function slugify(value) {
 function buildReviewer({ title, subject, instructions }, questions) {
   const safeTitle = title.trim();
   const safeSubject = subject.trim();
-  const reviewerQuestions = questions.map((question, index) => ({
-    id: index + 1,
-    type: "multiple_choice",
-    difficulty: ["easy", "medium", "hard"].includes(question.difficulty) ? question.difficulty : "easy",
-    topic: question.topic.trim(),
-    question: question.question.trim(),
-    choices: {
+  const reviewerQuestions = questions.map((question, index) => {
+    const type = ["multiple_choice", "true_false", "identification", "flashcard"].includes(question.type)
+      ? question.type
+      : "multiple_choice";
+    const difficulty = ["easy", "medium", "hard"].includes(question.difficulty) ? question.difficulty : "easy";
+    const base = {
+      id: index + 1,
+      type,
+      difficulty,
+      topic: question.topic.trim(),
+      question: question.question.trim(),
+      explanation: question.explanation.trim()
+    };
+
+    if (type === "true_false") {
+      const correctAnswer = question.correctAnswer === "B" ? "B" : "A";
+      const choices = { A: question.A.trim() || "True", B: question.B.trim() || "False", C: "", D: "" };
+      return {
+        ...base,
+        choices,
+        correctAnswer,
+        answerText: choices[correctAnswer]
+      };
+    }
+
+    if (type === "identification" || type === "flashcard") {
+      return {
+        ...base,
+        choices: {},
+        correctAnswer: "TEXT",
+        answerText: question.answer.trim()
+      };
+    }
+
+    const choices = {
       A: question.A.trim(),
       B: question.B.trim(),
       C: question.C.trim(),
       D: question.D.trim()
-    },
-    correctAnswer: question.correctAnswer,
-    answerText: question[question.correctAnswer].trim(),
-    explanation: question.explanation.trim()
-  }));
+    };
+
+    return {
+      ...base,
+      choices,
+      correctAnswer: question.correctAnswer,
+      answerText: choices[question.correctAnswer] || ""
+    };
+  });
 
   return {
     reviewerId: `${slugify(safeTitle || safeSubject || "generated-reviewer")}-${Date.now()}`,
@@ -236,7 +270,9 @@ export default function Generator() {
     subject: "",
     instructions: "Select the best answer for each question."
   });
-  const [questionDraft, setQuestionDraft] = useState(savedDraft?.questionDraft || emptyQuestion);
+  const [questionDraft, setQuestionDraft] = useState(
+    savedDraft?.questionDraft ? { ...emptyQuestion, ...savedDraft.questionDraft } : emptyQuestion
+  );
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
   const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "100");
@@ -294,7 +330,39 @@ export default function Generator() {
   }
 
   function updateQuestion(key, value) {
-    setQuestionDraft((current) => ({ ...current, [key]: value }));
+    if (key !== "type") {
+      setQuestionDraft((current) => ({ ...current, [key]: value }));
+      return;
+    }
+
+    setQuestionDraft((current) => {
+      const next = { ...current, type: value };
+
+      if (value === "true_false") {
+        next.A = "True";
+        next.B = "False";
+        next.C = "";
+        next.D = "";
+        next.answer = "";
+        next.correctAnswer = current.correctAnswer === "B" ? "B" : "A";
+      } else if (value === "identification" || value === "flashcard") {
+        next.A = "";
+        next.B = "";
+        next.C = "";
+        next.D = "";
+        next.answer = current.answer || "";
+        next.correctAnswer = "TEXT";
+      } else {
+        next.A = current.A || "";
+        next.B = current.B || "";
+        next.C = current.C || "";
+        next.D = current.D || "";
+        next.answer = "";
+        next.correctAnswer = current.correctAnswer === "TEXT" ? "A" : current.correctAnswer || "A";
+      }
+
+      return next;
+    });
   }
 
   function updateJsonText(value) {
@@ -420,9 +488,16 @@ export default function Generator() {
   }
 
   function validateQuestionDraft() {
-    const missingFields = ["topic", "question", "A", "B", "C", "D", "explanation"].filter((field) => !questionDraft[field].trim());
+    const type = questionDraft.type || "multiple_choice";
+    const isTyped = type === "identification" || type === "flashcard";
+    const required = ["topic", "question", "explanation"];
+
+    if (type === "multiple_choice") required.push("A", "B", "C", "D");
+    if (isTyped) required.push("answer");
+
+    const missingFields = required.filter((field) => !questionDraft[field].trim());
     if (missingFields.length) {
-      return ["Complete the question, choices, topic, and explanation before adding it."];
+      return ["Complete the question fields before adding it."];
     }
     return [];
   }
@@ -978,24 +1053,43 @@ export default function Generator() {
                 <Sparkles size={20} aria-hidden="true" />
                 <div>
                   <h2>Question {questions.length + 1}</h2>
-                  <p className="muted">Add one complete multiple-choice question at a time.</p>
+                  <p className="muted">Pick a type and fill in its fields.</p>
                 </div>
               </div>
 
               <div className="generator-form-grid">
                 <label>
+                  <span>Question Type</span>
+                  <select value={questionDraft.type} onChange={(event) => updateQuestion("type", event.target.value)}>
+                    {QUESTION_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
                   <span>Topic</span>
                   <input value={questionDraft.topic} onChange={(event) => updateQuestion("topic", event.target.value)} placeholder="Example: Photosynthesis" />
                 </label>
-                <label>
-                  <span>Correct Answer</span>
-                  <select value={questionDraft.correctAnswer} onChange={(event) => updateQuestion("correctAnswer", event.target.value)}>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                  </select>
-                </label>
+                {questionDraft.type === "identification" || questionDraft.type === "flashcard" ? null : (
+                  <label>
+                    <span>Correct Answer</span>
+                    <select value={questionDraft.correctAnswer} onChange={(event) => updateQuestion("correctAnswer", event.target.value)}>
+                      {questionDraft.type === "true_false" ? (
+                        <>
+                          <option value="A">True</option>
+                          <option value="B">False</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="A">A</option>
+                          <option value="B">B</option>
+                          <option value="C">C</option>
+                          <option value="D">D</option>
+                        </>
+                      )}
+                    </select>
+                  </label>
+                )}
                 <label>
                   <span>Difficulty</span>
                   <select value={questionDraft.difficulty} onChange={(event) => updateQuestion("difficulty", event.target.value)}>
@@ -1014,14 +1108,25 @@ export default function Generator() {
                 <textarea value={questionDraft.question} onChange={(event) => updateQuestion("question", event.target.value)} placeholder="Write the question here." />
               </label>
 
-              <div className="choice-entry-grid">
-                {["A", "B", "C", "D"].map((letter) => (
-                  <label key={letter}>
-                    <span>{letter}</span>
-                    <input value={questionDraft[letter]} onChange={(event) => updateQuestion(letter, event.target.value)} placeholder={`Choice ${letter}`} />
-                  </label>
-                ))}
-              </div>
+              {questionDraft.type === "multiple_choice" ? (
+                <div className="choice-entry-grid">
+                  {["A", "B", "C", "D"].map((letter) => (
+                    <label key={letter}>
+                      <span>{letter}</span>
+                      <input value={questionDraft[letter]} onChange={(event) => updateQuestion(letter, event.target.value)} placeholder={`Choice ${letter}`} />
+                    </label>
+                  ))}
+                </div>
+              ) : questionDraft.type === "true_false" ? (
+                <p className="muted builder-fixed-choices">
+                  Choices are fixed to <strong>True</strong> and <strong>False</strong>.
+                </p>
+              ) : (
+                <label className="prompt-box">
+                  <span>Answer</span>
+                  <textarea value={questionDraft.answer} onChange={(event) => updateQuestion("answer", event.target.value)} placeholder="Write the correct answer." />
+                </label>
+              )}
 
               <label className="prompt-box">
                 <span>Explanation</span>
