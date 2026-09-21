@@ -1475,6 +1475,55 @@ legend {
   opacity: 0.55;
 }
 
+.type-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.type-check-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.type-check-card input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.type-check-card > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.type-check-card strong {
+  color: var(--text);
+}
+
+.type-check-card small {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.type-check-card.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.type-check-card.active strong {
+  color: var(--accent);
+}
+
 .time-limit-control {
   display: grid;
   gap: 8px;

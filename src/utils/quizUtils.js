@@ -21,6 +21,42 @@ export function isTypedQuestion(question) {
   return ["identification", "flashcard"].includes(getQuestionType(question));
 }
 
+const QUESTION_TYPE_ORDER = ["multiple_choice", "true_false", "identification", "flashcard"];
+
+export function getStoredQuestionTypes(reviewer) {
+  const types = new Set((reviewer?.questions || []).map((question) => getQuestionType(question)));
+  return QUESTION_TYPE_ORDER.filter((type) => types.has(type));
+}
+
+export function getQuestionTypeOptions(reviewer) {
+  const available = new Set(getStoredQuestionTypes(reviewer));
+
+  if (getStoredQuestionTypes(reviewer).length) {
+    available.add("identification");
+    available.add("flashcard");
+  }
+
+  return QUESTION_TYPE_ORDER.filter((type) => available.has(type));
+}
+
+function resolveQuestionTypesForSession(questions, questionTypes) {
+  const selected = Array.isArray(questionTypes) && questionTypes.length ? [...questionTypes] : null;
+  if (!selected) return questions;
+
+  if (selected.includes("flashcard")) {
+    return questions.map((question) => ({ ...question, type: "flashcard" }));
+  }
+
+  const selectedSet = new Set(selected);
+
+  if (selected.length === 1) {
+    const type = selected[0];
+    return questions.map((question) => ({ ...question, type }));
+  }
+
+  return questions.filter((question) => selectedSet.has(getQuestionType(question)));
+}
+
 function normalizeAnswerText(value = "") {
   return String(value)
     .trim()
@@ -45,6 +81,8 @@ export function buildSessionQuestions(questions, settings, retryQuestionIds = nu
   let pool = retryQuestionIds?.length
     ? questions.filter((question) => retryQuestionIds.includes(question.id))
     : [...questions];
+
+  pool = resolveQuestionTypesForSession(pool, settings.questionTypes);
 
   if (settings.questionOrder === "random") pool = shuffleItems(pool);
   pool = pool.slice(0, settings.questionCount);

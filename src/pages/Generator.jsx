@@ -859,22 +859,6 @@ export default function Generator() {
               </div>
             </fieldset>
 
-            <fieldset className="generator-option-group">
-              <legend>Question Type</legend>
-              <div className="segmented">
-                {QUESTION_TYPE_OPTIONS.map((option) => (
-                  <button
-                    className={questionType === option.value ? "active" : ""}
-                    type="button"
-                    key={option.value}
-                    onClick={() => setQuestionType(option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
             <label className="upload-zone ai-upload-zone">
               <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />
               <Upload size={30} aria-hidden="true" />

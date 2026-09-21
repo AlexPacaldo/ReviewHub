@@ -6,8 +6,15 @@ import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import ReviewerMenu from "../components/ReviewerMenu.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { createQuizSession } from "../utils/quizUtils.js";
+import { createQuizSession, getQuestionTypeOptions, getStoredQuestionTypes } from "../utils/quizUtils.js";
 import { clearQuizProgress, getLatestAttempt, loadQuizProgress, saveQuizProgress } from "../utils/storageUtils.js";
+
+const QUESTION_TYPE_LABELS = {
+  multiple_choice: "Multiple Choice",
+  true_false: "True / False",
+  identification: "Identification",
+  flashcard: "Flashcards"
+};
 
 export default function ReviewerSetup() {
   const { reviewerId } = useParams();
@@ -35,12 +42,16 @@ export default function ReviewerSetup() {
     return [10, 20, 30, 50].filter((count) => count < total).concat(total ? [total] : []);
   }, [reviewer]);
 
+  const questionTypeOptions = useMemo(() => (reviewer ? getQuestionTypeOptions(reviewer) : []), [reviewer]);
+  const defaultQuestionTypes = useMemo(() => (reviewer ? getStoredQuestionTypes(reviewer) : []), [reviewer]);
+
   const [settings, setSettings] = useState({
     questionCount: availableCounts[0] || 0,
     questionOrder: "random",
     choiceOrder: "shuffle",
     mode: "practice",
-    timeLimitMinutes: 15
+    timeLimitMinutes: 15,
+    questionTypes: defaultQuestionTypes.length ? defaultQuestionTypes : ["multiple_choice"]
   });
 
   if (!reviewer || !reviewer.validation.isValid) {
@@ -56,6 +67,35 @@ export default function ReviewerSetup() {
 
   const updateSetting = (key, value) => {
     setSettings((current) => ({ ...current, [key]: value }));
+  };
+
+  const toggleQuestionType = (value) => {
+    setSettings((current) => {
+      if (value === "flashcard") {
+        return current.questionTypes.includes("flashcard")
+          ? { ...current, questionTypes: defaultQuestionTypes, mode: "practice" }
+          : { ...current, questionTypes: ["flashcard"], mode: "flashcard" };
+      }
+
+      const hadFlashcard = current.questionTypes.includes("flashcard");
+      let nextTypes;
+
+      if (hadFlashcard) {
+        const base = defaultQuestionTypes.includes(value) ? defaultQuestionTypes : [...defaultQuestionTypes, value];
+        nextTypes = base.length ? base : [value];
+      } else {
+        const toggled = current.questionTypes.includes(value)
+          ? current.questionTypes.filter((type) => type !== value)
+          : [...current.questionTypes, value];
+        nextTypes = toggled.length ? toggled : defaultQuestionTypes;
+      }
+
+      return {
+        ...current,
+        questionTypes: [...new Set(nextTypes)],
+        mode: hadFlashcard || current.mode === "flashcard" ? "practice" : current.mode
+      };
+    });
   };
 
   return (
@@ -174,6 +214,45 @@ export default function ReviewerSetup() {
             <button type="button" className={settings.choiceOrder === "original" ? "active" : ""} onClick={() => updateSetting("choiceOrder", "original")}>Original Order</button>
           </div>
         </fieldset>
+
+        {questionTypeOptions.length ? (
+          <fieldset>
+            <legend>Question Type</legend>
+            <div className="type-check-grid">
+              {questionTypeOptions.map((type) => (
+                <label
+                  className={`type-check-card ${settings.questionTypes.includes(type) ? "active" : ""}`}
+                  key={type}
+                >
+                  <input
+                    type="checkbox"
+                    checked={settings.questionTypes.includes(type)}
+                    onChange={() => toggleQuestionType(type)}
+                  />
+                  <span>
+                    <strong>{QUESTION_TYPE_LABELS[type]}</strong>
+                    <small>
+                      {type === "flashcard"
+                        ? "Card-style review"
+                        : type === "identification"
+                          ? "Type the answer in"
+                          : type === "true_false"
+                            ? "True or false"
+                            : "Pick the best choice"}
+                    </small>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="muted">
+              {settings.questionTypes.includes("flashcard")
+                ? "Flashcards run as their own review session and won't mix with other question types."
+                : questionTypeOptions.length > 1
+                  ? "Pick the formats to use. Selecting only one converts the whole quiz to it."
+                  : "This reviewer uses this question format."}
+            </p>
+          </fieldset>
+        ) : null}
 
         <fieldset>
           <legend>Quiz Mode</legend>
