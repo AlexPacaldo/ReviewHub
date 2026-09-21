@@ -11,6 +11,7 @@ const KEYS = {
 };
 
 export const REVIEWER_DATA_CHANGED_EVENT = "reviewer-data-changed";
+export const SOCIAL_DATA_CHANGED_EVENT = "social-data-changed";
 
 function readJson(key, fallback) {
   try {

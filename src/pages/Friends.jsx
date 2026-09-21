@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Search, Trash2, UserPlus, Users } from "lucide-react";
 import EmptyState from "../components/EmptyState.jsx";
@@ -12,6 +12,7 @@ import {
   searchProfiles,
   sendFriendRequest
 } from "../services/social.js";
+import { SOCIAL_DATA_CHANGED_EVENT } from "../utils/storageUtils.js";
 
 const POLL_INTERVAL_MS = 30000;
 
@@ -28,6 +29,7 @@ export default function Friends() {
   const [message, setMessage] = useState(null);
   const [pendingRemove, setPendingRemove] = useState(null);
   const [loadingSocial, setLoadingSocial] = useState(false);
+  const refreshRef = useRef(() => {});
 
   const acceptedFriends = friendships.filter((friendship) => friendship.status === "accepted");
   const incomingRequests = friendships.filter((friendship) => friendship.status === "pending" && friendship.addressee_id === user?.id);
@@ -58,9 +60,15 @@ export default function Friends() {
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
+    refreshRef.current = () => refreshSocialData(true);
+    const handleSocialChange = () => refreshRef.current();
+
+    window.addEventListener(SOCIAL_DATA_CHANGED_EVENT, handleSocialChange);
+
     return () => {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener(SOCIAL_DATA_CHANGED_EVENT, handleSocialChange);
     };
   }, [configured, user?.id]);
 

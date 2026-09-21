@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { useNotifications } from "../contexts/NotificationContext.jsx";
 import { acceptFriendRequest, listFriendships, removeFriendship } from "../services/social.js";
 import { listVisibleCloudReviewers } from "../services/cloudReviewers.js";
-import { saveCloudReviewerCache } from "../utils/storageUtils.js";
+import { saveCloudReviewerCache, SOCIAL_DATA_CHANGED_EVENT } from "../utils/storageUtils.js";
 import { supabase } from "../lib/supabaseClient.js";
 
 const STATE_KEY = "hachi_social_notification_state";
@@ -185,12 +185,17 @@ export default function SocialNotificationWatcher() {
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
+    const handleRealtimeChange = () => {
+      runPoll();
+      window.dispatchEvent(new Event(SOCIAL_DATA_CHANGED_EVENT));
+    };
+
     const channel = supabase
       ? supabase
           .channel(`social-watcher-${user.id}`)
-          .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => runPoll())
-          .on("postgres_changes", { event: "*", schema: "public", table: "reviewer_shares" }, () => runPoll())
-          .on("postgres_changes", { event: "*", schema: "public", table: "reviewers" }, () => runPoll())
+          .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, handleRealtimeChange)
+          .on("postgres_changes", { event: "*", schema: "public", table: "reviewer_shares" }, handleRealtimeChange)
+          .on("postgres_changes", { event: "*", schema: "public", table: "reviewers" }, handleRealtimeChange)
           .subscribe()
       : null;
 

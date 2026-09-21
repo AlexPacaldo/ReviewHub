@@ -23,7 +23,8 @@ import {
   removeReviewerFromSyncQueue,
   restoreLocalDataSnapshot,
   saveCloudReviewerCache,
-  saveLocalReviewer
+  saveLocalReviewer,
+  SOCIAL_DATA_CHANGED_EVENT
 } from "../utils/storageUtils.js";
 import { logClientError } from "../utils/errorLogger.js";
 
@@ -110,9 +111,15 @@ export default function Library() {
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
+    const handleSocialChange = () => {
+      if (document.visibilityState === "visible") loadCloudReviewers(true);
+    };
+    window.addEventListener(SOCIAL_DATA_CHANGED_EVENT, handleSocialChange);
+
     return () => {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener(SOCIAL_DATA_CHANGED_EVENT, handleSocialChange);
     };
   }, [configured, user?.id]);
 
