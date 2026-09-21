@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Cloud, Download, HardDrive, Pencil, RefreshCw, Smartphone, Trash2, Upload, Wifi, WifiOff } from "lucide-react";
+import { Cloud, Download, Pencil, RefreshCw, Trash2, Upload } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
-import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { deleteCloudReviewer, listVisibleCloudReviewers, upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
@@ -56,9 +55,6 @@ function ReviewerStatusBadge({ status }) {
 export default function Library() {
   const { configured, user } = useAuth();
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [offlineReady, setOfflineReady] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState(null);
   const [localReviewers, setLocalReviewers] = useState(getLocalReviewers);
   const [progress, setProgress] = useState(getAllProgress);
   const [history, setHistory] = useState(getAttemptHistory);
@@ -82,30 +78,13 @@ export default function Library() {
 
   useEffect(() => {
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
-    const captureInstallPrompt = (event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-    };
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true;
-
-    setIsStandalone(standalone);
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready
-        .then(() => setOfflineReady(true))
-        .catch(() => setOfflineReady(false));
-    }
 
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);
-    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
     refreshStorageInfo();
     return () => {
       window.removeEventListener("online", updateOnlineStatus);
       window.removeEventListener("offline", updateOnlineStatus);
-      window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
     };
   }, []);
 
@@ -129,21 +108,6 @@ export default function Library() {
     if (!user) return [];
     return localReviewers.filter((reviewer) => !cloudReviewerIds.has(reviewer.reviewerId));
   }, [cloudReviewerIds, localReviewers, user]);
-
-  const stats = useMemo(() => {
-    const progressSessions = Object.keys(progress).length;
-    return {
-      builtInReviewers: reviewers.length,
-      allReviewers: getAllReviewers().length,
-      localReviewers: localReviewers.length,
-      cloudReviewers: cloudReviewers.length,
-      history: history.length,
-      progressSessions,
-      generatorDrafts: generatorDraft ? 1 : 0,
-      queuedSyncs: syncQueue.length,
-      errorLogs: errorLogs.length
-    };
-  }, [cloudReviewers.length, errorLogs.length, generatorDraft, history.length, localReviewers.length, progress, syncQueue.length]);
 
   function refreshLocalData() {
     setLocalReviewers(getLocalReviewers());
@@ -196,15 +160,6 @@ export default function Library() {
     }
 
     return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-  }
-
-  async function installApp() {
-    if (!installPrompt) {
-      return;
-    }
-
-    await installPrompt.prompt();
-    setInstallPrompt(null);
   }
 
   async function loadCloudReviewers() {
@@ -613,79 +568,6 @@ export default function Library() {
           <Download size={17} aria-hidden="true" />
           Export Backup
         </button>
-      </section>
-
-      <section className="library-status-grid">
-        <article className="library-status-card">
-          {isOnline ? <Wifi size={20} aria-hidden="true" /> : <WifiOff size={20} aria-hidden="true" />}
-          <span>Connection</span>
-          <strong>{isOnline ? "Online" : "Offline"}</strong>
-        </article>
-        <article className="library-status-card">
-          <HardDrive size={20} aria-hidden="true" />
-          <span>App Mode</span>
-          <strong>{isStandalone ? "Installed" : "Browser"}</strong>
-        </article>
-        <article className="library-status-card">
-          <Smartphone size={20} aria-hidden="true" />
-          <span>Offline Ready</span>
-          <strong>{offlineReady ? "Ready" : "Preparing"}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Built-in Reviewers</span>
-          <strong>{stats.builtInReviewers}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Saved Offline</span>
-          <strong>{stats.localReviewers}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Cloud Reviewers</span>
-          <strong>{user ? stats.cloudReviewers : "Sign in"}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Unfinished Quizzes</span>
-          <strong>{stats.progressSessions}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Generator Draft</span>
-          <strong>{stats.generatorDrafts ? "Saved" : "None"}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Completed Attempts</span>
-          <strong>{stats.history}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Queued Syncs</span>
-          <strong>{stats.queuedSyncs}</strong>
-        </article>
-        <article className="library-status-card">
-          <span>Error Logs</span>
-          <strong>{stats.errorLogs}</strong>
-        </article>
-      </section>
-
-      <section className="library-panel install-panel">
-        <div>
-          <h2>Offline App Access</h2>
-          <p className="muted">Open Hachi once while online, then this device can reopen the app shell without internet.</p>
-        </div>
-        <div className="install-steps" aria-label="Offline app readiness">
-          <span className={offlineReady ? "complete" : ""}>App shell cached</span>
-          <span className={isStandalone ? "complete" : ""}>Installed app mode</span>
-          <span className={!isOnline ? "complete" : ""}>Offline mode supported</span>
-        </div>
-        {!isStandalone ? (
-          <div className="button-row">
-            {installPrompt ? (
-              <button className="button primary" type="button" onClick={installApp}>
-                Install Hachi
-              </button>
-            ) : (
-              <p className="muted install-note">Use your browser menu and choose Install app or Add to Home Screen.</p>
-            )}
-          </div>
-        ) : null}
       </section>
 
       <section className="library-panel">
