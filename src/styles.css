@@ -839,11 +839,6 @@ main {
   border-radius: inherit;
 }
 
-.reviewer-open-button {
-  margin-top: auto;
-  pointer-events: none;
-}
-
 .reviewer-remove {
   margin-top: 8px;
 }
@@ -889,6 +884,10 @@ main {
 
 .coverage-block {
   margin: 18px 0;
+}
+
+.reviewer-card-link > .coverage-block {
+  margin-top: auto;
 }
 
 .coverage-title {

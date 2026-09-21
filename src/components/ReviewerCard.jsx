@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Layers, Trash2 } from "lucide-react";
+import { Layers, Trash2 } from "lucide-react";
 
 export default function ReviewerCard({ reviewer, progress, onDelete }) {
   const code = reviewer.title.split(" ")[0];
@@ -36,11 +36,6 @@ export default function ReviewerCard({ reviewer, progress, onDelete }) {
         </div>
 
         {progress ? <p className="resume-note">Unfinished quiz saved</p> : null}
-
-        <span className="button primary wide reviewer-open-button">
-          Start Reviewer
-          <ArrowRight size={18} aria-hidden="true" />
-        </span>
       </Link>
 
       {reviewer.source === "local" && onDelete ? (
