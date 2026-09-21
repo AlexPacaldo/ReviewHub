@@ -139,27 +139,15 @@ export default function Library() {
 
   async function requestPersistentStorage() {
     if (!navigator.storage?.persist) {
-      setBackupMessage("Persistent storage is not supported in this browser.");
+      setBackupMessage("Your browser doesn't let apps ask for this protection.");
       return;
     }
 
     const persisted = await navigator.storage.persist();
     await refreshStorageInfo();
-    setBackupMessage(persisted ? "Offline data is protected from automatic cleanup." : "Browser did not grant persistent storage yet.");
-  }
-
-  function formatBytes(value) {
-    if (!value) return "Unknown";
-    const units = ["B", "KB", "MB", "GB"];
-    let size = value;
-    let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex += 1;
-    }
-
-    return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+    setBackupMessage(persisted
+      ? "Your reviews are now safe from automatic cleanup."
+      : "Your browser didn't grant protection yet. You can try again later.");
   }
 
   async function loadCloudReviewers() {
@@ -780,40 +768,42 @@ export default function Library() {
       </section>
 
       <section className="library-panel">
-        <h2>Local Data</h2>
-        <p className="muted">These actions only affect data stored on this device.</p>
+        <h2>This Device</h2>
+        <p className="muted">Changes here only affect this device. Nothing here is uploaded to your account.</p>
         <div className="local-data-grid">
           <article className="local-data-row">
             <div>
-              <h3>Storage Protection</h3>
+              <h3>Keep My Reviews Safe</h3>
               <p className="muted">
                 {storageInfo.supported
-                  ? `${storageInfo.persisted ? "Protected" : "Not protected yet"} - ${formatBytes(storageInfo.usage)} used of ${formatBytes(storageInfo.quota)} available.`
-                  : "This browser does not report storage protection status."}
+                  ? storageInfo.persisted
+                    ? "Protected. Your browser will try to keep your reviews, drafts, and progress even when this device is low on space."
+                    : "Not protected yet. Browsers sometimes delete saved app information to free up space. Turning this on asks yours to keep your reviews, drafts, and progress."
+                  : "Your browser doesn't let apps ask for this protection, so it isn't available here."}
               </p>
             </div>
             <div className="button-row">
-              <button className="button subtle" type="button" onClick={requestPersistentStorage}>
-                Protect Offline Data
+              <button className="button subtle" type="button" onClick={requestPersistentStorage} disabled={storageInfo.persisted}>
+                {storageInfo.persisted ? "Protection On" : "Protect My Reviews"}
               </button>
             </div>
           </article>
           <article className="local-data-row">
             <div>
-              <h3>Generator Draft</h3>
+              <h3>Unfinished Draft</h3>
               <p className="muted">
                 {generatorDraft
-                  ? `Saved ${new Date(generatorDraft.savedAt).toLocaleString()} with ${generatorDraft.questions?.length || 0} added questions.`
-                  : "No unfinished Generator draft is saved on this device."}
+                  ? `Saved ${new Date(generatorDraft.savedAt).toLocaleString()} with ${generatorDraft.questions?.length || 0} questions so far.`
+                  : "You don't have a half-finished reviewer right now."}
               </p>
             </div>
             <div className="button-row">
               <Link className="button subtle" to="/generator">
-                Open Generator
+                Continue Working
               </Link>
               {generatorDraft ? (
                 <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-generator-draft" })}>
-                  Clear Draft
+                  Discard Draft
                 </button>
               ) : null}
             </div>
@@ -822,18 +812,18 @@ export default function Library() {
         <div className="library-actions">
           <button className="button subtle" type="button" onClick={() => downloadJson("hachi_local_backup.json", getLocalDataSnapshot())}>
             <Download size={17} aria-hidden="true" />
-            Export Local Backup
+            Back Up This Device
           </button>
           <label className="button subtle file-button">
             <Upload size={17} aria-hidden="true" />
-            Restore Backup
+            Load a Backup
             <input type="file" accept="application/json,.json" onChange={restoreBackupFile} />
           </label>
           <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-progress" })}>
-            Clear Unfinished Quizzes
+            Discard Unfinished Quizzes
           </button>
           <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-history" })}>
-            Clear Attempt History
+            Clear Quiz History
           </button>
         </div>
         {backupMessage ? <p className="backup-message">{backupMessage}</p> : null}
