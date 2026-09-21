@@ -25,7 +25,7 @@ import {
   saveCloudReviewerCache,
   saveLocalReviewer
 } from "../utils/storageUtils.js";
-import { clearClientErrorLogs, getClientErrorLogs, logClientError } from "../utils/errorLogger.js";
+import { logClientError } from "../utils/errorLogger.js";
 
 const MAX_BACKUP_RESTORE_SIZE = 8 * 1024 * 1024;
 
@@ -68,7 +68,6 @@ export default function Library() {
   const [syncAllLoading, setSyncAllLoading] = useState(false);
   const [offlineSaveStatus, setOfflineSaveStatus] = useState({});
   const [syncQueue, setSyncQueue] = useState(getSyncQueue);
-  const [errorLogs, setErrorLogs] = useState(getClientErrorLogs);
   const [storageInfo, setStorageInfo] = useState({
     supported: false,
     persisted: false,
@@ -115,7 +114,6 @@ export default function Library() {
     setHistory(getAttemptHistory());
     setGeneratorDraft(getGeneratorDraft());
     setSyncQueue(getSyncQueue());
-    setErrorLogs(getClientErrorLogs());
   }
 
   async function refreshStorageInfo() {
@@ -535,11 +533,6 @@ export default function Library() {
       setCloudMessage({ type: "success", message: "Queued sync actions cleared." });
     }
 
-    if (confirmAction?.type === "clear-error-logs") {
-      clearClientErrorLogs();
-      setBackupMessage("Production error log cleared on this device.");
-    }
-
     setConfirmAction(null);
     refreshLocalData();
   }
@@ -552,10 +545,6 @@ export default function Library() {
           <h1>Library & Settings</h1>
           <p className="muted">Manage offline reviewers, cloud reviewers, backups, and device storage.</p>
         </div>
-        <button className="button primary" type="button" onClick={() => downloadJson("hachi_local_backup.json", getLocalDataSnapshot())}>
-          <Download size={17} aria-hidden="true" />
-          Export Backup
-        </button>
       </section>
 
       <section className="library-panel">
@@ -827,33 +816,6 @@ export default function Library() {
           </button>
         </div>
         {backupMessage ? <p className="backup-message">{backupMessage}</p> : null}
-      </section>
-
-      <section className="library-panel">
-        <div className="library-panel-head">
-          <div>
-            <h2>Production Diagnostics</h2>
-            <p className="muted">Recent app errors saved on this device. These help debug production issues without exposing API keys.</p>
-          </div>
-          {errorLogs.length ? (
-            <button className="button subtle danger-text" type="button" onClick={() => setConfirmAction({ type: "clear-error-logs" })}>
-              Clear Logs
-            </button>
-          ) : null}
-        </div>
-        {errorLogs.length ? (
-          <div className="error-log-list">
-            {errorLogs.slice(0, 5).map((entry) => (
-              <article className="error-log-row" key={entry.id}>
-                <strong>{entry.source}</strong>
-                <span>{entry.error?.message || "Unknown error"}</span>
-                <small>{new Date(entry.createdAt).toLocaleString()}</small>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No production errors logged" message="If the app hits a runtime error, the latest details will appear here on this device." />
-        )}
       </section>
 
       <ConfirmModal
