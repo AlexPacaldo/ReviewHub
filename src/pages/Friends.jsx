@@ -1,46 +1,40 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Cloud, Download, Search, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, Search, Trash2, UserPlus, Users } from "lucide-react";
 import EmptyState from "../components/EmptyState.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
   acceptFriendRequest,
-  deleteReviewerShare,
   ensureMyProfile,
   listFriendships,
-  listReceivedReviewerShares,
   removeFriendship,
   searchProfiles,
   sendFriendRequest
 } from "../services/social.js";
-import { saveLocalReviewer } from "../utils/storageUtils.js";
 
 function getProfileName(profile) {
   return profile?.display_name || profile?.email || "Hachi user";
 }
 
-function cloneSharedReviewer(reviewer) {
-  const baseId = reviewer?.reviewerId || "shared-reviewer";
-
-  return {
-    ...reviewer,
-    reviewerId: `${baseId}-shared-${Date.now()}`
-  };
-}
-
 export default function Friends() {
   const { configured, loading, user } = useAuth();
   const [query, setQuery] = useState("");
+  const [friendQuery, setFriendQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [friendships, setFriendships] = useState([]);
-  const [shares, setShares] = useState([]);
   const [message, setMessage] = useState(null);
   const [loadingSocial, setLoadingSocial] = useState(false);
 
   const acceptedFriends = friendships.filter((friendship) => friendship.status === "accepted");
   const incomingRequests = friendships.filter((friendship) => friendship.status === "pending" && friendship.addressee_id === user?.id);
   const outgoingRequests = friendships.filter((friendship) => friendship.status === "pending" && friendship.requester_id === user?.id);
+
+  const normalizedFriendQuery = friendQuery.trim().toLowerCase();
+  const filteredFriends = acceptedFriends.filter((friendship) => {
+    const name = getProfileName(friendship.otherProfile).toLowerCase();
+    const email = (friendship.otherProfile?.email || "").toLowerCase();
+    return name.includes(normalizedFriendQuery) || email.includes(normalizedFriendQuery);
+  });
 
   useEffect(() => {
     if (!configured || !user) return;
@@ -54,21 +48,12 @@ export default function Friends() {
     setMessage(null);
     await ensureMyProfile(user);
 
-    const [friendshipsResult, sharesResult] = await Promise.all([
-      listFriendships(user.id),
-      listReceivedReviewerShares(user.id)
-    ]);
+    const friendsResult = await listFriendships(user.id);
 
-    if (friendshipsResult.error) {
-      setMessage({ type: "error", text: friendshipsResult.error.message || "Could not load friends." });
+    if (friendsResult.error) {
+      setMessage({ type: "error", text: friendsResult.error.message || "Could not load friends." });
     } else {
-      setFriendships(friendshipsResult.data || []);
-    }
-
-    if (sharesResult.error) {
-      setMessage({ type: "error", text: sharesResult.error.message || "Could not load shared reviewers." });
-    } else {
-      setShares(sharesResult.data || []);
+      setFriendships(friendsResult.data || []);
     }
 
     setLoadingSocial(false);
@@ -130,36 +115,6 @@ export default function Friends() {
     refreshSocialData();
   }
 
-  async function saveShareToCloud(share) {
-    const reviewer = cloneSharedReviewer(share.data);
-    const { error } = await upsertCloudReviewer(user.id, reviewer);
-
-    if (error) {
-      setMessage({ type: "error", text: error.message || "Could not save shared reviewer to cloud." });
-      return;
-    }
-
-    setMessage({ type: "success", text: "Shared reviewer saved to your cloud library." });
-  }
-
-  function saveShareOffline(share) {
-    const reviewer = cloneSharedReviewer(share.data);
-    saveLocalReviewer(reviewer);
-    setMessage({ type: "success", text: "Shared reviewer saved offline on this device." });
-  }
-
-  async function dismissShare(share) {
-    const { error } = await deleteReviewerShare(share.id);
-
-    if (error) {
-      setMessage({ type: "error", text: error.message || "Could not remove shared reviewer." });
-      return;
-    }
-
-    setShares((current) => current.filter((item) => item.id !== share.id));
-    setMessage({ type: "success", text: "Shared reviewer removed." });
-  }
-
   if (!configured) {
     return (
       <div className="page narrow">
@@ -190,7 +145,7 @@ export default function Friends() {
         <div>
           <p className="eyebrow">Friends & Sharing</p>
           <h1>Study with friends</h1>
-          <p className="muted">Find friends, share reviewers, and save reviewers shared with you.</p>
+          <p className="muted">Find friends and share reviewers with them.</p>
         </div>
         <button className="button subtle" type="button" onClick={refreshSocialData} disabled={loadingSocial}>
           <Users size={17} aria-hidden="true" />
@@ -285,62 +240,31 @@ export default function Friends() {
           </div>
         </div>
         {acceptedFriends.length ? (
-          <div className="library-list">
-            {acceptedFriends.map((friendship) => (
-              <article className="library-row" key={friendship.id}>
-                <div>
-                  <h3>{getProfileName(friendship.otherProfile)}</h3>
-                  <p className="muted">{friendship.otherProfile?.email || "No email"}</p>
-                </div>
-                <button className="button subtle danger-text" type="button" onClick={() => removeConnection(friendship)}>
-                  <Trash2 size={17} aria-hidden="true" />
-                  Remove Friend
-                </button>
-              </article>
-            ))}
-          </div>
+          <>
+            <form className="friend-search-form" onSubmit={(event) => event.preventDefault()}>
+              <input value={friendQuery} onChange={(event) => setFriendQuery(event.target.value)} placeholder="Search friends by name or email" />
+            </form>
+            {filteredFriends.length ? (
+              <div className="library-list">
+                {filteredFriends.map((friendship) => (
+                  <article className="library-row" key={friendship.id}>
+                    <div>
+                      <h3>{getProfileName(friendship.otherProfile)}</h3>
+                      <p className="muted">{friendship.otherProfile?.email || "No email"}</p>
+                    </div>
+                    <button className="button subtle danger-text" type="button" onClick={() => removeConnection(friendship)}>
+                      <Trash2 size={17} aria-hidden="true" />
+                      Remove Friend
+                    </button>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <EmptyState title="No friends match" message="Try a different name or email." />
+            )}
+          </>
         ) : (
           <EmptyState title="No friends yet" message="Accept a request or search for a friend to start sharing." />
-        )}
-      </section>
-
-      <section className="library-panel">
-        <div className="library-panel-head">
-          <div>
-            <h2>Shared With Me</h2>
-            <p className="muted">Save shared reviewers to your own cloud or this device.</p>
-          </div>
-        </div>
-        {shares.length ? (
-          <div className="library-list">
-            {shares.map((share) => (
-              <article className="library-row" key={share.id}>
-                <div>
-                  <h3>{share.title}</h3>
-                  <p className="muted">
-                    {share.subject} - from {getProfileName(share.ownerProfile)}
-                  </p>
-                  {share.message ? <p className="sync-message pending">{share.message}</p> : null}
-                </div>
-                <div className="button-row">
-                  <button className="button subtle" type="button" onClick={() => saveShareToCloud(share)}>
-                    <Cloud size={17} aria-hidden="true" />
-                    Save to Cloud
-                  </button>
-                  <button className="button subtle" type="button" onClick={() => saveShareOffline(share)}>
-                    <Download size={17} aria-hidden="true" />
-                    Save Offline
-                  </button>
-                  <button className="button subtle danger-text" type="button" onClick={() => dismissShare(share)}>
-                    <Trash2 size={17} aria-hidden="true" />
-                    Remove
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No shared reviewers" message="Reviewers your friends share with you will appear here." />
         )}
       </section>
     </div>
