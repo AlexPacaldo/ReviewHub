@@ -5,7 +5,7 @@ import ReviewerSearch from "../components/ReviewerSearch.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { getAllReviewers } from "../data/reviewerRegistry.js";
-import { listMyCloudReviewers } from "../services/cloudReviewers.js";
+import { listVisibleCloudReviewers } from "../services/cloudReviewers.js";
 import { clearCloudReviewerCache, deleteLocalReviewer, getAllProgress, getAttemptHistory, REVIEWER_DATA_CHANGED_EVENT, saveCloudReviewerCache } from "../utils/storageUtils.js";
 
 export default function Home() {
@@ -29,18 +29,28 @@ export default function Home() {
         return;
       }
 
-      const { data, error } = await listMyCloudReviewers(user.id);
+      const { data, error } = await listVisibleCloudReviewers(user.id);
 
       if (!isMounted) return;
 
       if (error) {
-        setCloudLoadMessage(error.message || "Could not refresh cloud reviewers.");
+        setCloudLoadMessage(error.message || "Could not refresh reviewers.");
         setReviewerList(getAllReviewers());
         return;
       }
 
       setCloudLoadMessage("");
-      saveCloudReviewerCache((data || []).map((item) => item.data || item));
+      const cachedReviewers = (data || []).map((item) => {
+        const reviewerData = item.data || item;
+        return {
+          ...reviewerData,
+          ownerId: item.owner_id,
+          ...(item.ownerName ? { ownerName: item.ownerName } : {}),
+          visibility: item.visibility || reviewerData.visibility || "friends",
+          sharedWith: Array.isArray(item.shared_with) ? item.shared_with : reviewerData.sharedWith || null
+        };
+      });
+      saveCloudReviewerCache(cachedReviewers);
       setReviewerList(getAllReviewers());
     }
 

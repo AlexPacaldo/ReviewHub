@@ -1,20 +1,33 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CloudOff, HardDrive, Play } from "lucide-react";
+import { ArrowLeft, BookOpen, Cloud, HardDrive, Play, Users } from "lucide-react";
 import { getReviewerById } from "../data/reviewerRegistry.js";
 import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
+import ReviewerMenu from "../components/ReviewerMenu.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { createQuizSession } from "../utils/quizUtils.js";
 import { clearQuizProgress, getLatestAttempt, loadQuizProgress, saveQuizProgress } from "../utils/storageUtils.js";
 
 export default function ReviewerSetup() {
   const { reviewerId } = useParams();
   const navigate = useNavigate();
-  const reviewer = getReviewerById(reviewerId);
+  const { configured, user } = useAuth();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [menuMessage, setMenuMessage] = useState(null);
+  const reviewer = useMemo(() => getReviewerById(reviewerId), [reviewerId, refreshKey]);
   const savedProgress = reviewer ? loadQuizProgress(reviewer.reviewerId) : null;
   const latestAttempt = reviewer ? getLatestAttempt(reviewer.reviewerId) : null;
   const [showStartOver, setShowStartOver] = useState(false);
-  const isLocalReviewer = reviewer?.source === "local";
+  const storageStatus = reviewer?.storageStatus || reviewer?.source || "built-in";
+  const hasLocal = storageStatus === "both" || reviewer?.source === "local";
+  const hasCloud = storageStatus === "both" || reviewer?.source === "cloud";
+  const isOwnerReviewer = user
+    ? reviewer?.ownerId
+      ? reviewer.ownerId === user.id
+      : reviewer?.source !== "cloud" && reviewer?.source !== "built-in"
+    : reviewer?.source === "local";
+  const isSharedWithMe = Boolean(reviewer?.ownerName) && !isOwnerReviewer;
   const mistakeIds = latestAttempt?.incorrectQuestionIds || [];
 
   const availableCounts = useMemo(() => {
@@ -53,24 +66,48 @@ export default function ReviewerSetup() {
       </Link>
 
       <section className="setup-panel">
-        <p className="eyebrow">{reviewer.subject}</p>
-        <h1>{reviewer.title}</h1>
+        <div className="reviewer-head-row">
+          <div className="reviewer-head-copy">
+            <p className="eyebrow">{reviewer.subject}</p>
+            <h1>{reviewer.title}</h1>
+          </div>
+          <ReviewerMenu
+            reviewer={reviewer}
+            user={user}
+            configured={configured}
+            onMessage={setMenuMessage}
+            onChanged={() => setRefreshKey((current) => current + 1)}
+          />
+        </div>
         <p className="muted">{reviewer.instructions}</p>
         <div className="stat-strip">
           <span><strong>{reviewer.questions.length}</strong> available questions</span>
           <span><strong>{reviewer.coverage.length}</strong> coverage areas</span>
         </div>
+        {menuMessage ? <p className={`sync-message ${menuMessage.type}`}>{menuMessage.text}</p> : null}
 
         <div className="availability-box">
           <div className="availability-icon" aria-hidden="true">
-            {isLocalReviewer ? <HardDrive size={20} /> : <CloudOff size={20} />}
+            {isSharedWithMe ? <Users size={20} /> : hasCloud && isOwnerReviewer ? <Cloud size={20} /> : hasLocal ? <HardDrive size={20} /> : <BookOpen size={20} />}
           </div>
           <div>
-            <h2>{isLocalReviewer ? "Saved on this device" : "Built into the app"}</h2>
+            <h2>
+              {isSharedWithMe
+                ? `Shared with you by ${reviewer.ownerName}`
+                : hasCloud && isOwnerReviewer
+                  ? "Saved in your cloud account"
+                  : hasLocal
+                    ? "Saved on this device"
+                    : "Built into Hachi"}
+            </h2>
             <p className="muted">
-              {isLocalReviewer
-                ? "This reviewer is stored locally and remains available without signing in."
-                : "This reviewer is bundled with Hachi, so it is already available for offline study."}
+              {isSharedWithMe
+                ? "From your friend's cloud library. Save offline to keep it on this device."
+                : hasCloud && isOwnerReviewer
+                  ? "Synced to your account and available on any signed-in device."
+                  : hasLocal
+                    ? "Stored locally and remains available without signing in."
+                    : "Bundled with the app, so it is already available for offline study."}
             </p>
           </div>
           <Link className="button subtle" to="/library">

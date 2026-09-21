@@ -5,7 +5,7 @@ import ConfirmModal from "../components/ConfirmModal.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { getAllReviewers, reviewers } from "../data/reviewerRegistry.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { deleteCloudReviewer, listMyCloudReviewers, upsertCloudReviewer } from "../services/cloudReviewers.js";
+import { deleteCloudReviewer, listVisibleCloudReviewers, upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
   clearAllQuizProgress,
   clearAttemptHistory,
@@ -216,7 +216,7 @@ export default function Library() {
 
     setCloudLoading(true);
     setCloudMessage(null);
-    const { data, error } = await listMyCloudReviewers(user.id);
+    const { data, error } = await listVisibleCloudReviewers(user.id);
     setCloudLoading(false);
 
     if (error) {
@@ -224,8 +224,18 @@ export default function Library() {
       return;
     }
 
-    setCloudReviewers(data || []);
-    saveCloudReviewerCache((data || []).map((item) => item.data || item));
+    const ownItems = (data || []).filter((item) => item.owner_id === user.id);
+    setCloudReviewers(ownItems);
+    saveCloudReviewerCache((data || []).map((item) => {
+      const reviewerData = item.data || item;
+      return {
+        ...reviewerData,
+        ownerId: item.owner_id,
+        ...(item.ownerName ? { ownerName: item.ownerName } : {}),
+        visibility: item.visibility || reviewerData.visibility || "friends",
+        sharedWith: Array.isArray(item.shared_with) ? item.shared_with : reviewerData.sharedWith || null
+      };
+    }));
   }
 
   function getCloudReviewerData(item) {

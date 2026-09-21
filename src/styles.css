@@ -1079,6 +1079,262 @@ main {
   margin: 0;
 }
 
+/* Reviewer options menu */
+.reviewer-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.reviewer-head-copy {
+  min-width: 0;
+}
+
+.reviewer-head-copy h1 {
+  margin: 0 0 6px;
+}
+
+.reviewer-menu-anchor {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.reviewer-menu-trigger {
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+}
+
+.reviewer-menu-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  width: min(320px, calc(100vw - 24px));
+  display: grid;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+  overflow: hidden;
+}
+
+.reviewer-menu-section {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.reviewer-menu-section:last-child {
+  border-bottom: 0;
+}
+
+.reviewer-menu-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.reviewer-menu-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.reviewer-menu-item:hover {
+  background: var(--surface-2);
+}
+
+.reviewer-menu-item.danger {
+  color: var(--danger);
+}
+
+.reviewer-menu-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.reviewer-menu-seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reviewer-menu-seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.reviewer-menu-seg button:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+.reviewer-menu-seg button.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.reviewer-menu-seg button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.reviewer-menu-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.reviewer-menu-note.error {
+  color: var(--danger);
+}
+
+.reviewer-menu-status {
+  color: var(--accent);
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-head h2 {
+  margin: 0 0 4px;
+}
+
+.modal-head p {
+  margin: 0;
+}
+
+.delete-location-list {
+  display: grid;
+  gap: 10px;
+}
+
+.delete-location-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.delete-location-row strong {
+  display: block;
+}
+
+.delete-location-row p {
+  margin: 2px 0 0;
+}
+
+.friend-picker-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(320px, 46vh);
+  overflow-y: auto;
+  margin-top: 12px;
+  padding-right: 2px;
+}
+
+.friend-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.friend-picker-row input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.friend-picker-row > span:nth-child(2) {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.friend-picker-row small {
+  color: var(--muted);
+}
+
+.friend-picker-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.pick-mode {
+  margin-top: 4px;
+}
+
+.friend-picker-empty {
+  display: grid;
+  gap: 12px;
+  padding: 14px 0;
+}
+
+.reviewer-owner-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 5px 10px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 fieldset {
   margin: 18px 0;
   padding: 0;

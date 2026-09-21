@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Layers, Trash2 } from "lucide-react";
+import { Layers, Trash2, Users } from "lucide-react";
 
 export default function ReviewerCard({ reviewer, progress, onDelete }) {
   const code = reviewer.title.split(" ")[0];
@@ -19,6 +19,13 @@ export default function ReviewerCard({ reviewer, progress, onDelete }) {
           <span className="question-count">{reviewer.questions?.length || reviewer.questionCount} Questions</span>
         </div>
         {statusLabel ? <span className={`reviewer-source-badge ${statusClass}`}>{statusLabel}</span> : null}
+
+        {reviewer.ownerName ? (
+          <span className="reviewer-owner-note" title={`Shared by ${reviewer.ownerName}`}>
+            <Users size={13} aria-hidden="true" />
+            Shared by {reviewer.ownerName}
+          </span>
+        ) : null}
 
         <h3>{reviewer.subject}</h3>
         <p className="muted">{reviewer.title}</p>

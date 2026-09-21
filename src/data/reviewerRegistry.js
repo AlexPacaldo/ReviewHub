@@ -76,6 +76,7 @@ export function getAllReviewers() {
 
     if (existing?.source === "cloud" && reviewer.source === "local") {
       mergedReviewers.set(reviewer.reviewerId, {
+        ...existing,
         ...reviewer,
         storageStatus: "both",
         validation: validateReviewer(reviewer)

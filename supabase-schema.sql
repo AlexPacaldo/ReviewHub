@@ -5,21 +5,52 @@ create table if not exists public.reviewers (
   title text not null,
   subject text not null,
   data jsonb not null,
+  visibility text not null default 'friends',
+  shared_with jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique(owner_id, reviewer_id)
 );
 
+alter table public.reviewers add column if not exists visibility text not null default 'friends';
+alter table public.reviewers add column if not exists shared_with jsonb;
+
+create index if not exists reviewers_visibility_owner_idx
+on public.reviewers(visibility, owner_id, updated_at desc);
+
 alter table public.reviewers enable row level security;
 
 grant select, insert, update, delete on public.reviewers to authenticated;
 
-drop policy if exists "Users can read own reviewers" on public.reviewers;
-create policy "Users can read own reviewers"
+-- Anyone can see their own reviewers, plus reviewers that their accepted friends
+-- chose to share. A shared reviewer is visible when visibility = 'friends' and it
+-- was shared with all friends (shared_with is null/empty) or with this user
+-- specifically (shared_with contains the current user id).
+drop policy if exists "Users can read own or friends' shared reviewers" on public.reviewers;
+create policy "Users can read own or friends' shared reviewers"
 on public.reviewers
 for select
 to authenticated
-using (auth.uid() = owner_id);
+using (
+  auth.uid() = owner_id
+  or (
+    visibility = 'friends'
+    and exists (
+      select 1
+      from public.friendships
+      where status = 'accepted'
+        and (
+          (requester_id = auth.uid() and addressee_id = owner_id)
+          or (addressee_id = auth.uid() and requester_id = owner_id)
+        )
+    )
+    and (
+      shared_with is null
+      or shared_with = '[]'::jsonb
+      or shared_with ? auth.uid()::text
+    )
+  )
+);
 
 drop policy if exists "Users can insert own reviewers" on public.reviewers;
 create policy "Users can insert own reviewers"

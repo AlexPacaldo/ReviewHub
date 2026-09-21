@@ -246,3 +246,15 @@ export async function deleteReviewerShare(shareId) {
 
   return { error };
 }
+
+export async function deleteReviewerSharesForOwner(userId, reviewerId) {
+  if (!supabase || !userId) return { error: null };
+
+  const { error } = await supabase
+    .from(SHARES_TABLE)
+    .delete()
+    .eq("owner_id", userId)
+    .eq("reviewer_id", reviewerId);
+
+  return { error };
+}

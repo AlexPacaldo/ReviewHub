@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Cloud, Download, Search, Send, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, Cloud, Download, Search, Trash2, UserPlus, Users } from "lucide-react";
 import EmptyState from "../components/EmptyState.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { getAllReviewers } from "../data/reviewerRegistry.js";
 import { upsertCloudReviewer } from "../services/cloudReviewers.js";
 import {
   acceptFriendRequest,
@@ -13,8 +12,7 @@ import {
   listReceivedReviewerShares,
   removeFriendship,
   searchProfiles,
-  sendFriendRequest,
-  shareReviewer
+  sendFriendRequest
 } from "../services/social.js";
 import { saveLocalReviewer } from "../utils/storageUtils.js";
 
@@ -37,12 +35,8 @@ export default function Friends() {
   const [searchResults, setSearchResults] = useState([]);
   const [friendships, setFriendships] = useState([]);
   const [shares, setShares] = useState([]);
-  const [selectedReviewerId, setSelectedReviewerId] = useState("");
-  const [selectedFriendId, setSelectedFriendId] = useState("");
-  const [shareMessage, setShareMessage] = useState("");
   const [message, setMessage] = useState(null);
   const [loadingSocial, setLoadingSocial] = useState(false);
-  const reviewers = useMemo(() => getAllReviewers().filter((reviewer) => reviewer.validation?.isValid), []);
 
   const acceptedFriends = friendships.filter((friendship) => friendship.status === "accepted");
   const incomingRequests = friendships.filter((friendship) => friendship.status === "pending" && friendship.addressee_id === user?.id);
@@ -134,27 +128,6 @@ export default function Friends() {
 
     setMessage({ type: "success", text: "Connection removed." });
     refreshSocialData();
-  }
-
-  async function sendReviewerShare(event) {
-    event.preventDefault();
-
-    const reviewer = reviewers.find((item) => item.reviewerId === selectedReviewerId);
-
-    if (!reviewer || !selectedFriendId) {
-      setMessage({ type: "error", text: "Choose a reviewer and a friend first." });
-      return;
-    }
-
-    const { error } = await shareReviewer(user.id, selectedFriendId, reviewer, shareMessage);
-
-    if (error) {
-      setMessage({ type: "error", text: error.message || "Could not share reviewer." });
-      return;
-    }
-
-    setMessage({ type: "success", text: "Reviewer shared." });
-    setShareMessage("");
   }
 
   async function saveShareToCloud(share) {
@@ -329,47 +302,6 @@ export default function Friends() {
         ) : (
           <EmptyState title="No friends yet" message="Accept a request or search for a friend to start sharing." />
         )}
-      </section>
-
-      <section className="library-panel">
-        <div className="library-panel-head">
-          <div>
-            <h2>Share Reviewer</h2>
-            <p className="muted">Send one of your available reviewers to an accepted friend.</p>
-          </div>
-        </div>
-        <form className="share-form" onSubmit={sendReviewerShare}>
-          <label>
-            <span>Reviewer</span>
-            <select value={selectedReviewerId} onChange={(event) => setSelectedReviewerId(event.target.value)}>
-              <option value="">Choose a reviewer</option>
-              {reviewers.map((reviewer) => (
-                <option value={reviewer.reviewerId} key={reviewer.reviewerId}>
-                  {reviewer.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Friend</span>
-            <select value={selectedFriendId} onChange={(event) => setSelectedFriendId(event.target.value)}>
-              <option value="">Choose a friend</option>
-              {acceptedFriends.map((friendship) => (
-                <option value={friendship.otherUserId} key={friendship.id}>
-                  {getProfileName(friendship.otherProfile)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Message</span>
-            <input value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} placeholder="Optional note" />
-          </label>
-          <button className="button primary" type="submit">
-            <Send size={17} aria-hidden="true" />
-            Share Reviewer
-          </button>
-        </form>
       </section>
 
       <section className="library-panel">
