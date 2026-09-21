@@ -13,41 +13,42 @@ export default function ReviewerCard({ reviewer, progress, onDelete }) {
 
   return (
     <article className="reviewer-card">
-      <div className="card-topline">
-        <span className="course-code">{code}</span>
-        <span className="question-count">{reviewer.questions?.length || reviewer.questionCount} Questions</span>
-      </div>
-      {statusLabel ? <span className={`reviewer-source-badge ${statusClass}`}>{statusLabel}</span> : null}
-
-      <h3>{reviewer.subject}</h3>
-      <p className="muted">{reviewer.title}</p>
-
-      <div className="coverage-block">
-        <div className="coverage-title">
-          <Layers size={16} aria-hidden="true" />
-          Coverage
+      <Link className="reviewer-card-link" to={`/reviewer/${reviewer.reviewerId}`}>
+        <div className="card-topline">
+          <span className="course-code">{code}</span>
+          <span className="question-count">{reviewer.questions?.length || reviewer.questionCount} Questions</span>
         </div>
-        <ul>
-          {reviewer.coverage?.slice(0, 4).map((topic) => (
-            <li key={topic}>{topic}</li>
-          ))}
-        </ul>
-      </div>
+        {statusLabel ? <span className={`reviewer-source-badge ${statusClass}`}>{statusLabel}</span> : null}
 
-      {progress ? <p className="resume-note">Unfinished quiz saved</p> : null}
+        <h3>{reviewer.subject}</h3>
+        <p className="muted">{reviewer.title}</p>
 
-      <div className="reviewer-actions">
-        <Link className="button primary wide" to={`/reviewer/${reviewer.reviewerId}`}>
+        <div className="coverage-block">
+          <div className="coverage-title">
+            <Layers size={16} aria-hidden="true" />
+            Coverage
+          </div>
+          <ul>
+            {reviewer.coverage?.slice(0, 4).map((topic) => (
+              <li key={topic}>{topic}</li>
+            ))}
+          </ul>
+        </div>
+
+        {progress ? <p className="resume-note">Unfinished quiz saved</p> : null}
+
+        <span className="button primary wide reviewer-open-button">
           Start Reviewer
           <ArrowRight size={18} aria-hidden="true" />
-        </Link>
-        {reviewer.source === "local" && onDelete ? (
-          <button className="button subtle icon-danger" type="button" onClick={() => onDelete(reviewer)}>
-            <Trash2 size={17} aria-hidden="true" />
-            Remove
-          </button>
-        ) : null}
-      </div>
+        </span>
+      </Link>
+
+      {reviewer.source === "local" && onDelete ? (
+        <button className="button subtle icon-danger reviewer-remove" type="button" onClick={() => onDelete(reviewer)}>
+          <Trash2 size={17} aria-hidden="true" />
+          Remove
+        </button>
+      ) : null}
     </article>
   );
 }
