@@ -16,6 +16,8 @@ const QUESTION_TYPE_LABELS = {
   flashcard: "Flashcards"
 };
 
+const FLASHCARD_LIMIT_OPTIONS = [10, 20, 50, "all"];
+
 export default function ReviewerSetup() {
   const { reviewerId } = useParams();
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ export default function ReviewerSetup() {
   const savedProgress = reviewer ? loadQuizProgress(reviewer.reviewerId) : null;
   const latestAttempt = reviewer ? getLatestAttempt(reviewer.reviewerId) : null;
   const [showStartOver, setShowStartOver] = useState(false);
+  const [flashcardLimit, setFlashcardLimit] = useState(20);
   const storageStatus = reviewer?.storageStatus || reviewer?.source || "built-in";
   const hasLocal = storageStatus === "both" || reviewer?.source === "local";
   const hasCloud = storageStatus === "both" || reviewer?.source === "cloud";
@@ -65,6 +68,10 @@ export default function ReviewerSetup() {
     saveQuizProgress(session);
     navigate(`/quiz/${reviewer.reviewerId}`);
   };
+
+  const visibleFlashcards = flashcardLimit === "all"
+    ? reviewer.questions
+    : reviewer.questions.slice(0, Number(flashcardLimit));
 
   const updateSetting = (key, value) => {
     setSettings((current) => ({ ...current, [key]: value }));
@@ -342,6 +349,54 @@ export default function ReviewerSetup() {
           <Play size={18} aria-hidden="true" />
           Start Quiz
         </button>
+      </section>
+
+      <section className="setup-panel flashcard-review-panel">
+        <div className="reviewer-head-row">
+          <div className="reviewer-head-copy">
+            <p className="eyebrow">Flashcard review</p>
+            <h2>All Flashcards</h2>
+            <p className="muted">Browse every question with its answer. Scroll through to study the whole reviewer at a glance.</p>
+          </div>
+          <label className="flashcard-limit-control">
+            <span>Cards to show</span>
+            <select
+              value={flashcardLimit}
+              onChange={(event) => setFlashcardLimit(event.target.value === "all" ? "all" : Number(event.target.value))}
+            >
+              {FLASHCARD_LIMIT_OPTIONS.map((option) => (
+                <option key={option} value={option}>{option === "all" ? "All" : option}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <ol className="flashcard-review-list">
+          {visibleFlashcards.map((question, index) => (
+            <li className="flashcard-review-card" key={question.id}>
+              <span className="flashcard-index" aria-hidden="true">{index + 1}</span>
+              <div className="flashcard-review-body">
+                <div className="flashcard-review-front">
+                  <p className="topic-label">{question.topic}</p>
+                  <h3>{question.question}</h3>
+                </div>
+                <div className="flashcard-review-back">
+                  <p>
+                    <span>Answer</span>
+                    <strong>{question.answerText || question.choices?.[question.correctAnswer] || "No answer stored."}</strong>
+                  </p>
+                  {question.explanation ? <p className="muted">{question.explanation}</p> : null}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        {visibleFlashcards.length ? (
+          <p className="muted flashcard-review-count">
+            Showing {visibleFlashcards.length} of {reviewer.questions.length} cards
+          </p>
+        ) : null}
       </section>
 
       <ConfirmModal
