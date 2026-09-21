@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { History, Home, Hourglass, Library, Menu, Moon, PlayCircle, Sparkles, Sun, Users, WifiOff } from "lucide-react";
 import appLogo from "../assets/Icon.png";
 import { REVIEWER_DATA_CHANGED_EVENT, getAllProgress, getAttemptHistory } from "../utils/storageUtils.js";
+import { getAllReviewers } from "../data/reviewerRegistry.js";
 
 const MAX_RECENT_ITEMS = 4;
 
@@ -10,11 +11,13 @@ function getRecentReviewerLinks() {
   const items = [];
   const seen = new Set();
 
+  const existingReviewerIds = new Set(getAllReviewers().map((reviewer) => reviewer.reviewerId));
+
   const progressSessions = Object.values(getAllProgress())
     .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
 
   for (const session of progressSessions) {
-    if (!session?.reviewerId || seen.has(session.reviewerId)) continue;
+    if (!session?.reviewerId || !existingReviewerIds.has(session.reviewerId) || seen.has(session.reviewerId)) continue;
     seen.add(session.reviewerId);
     items.push({
       key: `progress-${session.reviewerId}`,
@@ -29,7 +32,7 @@ function getRecentReviewerLinks() {
 
   if (items.length < MAX_RECENT_ITEMS) {
     for (const attempt of getAttemptHistory()) {
-      if (!attempt?.reviewerId || seen.has(attempt.reviewerId)) continue;
+      if (!attempt?.reviewerId || !existingReviewerIds.has(attempt.reviewerId) || seen.has(attempt.reviewerId)) continue;
       seen.add(attempt.reviewerId);
       items.push({
         key: `attempt-${attempt.attemptId}`,

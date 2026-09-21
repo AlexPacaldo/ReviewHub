@@ -4,6 +4,7 @@ import { useNotifications } from "../contexts/NotificationContext.jsx";
 import { acceptFriendRequest, listFriendships, removeFriendship } from "../services/social.js";
 import { listVisibleCloudReviewers } from "../services/cloudReviewers.js";
 import { saveCloudReviewerCache } from "../utils/storageUtils.js";
+import { supabase } from "../lib/supabaseClient.js";
 
 const STATE_KEY = "hachi_social_notification_state";
 const POLL_INTERVAL_MS = 60_000;
@@ -184,9 +185,19 @@ export default function SocialNotificationWatcher() {
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
+    const channel = supabase
+      ? supabase
+          .channel(`social-watcher-${user.id}`)
+          .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, () => runPoll())
+          .on("postgres_changes", { event: "*", schema: "public", table: "reviewer_shares" }, () => runPoll())
+          .on("postgres_changes", { event: "*", schema: "public", table: "reviewers" }, () => runPoll())
+          .subscribe()
+      : null;
+
     return () => {
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
+      if (channel) supabase.removeChannel(channel);
       unregisterAccept();
       unregisterDecline();
     };

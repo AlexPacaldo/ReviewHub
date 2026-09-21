@@ -225,3 +225,38 @@ on public.reviewer_shares(recipient_id, created_at desc);
 
 create index if not exists reviewer_shares_owner_idx
 on public.reviewer_shares(owner_id, created_at desc);
+
+-- Realtime: instantly push friendship and share changes to signed-in clients.
+-- Requires re-apply of this file (or running this block) in the Supabase dashboard.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'friendships'
+  ) then
+    alter publication supabase_realtime add table public.friendships;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'reviewer_shares'
+  ) then
+    alter publication supabase_realtime add table public.reviewer_shares;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'reviewers'
+  ) then
+    alter publication supabase_realtime add table public.reviewers;
+  end if;
+end $$;
+
+alter table public.friendships replica identity full;
+alter table public.reviewer_shares replica identity full;
