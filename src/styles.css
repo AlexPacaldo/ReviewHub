@@ -4991,6 +4991,32 @@ strong {
     box-shadow: none;
   }
 
+  .home-hero {
+    background:
+      radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--success-soft) 55%, transparent) 0%, transparent 12rem),
+      radial-gradient(70% 50% at 20% 12%, color-mix(in srgb, var(--warning-soft) 55%, transparent) 0%, transparent 10rem),
+      linear-gradient(180deg, #fffdf7 0%, #ecf6ea 100%);
+  }
+
+  :root[data-theme="dark"] .home-hero {
+    background:
+      radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--success-soft) 60%, transparent) 0%, transparent 12rem),
+      radial-gradient(70% 50% at 20% 12%, color-mix(in srgb, var(--warning-soft) 40%, transparent) 0%, transparent 10rem),
+      linear-gradient(180deg, #1a1c17 0%, #152720 100%);
+  }
+
+  .hero-paw {
+    display: none;
+  }
+
+  .hero-paw.paw-a,
+  .hero-paw.paw-d,
+  .hero-paw.paw-f,
+  .hero-paw.paw-o {
+    display: block;
+    opacity: 0.35;
+  }
+
   .navbar:not(.menu-open):not(.menu-closing):not(.scrolled) {
     display: contents;
   }
