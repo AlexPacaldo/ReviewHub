@@ -4925,31 +4925,6 @@ strong {
     box-shadow: none;
   }
 
-  .home-hero {
-    background:
-      radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--success-soft) 55%, transparent) 0%, transparent 12rem),
-      radial-gradient(70% 50% at 20% 12%, color-mix(in srgb, var(--warning-soft) 55%, transparent) 0%, transparent 10rem),
-      linear-gradient(180deg, #fffdf7 0%, #ecf6ea 100%);
-  }
-
-.spinner {
-  transform-origin: center;
-  animation: icon-spin 0.9s linear infinite;
-}
-
-@keyframes icon-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-:root[data-theme="dark"] .home-hero {
-    background:
-      radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--success-soft) 60%, transparent) 0%, transparent 12rem),
-      radial-gradient(70% 50% at 20% 12%, color-mix(in srgb, var(--warning-soft) 40%, transparent) 0%, transparent 10rem),
-      linear-gradient(180deg, #1a1c17 0%, #152720 100%);
-  }
-
   .hero-paw {
     display: none;
   }
@@ -5649,5 +5624,72 @@ strong {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+.spinner {
+  transform-origin: center;
+  animation: icon-spin 0.9s linear infinite;
+}
+
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 0.9s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-hero {
+    background:
+      radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--success-soft) 55%, transparent) 0%, transparent 12rem),
+      radial-gradient(70% 50% at 20% 12%, color-mix(in srgb, var(--warning-soft) 55%, transparent) 0%, transparent 10rem),
+      linear-gradient(180deg, #fffdf7 0%, #ecf6ea 100%);
+  }
+
+  :root[data-theme="dark"] .home-hero {
+    background:
+      radial-gradient(80% 60% at 50% 100%, color-mix(in srgb, var(--success-soft) 60%, transparent) 0%, transparent 12rem),
+      radial-gradient(70% 50% at 20% 12%, color-mix(in srgb, var(--warning-soft) 40%, transparent) 0%, transparent 10rem),
+      linear-gradient(180deg, #1a1c17 0%, #152720 100%);
+    border-color: color-mix(in srgb, var(--success) 24%, var(--border));
+  }
+
+  .notification-popover {
+    top: 74px;
+    left: 10px;
+    right: 10px;
+    max-height: calc(100vh - 90px);
+  }
+
+  .notification-head {
+    padding: 13px 14px;
+  }
+
+  .notification-item,
+  .notification-toast {
+    gap: 10px;
+    padding: 13px 14px;
+  }
+
+  .notification-title-row {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  .notification-title-row time {
+    flex: none;
+    margin-left: auto;
+  }
+
+  .notification-toasts {
+    left: 10px;
+    right: 10px;
   }
 }
