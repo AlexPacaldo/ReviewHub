@@ -5296,6 +5296,54 @@ strong {
   animation-delay: 0.2s;
 }
 
+.hero-paw.paw-k {
+  top: 4%;
+  left: 32%;
+  color: var(--success);
+  animation-duration: 7.5s;
+  animation-delay: 2.6s;
+}
+
+.hero-paw.paw-l {
+  top: 26%;
+  right: 6%;
+  color: var(--warning);
+  animation-duration: 8.5s;
+  animation-delay: 1.3s;
+}
+
+.hero-paw.paw-m {
+  bottom: 40%;
+  left: 2%;
+  color: var(--accent);
+  animation-duration: 9s;
+  animation-delay: 3s;
+}
+
+.hero-paw.paw-n {
+  bottom: 16%;
+  left: 24%;
+  color: var(--success);
+  animation-duration: 6.8s;
+  animation-delay: 0.7s;
+}
+
+.hero-paw.paw-o {
+  top: 62%;
+  right: 30%;
+  color: var(--success);
+  animation-duration: 7.8s;
+  animation-delay: 2.1s;
+}
+
+.hero-paw.paw-p {
+  bottom: 6%;
+  right: 46%;
+  color: var(--accent);
+  animation-duration: 9.5s;
+  animation-delay: 1.6s;
+}
+
 @keyframes float-paw {
   0%,
   100% {
