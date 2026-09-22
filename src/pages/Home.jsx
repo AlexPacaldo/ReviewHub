@@ -11,6 +11,38 @@ import { getAllReviewers } from "../data/reviewerRegistry.js";
 import { listVisibleCloudReviewers } from "../services/cloudReviewers.js";
 import { clearCloudReviewerCache, deleteLocalReviewer, getAllProgress, getAttemptHistory, REVIEWER_DATA_CHANGED_EVENT, saveCloudReviewerCache } from "../utils/storageUtils.js";
 
+const WEEK_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
+
+function toLocalDateKey(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function getStudySnapshot(allAttempts) {
+  const studiedDays = new Set();
+  allAttempts.forEach((attempt) => {
+    if (attempt.date) studiedDays.add(toLocalDateKey(new Date(attempt.date)));
+  });
+
+  let streakDays = 0;
+  const cursor = new Date();
+  if (!studiedDays.has(toLocalDateKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+  while (studiedDays.has(toLocalDateKey(cursor))) {
+    streakDays += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  const today = new Date();
+  const mondayOffset = (today.getDay() + 6) % 7;
+  const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - mondayOffset);
+  const week = WEEK_LABELS.map((label, index) => {
+    const day = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index);
+    return { label, studied: studiedDays.has(toLocalDateKey(day)) };
+  });
+
+  return { streakDays, week };
+}
+
 export default function Home() {
   const { configured, loading, user } = useAuth();
   const [search, setSearch] = useState("");
@@ -22,7 +54,8 @@ export default function Home() {
   const allAttempts = getAttemptHistory();
   const recentAttempts = allAttempts.slice(0, 5);
   const questionsAnswered = allAttempts.reduce((total, attempt) => total + Number(attempt.totalQuestions || 0), 0);
-  const streakDays = recentAttempts.length ? Math.min(recentAttempts.length + 7, 12) : 0;
+  const { streakDays, week } = useMemo(() => getStudySnapshot(allAttempts), [allAttempts]);
+  const streakNote = streakDays === 0 ? "Start a streak today!" : streakDays < 3 ? "Keep it going!" : "You're on a roll!";
   const completedReviewerIds = useMemo(() => new Set(allAttempts.map((attempt) => attempt.reviewerId).filter(Boolean)), [allAttempts]);
 
   useEffect(() => {
@@ -180,13 +213,13 @@ export default function Home() {
               <span className="hero-stat-icon"><Flame size={24} aria-hidden="true" /></span>
               <span className="hero-stat-text">
                 <small>Study Streak</small>
-                <strong>{streakDays || "0"} days</strong>
-                <em>Keep it going!</em>
+                <strong>{streakDays} {streakDays === 1 ? "day" : "days"}</strong>
+                <em>{streakNote}</em>
               </span>
             </div>
             <div className="streak-week" aria-hidden="true">
-              {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
-                <span className={index < Math.min(streakDays || 0, 5) ? "filled" : ""} key={`${day}-${index}`}>{day}</span>
+              {week.map((day, index) => (
+                <span className={day.studied ? "filled" : ""} key={`${day.label}-${index}`}>{day.label}</span>
               ))}
               <PawPrint size={20} />
             </div>

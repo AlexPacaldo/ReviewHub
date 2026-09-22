@@ -4723,6 +4723,7 @@ strong {
   position: relative;
   z-index: 1;
   justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -4763,29 +4764,31 @@ strong {
   background: color-mix(in srgb, var(--surface) 78%, transparent);
 }
 
-.reviewer-progress-badge {
-  position: absolute;
-  right: 16px;
-  top: 72px;
-  z-index: 2;
+.reviewer-card .reviewer-progress-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 34px;
   padding: 0 10px;
-  color: color-mix(in srgb, var(--text) 70%, var(--muted));
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
-  border: 1px solid rgba(255, 255, 255, 0.46);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: var(--radius-pill);
   font-size: 0.72rem;
   font-weight: 900;
 }
 
 .reviewer-progress-badge.in-progress {
-  color: #2563eb;
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .reviewer-progress-badge.completed {
-  color: #0f7a4b;
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.reviewer-progress-badge.not-started {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-2) 80%, transparent);
 }
 
 .reviewer-card-hero h3 {
