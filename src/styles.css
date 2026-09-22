@@ -4695,28 +4695,28 @@ strong {
   content: "";
 }
 
-.reviewer-card-rose .reviewer-card-hero {
-  background: linear-gradient(135deg, #fff0f0 0%, #ffc9cd 100%);
+.reviewer-card-completed .reviewer-card-hero {
+  background: linear-gradient(135deg, #e8fff2 0%, #c9f6df 100%);
 }
 
-.reviewer-card-blue .reviewer-card-hero {
-  background: linear-gradient(135deg, #eef7ff 0%, #c8e0ff 100%);
+.reviewer-card-in-progress .reviewer-card-hero {
+  background: linear-gradient(135deg, #eef7ff 0%, #c9e3ff 100%);
 }
 
-.reviewer-card-amber .reviewer-card-hero {
-  background: linear-gradient(135deg, #fff6e8 0%, #ffdba3 100%);
+.reviewer-card-not-started .reviewer-card-hero {
+  background: linear-gradient(135deg, #fff8ea 0%, #ffe0b0 100%);
 }
 
-.reviewer-card-rose .reviewer-card-hero::before {
-  color: rgba(244, 63, 94, 0.18);
+.reviewer-card-completed .reviewer-card-hero::before {
+  color: rgba(15, 122, 75, 0.18);
 }
 
-.reviewer-card-blue .reviewer-card-hero::before {
+.reviewer-card-in-progress .reviewer-card-hero::before {
   color: rgba(37, 99, 235, 0.18);
 }
 
-.reviewer-card-amber .reviewer-card-hero::before {
-  color: rgba(249, 115, 22, 0.2);
+.reviewer-card-not-started .reviewer-card-hero::before {
+  color: rgba(217, 119, 6, 0.2);
 }
 
 .reviewer-card .card-topline {
@@ -4736,20 +4736,16 @@ strong {
   font-size: 0.82rem;
 }
 
-.reviewer-card-mint .course-code {
+.reviewer-card-completed .course-code {
   color: #0f7a4b;
 }
 
-.reviewer-card-rose .course-code {
-  color: #dc2626;
-}
-
-.reviewer-card-blue .course-code {
+.reviewer-card-in-progress .course-code {
   color: #2563eb;
 }
 
-.reviewer-card-amber .course-code {
-  color: #f97316;
+.reviewer-card-not-started .course-code {
+  color: #b45309;
 }
 
 .reviewer-card .question-count {
@@ -4870,16 +4866,16 @@ strong {
   transform: translateY(-50%);
 }
 
-.reviewer-card-rose .coverage-block li::before {
-  background: #ef4444;
+.reviewer-card-completed .coverage-block li::before {
+  background: #2fbf74;
 }
 
-.reviewer-card-blue .coverage-block li::before {
+.reviewer-card-in-progress .coverage-block li::before {
   background: #3b82f6;
 }
 
-.reviewer-card-amber .coverage-block li::before {
-  background: #f97316;
+.reviewer-card-not-started .coverage-block li::before {
+  background: #f59e0b;
 }
 
 .reviewer-card .resume-note {

@@ -5,12 +5,6 @@ import hachiDogExcited from "../assets/hachi-dog-excited.png";
 import hachiDogFocused from "../assets/hachi-dog-focused.png";
 import hachiDogProud from "../assets/hachi-dog-proud.png";
 
-function getCardTone(reviewerId = "") {
-  const tones = ["mint", "rose", "blue", "amber"];
-  const total = [...reviewerId].reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return tones[total % tones.length];
-}
-
 function getDogState({ progress, hasCompleted }) {
   if (progress) {
     return {
@@ -44,11 +38,10 @@ export default function ReviewerCard({ reviewer, progress, hasCompleted = false,
   };
   const statusClass = reviewer.storageStatus || reviewer.source;
   const statusLabel = statusLabels[statusClass];
-  const cardTone = getCardTone(reviewer.reviewerId);
   const dogState = getDogState({ progress, hasCompleted });
 
   return (
-    <article className={`reviewer-card reviewer-card-${cardTone}`}>
+    <article className={`reviewer-card reviewer-card-${dogState.className}`}>
       <Link className="reviewer-card-link" to={`/reviewer/${reviewer.reviewerId}`}>
         <div className="reviewer-card-hero">
           <div className="card-topline">
