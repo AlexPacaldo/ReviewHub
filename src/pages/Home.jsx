@@ -194,11 +194,6 @@ export default function Home() {
             <h1>Hachi</h1>
             <p className="home-hero-tagline">Your study companion.</p>
             <p className="home-hero-subcopy">Study smarter, go further. Create, explore, and master reviewers with Hachi by your side.</p>
-            <div className="home-hero-actions">
-              <Link className="button subtle" to="/library">
-                See What's New
-              </Link>
-            </div>
           </div>
 
           <div className="home-hero-dog" aria-hidden="true">
