@@ -5182,9 +5182,9 @@ strong {
   padding: clamp(28px, 3.4vw, 44px);
   overflow: hidden;
   background:
-    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--success-soft) 46%, transparent) 0%, transparent 14rem),
-    radial-gradient(62% 54% at 26% 16%, color-mix(in srgb, var(--warning-soft) 55%, transparent) 0%, transparent 11rem),
-    linear-gradient(112deg, #fffdf7 0%, #fbfaf3 46%, #eef6ec 100%);
+    radial-gradient(90% 70% at 95% 100%, color-mix(in srgb, var(--success-soft) 50%, transparent) 0%, transparent 14rem),
+    radial-gradient(62% 54% at 20% 15%, color-mix(in srgb, var(--warning-soft) 55%, transparent) 0%, transparent 11rem),
+    linear-gradient(90deg, #fffdf7 0%, #f2f6e9 55%, #dceee0 100%);
   border: 1px solid color-mix(in srgb, var(--success) 20%, var(--border));
   border-radius: var(--radius-2xl);
 }
@@ -5196,9 +5196,9 @@ strong {
 
 :root[data-theme="dark"] .home-hero {
   background:
-    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--success-soft) 54%, transparent) 0%, transparent 14rem),
-    radial-gradient(62% 54% at 26% 16%, color-mix(in srgb, var(--warning-soft) 44%, transparent) 0%, transparent 11rem),
-    linear-gradient(112deg, #1d1f19 0%, #18201a 46%, #131f17 100%);
+    radial-gradient(90% 70% at 95% 100%, color-mix(in srgb, var(--success-soft) 58%, transparent) 0%, transparent 14rem),
+    radial-gradient(62% 54% at 20% 15%, color-mix(in srgb, var(--warning-soft) 44%, transparent) 0%, transparent 11rem),
+    linear-gradient(90deg, #1a1c17 0%, #16201a 55%, #12281c 100%);
   border-color: color-mix(in srgb, var(--success) 24%, var(--border));
 }
 
