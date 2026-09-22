@@ -53,8 +53,8 @@ export default function ReviewerCard({ reviewer, progress, hasCompleted = false,
         <div className="reviewer-card-hero">
           <div className="card-topline">
             <span className="course-code">{code}</span>
-            <span className={`reviewer-progress-badge ${dogState.className}`}>{dogState.label}</span>
             <span className="question-count">{reviewer.questions?.length || reviewer.questionCount} Questions</span>
+            <span className={`reviewer-progress-badge ${dogState.className}`}>{dogState.label}</span>
           </div>
           {statusLabel ? <span className={`reviewer-source-badge ${statusClass}`}>{statusLabel}</span> : null}
 

@@ -5165,7 +5165,7 @@ strong {
 
 .home-page {
   width: min(1560px, calc(100% - 28px));
-  padding-top: 18px;
+  padding-top: clamp(72px, 8vh, 100px);
 }
 
 :root[data-theme="dark"] .home-hero {
