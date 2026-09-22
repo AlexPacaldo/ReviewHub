@@ -295,9 +295,10 @@ export default function Generator() {
   const [generationStats, setGenerationStats] = useState(null);
   const [generationMessage, setGenerationMessage] = useState("");
   const [generationSteps, setGenerationSteps] = useState([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isAddingQuestions, setIsAddingQuestions] = useState(false);
-  const [isSavingReviewer, setIsSavingReviewer] = useState(false);
+const [isGenerating, setIsGenerating] = useState(false);
+const [isAddingQuestions, setIsAddingQuestions] = useState(false);
+const [isSavingReviewer, setIsSavingReviewer] = useState(false);
+const [generationElapsed, setGenerationElapsed] = useState(0);
   const [draftMessage, setDraftMessage] = useState(savedDraft?.savedAt ? `Draft restored from ${new Date(savedDraft.savedAt).toLocaleString()}.` : "");
 
   useEffect(() => {
@@ -310,6 +311,16 @@ export default function Generator() {
       window.removeEventListener("offline", updateOnlineStatus);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isGenerating && !isAddingQuestions) {
+      setGenerationElapsed(0);
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => setGenerationElapsed((value) => value + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [isGenerating, isAddingQuestions]);
 
   useEffect(() => {
     if (skipNextAutosave.current) {
@@ -962,7 +973,7 @@ export default function Generator() {
             ) : null}
             {isGenerating || isAddingQuestions ? (
               <p className="generation-hint">
-                Gemini can take a minute or two to write all the questions, especially for larger counts. Keep this tab open.
+                Working for {generationElapsed}s{generationElapsed >= 30 ? " — Gemini can take a minute or two, especially for larger counts." : " — hang tight."}
               </p>
             ) : null}
           </div>
