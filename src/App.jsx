@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Download, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import Navbar from "./components/Navbar.jsx";
 import { NotificationToasts } from "./components/NotificationCenter.jsx";
 import SocialNotificationWatcher from "./components/SocialNotificationWatcher.jsx";
@@ -25,8 +25,6 @@ import { logClientError } from "./utils/errorLogger.js";
 function AppShell() {
   const [theme, setTheme] = useState(getThemePreference);
   const [updateReady, setUpdateReady] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [installDismissed, setInstallDismissed] = useState(() => localStorage.getItem("reviewer_install_dismissed") === "true");
   const { notify } = useNotifications();
 
   useEffect(() => {
@@ -47,16 +45,6 @@ function AppShell() {
     window.addEventListener("reviewhub:update-ready", showUpdateNotice);
     return () => window.removeEventListener("reviewhub:update-ready", showUpdateNotice);
   }, [notify]);
-
-  useEffect(() => {
-    const captureInstallPrompt = (event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-    };
-
-    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
-  }, []);
 
   useEffect(() => {
     const showOnlineNotice = () => {
@@ -102,17 +90,6 @@ function AppShell() {
     };
   }, []);
 
-  async function installApp() {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    setInstallPrompt(null);
-  }
-
-  function dismissInstallPrompt() {
-    localStorage.setItem("reviewer_install_dismissed", "true");
-    setInstallDismissed(true);
-  }
-
   return (
     <AuthProvider>
       <SocialNotificationWatcher />
@@ -126,20 +103,6 @@ function AppShell() {
           <button className="button subtle" type="button" onClick={() => window.location.reload()}>
             Reload
           </button>
-        </div>
-      ) : null}
-      {installPrompt && !installDismissed ? (
-        <div className="install-banner" role="status">
-          <span className="banner-icon" aria-hidden="true"><Download size={15} /></span>
-          <span>Install Hachi for faster offline access.</span>
-          <div className="button-row">
-            <button className="button primary" type="button" onClick={installApp}>
-              Install
-            </button>
-            <button className="button subtle" type="button" onClick={dismissInstallPrompt}>
-              Later
-            </button>
-          </div>
         </div>
       ) : null}
       <main>
