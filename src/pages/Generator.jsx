@@ -34,6 +34,13 @@ const QUESTION_TYPE_OPTIONS = [
   { value: "true_false", label: "True / False" },
   { value: "flashcard", label: "Flashcards" }
 ];
+const QUESTION_COUNT_OPTIONS = [
+  { value: "20", label: "20" },
+  { value: "50", label: "50" },
+  { value: "75", label: "75" },
+  { value: "100", label: "100" },
+  { value: "comprehensive", label: "Comprehensive" }
+];
 const MORE_QUESTION_COUNT_OPTIONS = [
   { value: "10", label: "+10" },
   { value: "20", label: "+20" },
@@ -275,7 +282,7 @@ export default function Generator() {
   );
   const [questions, setQuestions] = useState(savedDraft?.questions || []);
   const [sourceText, setSourceText] = useState(savedDraft?.sourceText || "");
-  const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "100");
+  const [targetQuestionCount, setTargetQuestionCount] = useState(savedDraft?.targetQuestionCount || "50");
   const [difficulty, setDifficulty] = useState(savedDraft?.difficulty || "mixed");
   const [questionType, setQuestionType] = useState(savedDraft?.questionType || "multiple_choice");
   const [moreQuestionCount, setMoreQuestionCount] = useState(savedDraft?.moreQuestionCount || "20");
@@ -830,7 +837,7 @@ export default function Generator() {
     setQuestionDraft(emptyQuestion);
     setQuestions([]);
     setSourceText("");
-    setTargetQuestionCount("100");
+    setTargetQuestionCount("50");
     setDifficulty("mixed");
     setQuestionType("multiple_choice");
     setMoreQuestionCount("20");
@@ -893,9 +900,21 @@ export default function Generator() {
               </label>
             </div>
 
-            <p className="generator-note">
-              Generates 100 multiple-choice questions at mixed difficulty. After saving, choose the question count and difficulty from the reviewer's quiz setup.
-            </p>
+            <fieldset className="generator-option-group">
+              <legend>Number of Questions</legend>
+              <div className="segmented">
+                {QUESTION_COUNT_OPTIONS.map((option) => (
+                  <button
+                    className={targetQuestionCount === option.value ? "active" : ""}
+                    type="button"
+                    key={option.value}
+                    onClick={() => setTargetQuestionCount(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <label className="upload-zone ai-upload-zone">
               <input type="file" accept=".pdf,.txt,.md,.csv,.json,text/plain,application/pdf" onChange={handleStudyFile} />

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { ChevronDown, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { NotificationCenter } from "./NotificationCenter.jsx";
 
@@ -24,7 +24,6 @@ export default function TopActions() {
           {user && avatarUrl ? <img src={avatarUrl} alt="" /> : <UserRound size={18} />}
         </span>
         <span className="top-account-name">{getUserName(user)}</span>
-        <ChevronDown className="top-account-chevron" size={15} aria-hidden="true" />
       </NavLink>
     </div>
   );
