@@ -187,6 +187,14 @@ export default function Home() {
   return (
     <div className="page home-page">
       <section className="hero home-hero">
+        <div className="hero-paws" aria-hidden="true">
+          <PawPrint className="hero-paw paw-a" size={26} />
+          <PawPrint className="hero-paw paw-b" size={18} />
+          <PawPrint className="hero-paw paw-c" size={22} />
+          <PawPrint className="hero-paw paw-d" size={14} />
+          <PawPrint className="hero-paw paw-e" size={20} />
+          <PawPrint className="hero-paw paw-f" size={15} />
+        </div>
         <div className="home-hero-main">
           <div className="home-hero-copy">
             <p className="eyebrow">Welcome back!</p>
