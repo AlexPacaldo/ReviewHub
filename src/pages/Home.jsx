@@ -53,7 +53,6 @@ export default function Home() {
   const progress = getAllProgress();
   const allAttempts = getAttemptHistory();
   const recentAttempts = allAttempts.slice(0, 5);
-  const questionsAnswered = allAttempts.reduce((total, attempt) => total + Number(attempt.totalQuestions || 0), 0);
   const { streakDays, week } = useMemo(() => getStudySnapshot(allAttempts), [allAttempts]);
   const streakNote = streakDays === 0 ? "Start a streak today!" : streakDays < 3 ? "Keep it going!" : "You're on a roll!";
   const completedReviewerIds = useMemo(() => new Set(allAttempts.map((attempt) => attempt.reviewerId).filter(Boolean)), [allAttempts]);
@@ -233,8 +232,8 @@ export default function Home() {
             <div className="hero-stat-head">
               <span className="hero-stat-icon"><Target size={25} aria-hidden="true" /></span>
               <span className="hero-stat-text">
-                <small>Questions Answered</small>
-                <strong>{questionsAnswered}</strong>
+                <small>Reviewers Reviewed</small>
+                <strong>{completedReviewerIds.size}</strong>
                 <em>Great progress!</em>
               </span>
             </div>
