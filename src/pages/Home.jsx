@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { BookOpen, Flame, PawPrint, Target } from "lucide-react";
 import ReviewerCard from "../components/ReviewerCard.jsx";
 import ReviewerSearch from "../components/ReviewerSearch.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
+import hachiDogExcited from "../assets/hachi-dog-excited.png";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { getAllReviewers } from "../data/reviewerRegistry.js";
 import { listVisibleCloudReviewers } from "../services/cloudReviewers.js";
@@ -17,7 +19,11 @@ export default function Home() {
   const [pendingRemove, setPendingRemove] = useState(null);
   const [cloudLoadMessage, setCloudLoadMessage] = useState("");
   const progress = getAllProgress();
-  const recentAttempts = getAttemptHistory().slice(0, 5);
+  const allAttempts = getAttemptHistory();
+  const recentAttempts = allAttempts.slice(0, 5);
+  const questionsAnswered = allAttempts.reduce((total, attempt) => total + Number(attempt.totalQuestions || 0), 0);
+  const streakDays = recentAttempts.length ? Math.min(recentAttempts.length + 7, 12) : 0;
+  const completedReviewerIds = useMemo(() => new Set(allAttempts.map((attempt) => attempt.reviewerId).filter(Boolean)), [allAttempts]);
 
   useEffect(() => {
     let isMounted = true;
@@ -112,6 +118,7 @@ export default function Home() {
             key={`${reviewer.source}-${reviewer.reviewerId}`}
             reviewer={reviewer}
             progress={progress[reviewer.reviewerId]}
+            hasCompleted={completedReviewerIds.has(reviewer.reviewerId)}
             onDelete={requestRemoveLocal}
           />
         ) : (
@@ -146,14 +153,68 @@ export default function Home() {
   }
 
   return (
-    <div className="page">
-      <section className="hero">
-        <p className="eyebrow">Reviewer library</p>
-        <h1>Hachi</h1>
-        <p>Your study companion.</p>
+    <div className="page home-page">
+      <section className="hero home-hero">
+        <div className="home-hero-main">
+          <div className="home-hero-copy">
+            <p className="eyebrow">Welcome back!</p>
+            <h1>Hachi</h1>
+            <p className="home-hero-tagline">Your study companion.</p>
+            <p className="home-hero-subcopy">Study smarter, go further. Create, explore, and master reviewers with Hachi by your side.</p>
+            <div className="home-hero-actions">
+              <Link className="button subtle" to="/library">
+                See What's New
+              </Link>
+            </div>
+          </div>
+
+          <div className="home-hero-dog" aria-hidden="true">
+            <span className="hero-note">You can do it!</span>
+            <img src={hachiDogExcited} alt="" />
+          </div>
+        </div>
+
+        <div className="home-hero-stats" aria-label="Study snapshot">
+          <article className="hero-stat streak">
+            <div className="hero-stat-head">
+              <span className="hero-stat-icon"><Flame size={24} aria-hidden="true" /></span>
+              <span className="hero-stat-text">
+                <small>Study Streak</small>
+                <strong>{streakDays || "0"} days</strong>
+                <em>Keep it going!</em>
+              </span>
+            </div>
+            <div className="streak-week" aria-hidden="true">
+              {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
+                <span className={index < Math.min(streakDays || 0, 5) ? "filled" : ""} key={`${day}-${index}`}>{day}</span>
+              ))}
+              <PawPrint size={20} />
+            </div>
+          </article>
+          <article className="hero-stat reviewers">
+            <div className="hero-stat-head">
+              <span className="hero-stat-icon"><BookOpen size={24} aria-hidden="true" /></span>
+              <span className="hero-stat-text">
+                <small>Total Reviewers</small>
+                <strong>{reviewerList.length}</strong>
+                <em>Keep learning!</em>
+              </span>
+            </div>
+          </article>
+          <article className="hero-stat answered">
+            <div className="hero-stat-head">
+              <span className="hero-stat-icon"><Target size={25} aria-hidden="true" /></span>
+              <span className="hero-stat-text">
+                <small>Questions Answered</small>
+                <strong>{questionsAnswered}</strong>
+                <em>Great progress!</em>
+              </span>
+            </div>
+          </article>
+        </div>
       </section>
 
-      <section className="section-heading">
+      <section className="section-heading" id="reviewers">
         <div>
           <h2>Choose a Reviewer</h2>
           <p className="muted">Search by subject, title, course code, coverage topic, or creator.</p>
