@@ -5182,9 +5182,8 @@ strong {
   padding: clamp(28px, 3.4vw, 44px);
   overflow: hidden;
   background:
-    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--success-soft) 42%, transparent) 0%, transparent 14rem),
-    radial-gradient(60% 52% at 26% 16%, color-mix(in srgb, var(--warning-soft) 52%, transparent) 0%, transparent 11rem),
-    radial-gradient(circle, color-mix(in srgb, var(--success) 9%, transparent) 1.6px, transparent 2.6px) 0 0 / 46px 46px,
+    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--success-soft) 46%, transparent) 0%, transparent 14rem),
+    radial-gradient(62% 54% at 26% 16%, color-mix(in srgb, var(--warning-soft) 55%, transparent) 0%, transparent 11rem),
     linear-gradient(112deg, #fffdf7 0%, #fbfaf3 46%, #eef6ec 100%);
   border: 1px solid color-mix(in srgb, var(--success) 20%, var(--border));
   border-radius: var(--radius-2xl);
@@ -5197,9 +5196,8 @@ strong {
 
 :root[data-theme="dark"] .home-hero {
   background:
-    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--success-soft) 50%, transparent) 0%, transparent 14rem),
-    radial-gradient(60% 52% at 26% 16%, color-mix(in srgb, var(--warning-soft) 40%, transparent) 0%, transparent 11rem),
-    radial-gradient(circle, color-mix(in srgb, var(--success) 11%, transparent) 1.6px, transparent 2.6px) 0 0 / 46px 46px,
+    radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--success-soft) 54%, transparent) 0%, transparent 14rem),
+    radial-gradient(62% 54% at 26% 16%, color-mix(in srgb, var(--warning-soft) 44%, transparent) 0%, transparent 11rem),
     linear-gradient(112deg, #1d1f19 0%, #18201a 46%, #131f17 100%);
   border-color: color-mix(in srgb, var(--success) 24%, var(--border));
 }
@@ -5264,6 +5262,38 @@ strong {
   color: var(--accent);
   animation-duration: 10s;
   animation-delay: 0.4s;
+}
+
+.hero-paw.paw-g {
+  top: 18%;
+  right: 13%;
+  color: var(--accent);
+  animation-duration: 7s;
+  animation-delay: 0.9s;
+}
+
+.hero-paw.paw-h {
+  bottom: 10%;
+  right: 20%;
+  color: var(--warning);
+  animation-duration: 9s;
+  animation-delay: 2.4s;
+}
+
+.hero-paw.paw-i {
+  top: 58%;
+  left: 6%;
+  color: var(--success);
+  animation-duration: 8s;
+  animation-delay: 1.8s;
+}
+
+.hero-paw.paw-j {
+  bottom: 30%;
+  left: 30%;
+  color: var(--warning);
+  animation-duration: 6.5s;
+  animation-delay: 0.2s;
 }
 
 @keyframes float-paw {

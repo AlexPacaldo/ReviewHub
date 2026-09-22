@@ -194,6 +194,10 @@ export default function Home() {
           <PawPrint className="hero-paw paw-d" size={14} />
           <PawPrint className="hero-paw paw-e" size={20} />
           <PawPrint className="hero-paw paw-f" size={15} />
+          <PawPrint className="hero-paw paw-g" size={24} />
+          <PawPrint className="hero-paw paw-h" size={16} />
+          <PawPrint className="hero-paw paw-i" size={19} />
+          <PawPrint className="hero-paw paw-j" size={13} />
         </div>
         <div className="home-hero-main">
           <div className="home-hero-copy">
