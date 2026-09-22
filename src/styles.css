@@ -177,29 +177,57 @@ main {
   z-index: 35;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
+  padding: 4px;
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+}
+
+.app-top-actions .notification-trigger {
+  width: 36px;
+  min-height: 36px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+}
+
+.app-top-actions .notification-trigger:hover {
+  background: var(--surface-2);
+}
+
+.top-cluster-divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 22px;
+  margin: 0 5px;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
 }
 
 .top-account-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  max-width: min(240px, calc(100vw - 96px));
-  padding: 0 12px 0 8px;
+  min-height: 36px;
+  max-width: min(220px, calc(100vw - 140px));
+  padding: 0 10px 0 6px;
   color: var(--text);
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 0;
   border-radius: var(--radius-pill);
   font-weight: 800;
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
 }
 
 .top-account-link:hover,
 .top-account-link.active {
   background: var(--surface-2);
-  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+
+.top-account-chevron {
+  flex: 0 0 auto;
+  color: var(--muted);
 }
 
 .top-account-avatar {
@@ -533,19 +561,19 @@ main {
 
 .notification-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: 1px;
+  right: 1px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
   color: #fff;
   background: var(--danger);
-  border: 2px solid var(--surface);
+  border: 2px solid color-mix(in srgb, var(--surface) 84%, transparent);
   border-radius: var(--radius-pill);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -4917,13 +4945,23 @@ strong {
   .app-top-actions {
     top: 19px;
     right: 22px;
-    gap: 8px;
+    padding: 3px;
+  }
+
+  .app-top-actions .notification-trigger {
+    width: 34px;
+    min-height: 34px;
   }
 
   .top-account-link {
-    max-width: 126px;
-    min-height: 42px;
-    padding-right: 10px;
+    min-height: 34px;
+    max-width: none;
+    padding: 0 4px;
+  }
+
+  .top-account-name,
+  .top-account-chevron {
+    display: none;
   }
 
   .top-account-avatar {
@@ -5046,19 +5084,22 @@ strong {
   }
 
   .app-top-actions {
-    gap: 6px;
+    padding: 3px;
   }
 
-  .app-top-actions .icon-button {
-    width: 42px;
-    min-height: 42px;
+  .app-top-actions .notification-trigger {
+    width: 32px;
+    min-height: 32px;
+  }
+
+  .top-cluster-divider {
+    height: 20px;
+    margin: 0 4px;
   }
 
   .top-account-link {
-    max-width: 104px;
-    gap: 6px;
-    padding-left: 7px;
-    padding-right: 8px;
+    gap: 0;
+    padding: 0 3px;
   }
 
   .page,
