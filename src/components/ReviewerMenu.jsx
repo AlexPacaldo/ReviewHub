@@ -283,7 +283,7 @@ export default function ReviewerMenu({ reviewer, user, configured, onMessage, on
         <section className="reviewer-menu-popover" aria-label="Reviewer options">
           {isOwner && visibilitySaving ? (
             <div className="reviewer-menu-item reviewer-menu-status">
-              <Loader2 size={16} aria-hidden="true" />
+              <Loader2 className="spinner" size={16} aria-hidden="true" />
               Saving...
             </div>
           ) : null}
@@ -506,7 +506,7 @@ export default function ReviewerMenu({ reviewer, user, configured, onMessage, on
                 Cancel
               </button>
               <button className="button primary" type="button" onClick={saveFriendSelection} disabled={pickSaving || friendLoading}>
-                {pickSaving ? <Loader2 size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
+                {pickSaving ? <Loader2 className="spinner" size={16} aria-hidden="true" /> : <Check size={16} aria-hidden="true" />}
                 {pickSaving ? "Saving..." : "Save"}
               </button>
             </div>

@@ -947,7 +947,7 @@ export default function Generator() {
             ) : null}
             <div className="button-row">
               <button className="button primary" type="button" onClick={generateReviewerWithAi} disabled={isGenerating || isAddingQuestions || !isOnline}>
-                {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}
+                {isGenerating ? <Loader2 className="spinner" size={17} aria-hidden="true" /> : <Sparkles size={17} aria-hidden="true" />}
                 {isGenerating ? "Generating..." : "Generate with Gemini"}
               </button>
               {generationMessage ? <span className="template-message">{generationMessage}</span> : null}
@@ -959,6 +959,11 @@ export default function Generator() {
                   <li key={step}>{step}</li>
                 ))}
               </ol>
+            ) : null}
+            {isGenerating || isAddingQuestions ? (
+              <p className="generation-hint">
+                Gemini can take a minute or two to write all the questions, especially for larger counts. Keep this tab open.
+              </p>
             ) : null}
           </div>
 
@@ -1005,7 +1010,7 @@ export default function Generator() {
                   onClick={makeMoreQuestions}
                   disabled={isGenerating || isAddingQuestions || !isOnline}
                 >
-                  {isAddingQuestions ? <Loader2 size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+                  {isAddingQuestions ? <Loader2 className="spinner" size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
                   {isAddingQuestions ? "Adding..." : "Add Questions"}
                 </button>
               </div>
@@ -1016,7 +1021,7 @@ export default function Generator() {
                   onClick={() => generateReviewerWithAi({ regenerate: true })}
                   disabled={isGenerating || isAddingQuestions || !isOnline}
                 >
-                  {isGenerating ? <Loader2 size={17} aria-hidden="true" /> : <RotateCcw size={17} aria-hidden="true" />}
+                  {isGenerating ? <Loader2 className="spinner" size={17} aria-hidden="true" /> : <RotateCcw size={17} aria-hidden="true" />}
                   Regenerate
                 </button>
                 {savedReviewer ? (
@@ -1025,7 +1030,7 @@ export default function Generator() {
                   </button>
                 ) : (
                   <button className="button primary" type="button" onClick={() => saveReviewerJson(jsonText)} disabled={isSavingReviewer}>
-                    {isSavingReviewer ? <Loader2 size={17} aria-hidden="true" /> : <Save size={17} aria-hidden="true" />}
+                    {isSavingReviewer ? <Loader2 className="spinner" size={17} aria-hidden="true" /> : <Save size={17} aria-hidden="true" />}
                     {isSavingReviewer ? "Saving..." : configured && user ? "Save to Cloud" : "Save Offline"}
                   </button>
                 )}
@@ -1159,7 +1164,7 @@ export default function Generator() {
             </div>
 
             <button className="button primary large" type="button" onClick={saveDraftReviewer} disabled={isSavingReviewer}>
-              {isSavingReviewer ? <Loader2 size={18} aria-hidden="true" /> : <Save size={18} aria-hidden="true" />}
+              {isSavingReviewer ? <Loader2 className="spinner" size={18} aria-hidden="true" /> : <Save size={18} aria-hidden="true" />}
               {isSavingReviewer ? "Saving..." : configured && user ? "Save Manual to Cloud & Offline" : "Save Manual Offline"}
             </button>
           </details>
