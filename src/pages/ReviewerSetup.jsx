@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, BookOpen, Cloud, Eye, EyeOff, HardDrive, Play, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Cloud, Eye, EyeOff, HardDrive, Layers, Play, Users, Zap } from "lucide-react";
 import { getReviewerById } from "../data/reviewerRegistry.js";
 import EmptyState from "../components/EmptyState.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
@@ -8,6 +8,10 @@ import ReviewerMenu from "../components/ReviewerMenu.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { createQuizSession, getQuestionTypeOptions, getStoredQuestionTypes } from "../utils/quizUtils.js";
 import { clearQuizProgress, getLatestAttempt, loadQuizProgress, saveQuizProgress } from "../utils/storageUtils.js";
+import hachiDogCurious from "../assets/hachi-dog-curious.png";
+import hachiDogExcited from "../assets/hachi-dog-excited.png";
+import hachiDogFocused from "../assets/hachi-dog-focused.png";
+import hachiDogProud from "../assets/hachi-dog-proud.png";
 
 const QUESTION_TYPE_LABELS = {
   multiple_choice: "Multiple Choice",
@@ -17,6 +21,36 @@ const QUESTION_TYPE_LABELS = {
 };
 
 const FLASHCARD_LIMIT_OPTIONS = [10, 20, 50, "all"];
+
+function getReviewerDogState({ savedProgress, latestAttempt }) {
+  if (savedProgress) {
+    return {
+      label: "In progress",
+      className: "in-progress",
+      image: hachiDogFocused,
+      note: "Right where you left off.",
+      cheer: "Focus mode is ready!"
+    };
+  }
+
+  if (latestAttempt) {
+    return {
+      label: "Completed",
+      className: "completed",
+      image: hachiDogProud,
+      note: "Reviewed before",
+      cheer: "Good things ahead!"
+    };
+  }
+
+  return {
+    label: "Not started",
+    className: "not-started",
+    image: hachiDogCurious,
+    note: "New topics today",
+    cheer: "Let's sniff out the answers!"
+  };
+}
 
 export default function ReviewerSetup() {
   const { reviewerId } = useParams();
@@ -63,6 +97,9 @@ export default function ReviewerSetup() {
     return <EmptyState title="Unable to load this reviewer." message={reviewer?.validation.errors[0] || "The reviewer does not exist."} action={<Link className="button primary" to="/">Back to Reviewers</Link>} />;
   }
 
+  const dogState = getReviewerDogState({ savedProgress, latestAttempt });
+  const reviewerCode = reviewer.title.split(" ")[0];
+
   const startQuiz = (retryIds = null, overrides = {}) => {
     const nextSettings = { ...settings, ...overrides };
     const session = createQuizSession(reviewer, nextSettings, retryIds);
@@ -108,34 +145,47 @@ export default function ReviewerSetup() {
   };
 
   return (
-    <div className="page narrow">
+    <div className="page narrow reviewer-setup-page">
       <Link className="back-link" to="/">
         <ArrowLeft size={17} aria-hidden="true" />
         Back to Reviewers
       </Link>
 
-      <section className="setup-panel">
-        <div className="reviewer-head-row">
-          <div className="reviewer-head-copy">
-            <p className="eyebrow">{reviewer.subject}</p>
-            <h1>{reviewer.title}</h1>
+      <section className={`setup-panel reviewer-setup-hero reviewer-setup-${dogState.className}`}>
+        <div className="reviewer-hero-copy">
+          <div className="reviewer-head-row">
+            <div className="reviewer-head-copy">
+              <p className="eyebrow">{reviewer.subject}</p>
+              <h1>{reviewer.title}</h1>
+            </div>
+            <ReviewerMenu
+              reviewer={reviewer}
+              user={user}
+              configured={configured}
+              onMessage={setMenuMessage}
+              onChanged={() => setRefreshKey((current) => current + 1)}
+            />
           </div>
-          <ReviewerMenu
-            reviewer={reviewer}
-            user={user}
-            configured={configured}
-            onMessage={setMenuMessage}
-            onChanged={() => setRefreshKey((current) => current + 1)}
-          />
+          <p className="muted">{reviewer.instructions}</p>
+          <div className="stat-strip reviewer-hero-stats">
+            <span><strong>{reviewer.questions.length}</strong> available questions</span>
+            <span><strong>{reviewer.coverage.length}</strong> coverage areas</span>
+            <span className={`reviewer-status-pill ${dogState.className}`}>{dogState.label}</span>
+          </div>
+          {menuMessage ? <p className={`sync-message ${menuMessage.type}`}>{menuMessage.text}</p> : null}
         </div>
-        <p className="muted">{reviewer.instructions}</p>
-        <div className="stat-strip">
-          <span><strong>{reviewer.questions.length}</strong> available questions</span>
-          <span><strong>{reviewer.coverage.length}</strong> coverage areas</span>
+
+        <div className="reviewer-hero-dog" aria-hidden="true">
+          <span className="reviewer-hero-note">{dogState.cheer}</span>
+          <span className="reviewer-hero-code">{reviewerCode}</span>
+          <img className={dogState.className} src={dogState.image} alt="" />
+          <span className="reviewer-hero-paw paw-one" />
+          <span className="reviewer-hero-paw paw-two" />
+          <span className="reviewer-hero-paw paw-three" />
         </div>
-        {menuMessage ? <p className={`sync-message ${menuMessage.type}`}>{menuMessage.text}</p> : null}
 
         <div className="availability-box">
+          <img className="availability-dog" src={isSharedWithMe ? hachiDogExcited : hachiDogFocused} alt="" aria-hidden="true" />
           <div className="availability-icon" aria-hidden="true">
             {isSharedWithMe ? <Users size={20} /> : hasCloud && isOwnerReviewer ? <Cloud size={20} /> : hasLocal ? <HardDrive size={20} /> : <BookOpen size={20} />}
           </div>
@@ -163,14 +213,27 @@ export default function ReviewerSetup() {
             Manage Library
           </Link>
         </div>
+      </section>
 
-        <div className="coverage-block setup">
-          <h2>Coverage</h2>
-          <ul>
-            {reviewer.coverage.map((topic) => (
-              <li key={topic}>{topic}</li>
-            ))}
-          </ul>
+      <section className="setup-panel reviewer-info-panel">
+        <div className="reviewer-info-copy">
+          <span className="setup-section-icon">
+            <Layers size={23} aria-hidden="true" />
+          </span>
+          <div className="coverage-block setup">
+            <h2>Coverage</h2>
+            <p className="muted">This reviewer covers the following topics:</p>
+            <ul>
+              {reviewer.coverage.map((topic) => (
+                <li key={topic}>{topic}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="reviewer-quote-card" aria-hidden="true">
+          <span>{dogState.note}</span>
+          <strong>New topics today, brighter tomorrow!</strong>
+          <img src={hachiDogCurious} alt="" />
         </div>
       </section>
 
@@ -189,8 +252,20 @@ export default function ReviewerSetup() {
         </section>
       ) : null}
 
-      <section className="setup-panel">
-        <h2>Quiz Setup</h2>
+      <section className="setup-panel quiz-setup-panel">
+        <div className="quiz-setup-head">
+          <span className="setup-section-icon">
+            <Zap size={24} aria-hidden="true" />
+          </span>
+          <div>
+            <h2>Quiz Setup</h2>
+            <p className="muted">Customize your practice session below.</p>
+          </div>
+          <div className="quiz-setup-dog" aria-hidden="true">
+            <span>Practice today for a brighter tomorrow.</span>
+            <img src={savedProgress ? hachiDogFocused : hachiDogExcited} alt="" />
+          </div>
+        </div>
 
         <fieldset>
           <legend>Number of Questions</legend>
